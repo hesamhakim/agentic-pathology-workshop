@@ -1,5 +1,9 @@
 FROM mcr.microsoft.com/devcontainers/python:1-3.11-bookworm
 
+# The MS devcontainer image ships a stale Yarn apt source whose GPG key
+# expired; apt-get update fails on it. Drop that source before installing.
+RUN rm -f /etc/apt/sources.list.d/yarn.list
+
 # System packages needed for cyvcf2, scispacy, and friends
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
