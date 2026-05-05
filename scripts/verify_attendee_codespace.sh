@@ -29,9 +29,10 @@ http_ok() {
     [ "$code" = "200" ]
 }
 
-container_running() {
-    local name="$1"
-    docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$name"
+compose_service_running() {
+    local service="$1"
+    docker compose -f .devcontainer/docker-compose.yml ps --services --status running 2>/dev/null \
+        | grep -qx "$service"
 }
 
 echo "Codespace health check"
@@ -50,11 +51,10 @@ check "docker-compose.yml exists" test -f .devcontainer/docker-compose.yml
 
 echo
 echo "Containers"
-check "devshell container running"  container_running "$(basename "$PWD")_devshell_1"   || \
-check "devshell (alt name)"         container_running "${PWD##*/}-devshell-1"
-check "langflow container running"  container_running "${PWD##*/}-langflow-1"
-check "phoenix container running"   container_running "${PWD##*/}-phoenix-1"
-check "keybroker container running" container_running "${PWD##*/}-keybroker-1"
+check "devshell service running"  compose_service_running "devshell"
+check "langflow service running"  compose_service_running "langflow"
+check "phoenix service running"   compose_service_running "phoenix"
+check "keybroker service running" compose_service_running "keybroker"
 
 echo
 echo "Endpoints"
