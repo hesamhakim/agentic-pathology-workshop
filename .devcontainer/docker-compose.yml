@@ -17,7 +17,7 @@ services:
       PYTHONUNBUFFERED: "1"
 
   langflow:
-    image: langflowai/langflow:1.1.1   # PIN — verified at T-14 days
+    image: langflowai/langflow:1.9.2   # PIN — verified 2026-05-05; bump after T-14 smoke
     ports: ["7860:7860"]
     environment:
       LANGFLOW_AUTO_LOGIN: "true"
@@ -38,7 +38,7 @@ services:
     restart: unless-stopped
 
   phoenix:
-    image: arizephoenix/phoenix:latest   # CHANGE TO PINNED TAG at T-14 days
+    image: arizephoenix/phoenix:15.3.0   # PIN — verified 2026-05-05; bump after T-14 smoke
     ports:
       - "6006:6006"
       - "4317:4317"

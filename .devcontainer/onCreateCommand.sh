@@ -6,8 +6,8 @@ set -euxo pipefail
 cd /workspaces/"${WORKSPACE_NAME:-$(basename "$PWD")}" || cd /workspaces/*/
 
 # Pre-pull all service images so docker compose up is image-cache hits at workshop time
-docker pull langflowai/langflow:1.1.1 || true
-docker pull arizephoenix/phoenix:latest || true
+docker pull langflowai/langflow:1.9.2 || true
+docker pull arizephoenix/phoenix:15.3.0 || true
 
 # Install Python deps for the devshell + the local 'tools' package
 pip install --no-cache-dir -r requirements-dev.txt
