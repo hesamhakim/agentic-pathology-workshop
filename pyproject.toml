@@ -11,24 +11,10 @@ requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "Hesam Hakim", email = "hesamhakim@gmail.com" }]
 
-dependencies = [
-    "pydantic>=2.0",
-    "httpx>=0.27",
-    "openai>=1.50",
-    "cyvcf2>=0.30",
-    "phoenix-otel",
-    "openinference-instrumentation-langchain",
-    "openinference-instrumentation-openai",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=8",
-    "pytest-asyncio",
-    "ruff",
-    "black",
-    "mypy",
-]
+# Runtime deps live in requirements.txt (the umbrella pin file) so the devshell
+# and CI can install them with one `pip install -r requirements.txt`. The package
+# itself just declares the layout; `pip install -e .` makes `import tools.*` work.
+dependencies = []
 
 [tool.setuptools.packages.find]
 where = ["."]
