@@ -18,6 +18,10 @@ services:
 
   langflow:
     image: langflowai/langflow:1.9.2   # PIN — verified 2026-05-05; bump after T-14 smoke
+    # Run as root so LangFlow can write to its named volume. The image's default
+    # uid 1000 user can't write to /app/data because Docker creates named volumes
+    # root-owned. Container is isolated; running as root inside is fine here.
+    user: root
     ports: ["7860:7860"]
     environment:
       LANGFLOW_AUTO_LOGIN: "true"
