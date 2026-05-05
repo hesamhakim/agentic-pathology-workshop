@@ -1,0 +1,11 @@
+# Heavy scenario-specific deps. Installed only when scenarios A or B are built.
+# Kept out of requirements.txt so the initial Codespaces install fits in default
+# storage (32GB) without hitting "No space left on device".
+
+# Scenario A — Variant Tournament: VCF parsing
+cyvcf2>=0.30
+
+# Scenario B — Longitudinal Ghost: clinical NER
+spacy>=3.7
+# scispaCy small clinical model is downloaded directly via pip URL when needed:
+#   pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_sm-0.5.4.tar.gz

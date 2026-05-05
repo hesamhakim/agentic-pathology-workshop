@@ -9,13 +9,11 @@ cd /workspaces/"${WORKSPACE_NAME:-$(basename "$PWD")}" || cd /workspaces/*/
 docker pull langflowai/langflow:1.9.2 || true
 docker pull arizephoenix/phoenix:15.3.0 || true
 
-# Install Python deps for the devshell + the local 'tools' package
+# Install Python deps for the devshell + the local 'tools' package.
+# Scenario-specific heavy deps (cyvcf2, spacy, scispaCy) are NOT installed here —
+# see requirements-scenarios.txt; they're added when those scenarios are built.
 pip install --no-cache-dir -r requirements-dev.txt
 pip install --no-cache-dir -e .
-
-# scispaCy small clinical model (Scenario B). Pinned URL from scispaCy releases.
-pip install --no-cache-dir \
-    https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_sm-0.5.4.tar.gz || true
 
 # Regenerate sample fixtures only if --offline mode is missing data; safe no-op if files exist
 if [ -f scripts/seed_data.py ]; then
