@@ -1,0 +1,73 @@
+# Workshop multi-service stack.
+# - devshell:  the VS Code container; mounts the repo
+# - langflow:  attendee-facing UI on :7860
+# - phoenix:   tracing UI on :6006, OTLP collector on :4317
+# - keybroker: in-house OpenAI proxy on :8000
+
+services:
+  devshell:
+    build:
+      context: .
+      dockerfile: Dockerfile.devshell
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    networks: [summit]
+    environment:
+      PYTHONUNBUFFERED: "1"
+
+  langflow:
+    image: langflowai/langflow:1.1.1   # PIN — verified at T-14 days
+    ports: ["7860:7860"]
+    environment:
+      LANGFLOW_AUTO_LOGIN: "true"
+      LANGFLOW_DATABASE_URL: "sqlite:////app/data/langflow.db"
+      LANGFLOW_COMPONENTS_PATH: "/flows/components"
+      OPENAI_BASE_URL: "http://keybroker:8000/v1"
+      OPENAI_API_KEY: "${ATTENDEE_BROKER_TOKEN}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://phoenix:4317"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "langflow"
+    volumes:
+      - langflow-data:/app/data
+      - ../langflow_flows:/flows:ro
+    depends_on:
+      - phoenix
+      - keybroker
+    networks: [summit]
+    restart: unless-stopped
+
+  phoenix:
+    image: arizephoenix/phoenix:latest   # CHANGE TO PINNED TAG at T-14 days
+    ports:
+      - "6006:6006"
+      - "4317:4317"
+    environment:
+      PHOENIX_WORKING_DIR: /data
+    volumes:
+      - phoenix-data:/data
+    networks: [summit]
+    restart: unless-stopped
+
+  keybroker:
+    build:
+      context: ../proxy
+      dockerfile: Dockerfile
+    ports: ["8000:8000"]
+    environment:
+      OPENAI_API_KEY: "${OPENAI_API_KEY_REAL}"
+      KEYBROKER_TOKENS_FILE: "/etc/keybroker/tokens.json"
+      KEYBROKER_DAILY_USD_LIMIT: "5.00"
+      KEYBROKER_TPM_LIMIT: "30000"
+    volumes:
+      - ../proxy/tokens.json:/etc/keybroker/tokens.json:ro
+    networks: [summit]
+    restart: unless-stopped
+
+volumes:
+  langflow-data:
+  phoenix-data:
+
+networks:
+  summit:
+    driver: bridge

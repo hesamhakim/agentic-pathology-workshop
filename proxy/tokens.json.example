@@ -1,0 +1,13 @@
+{
+  "_comment": "Token → attendee identity map. Real version is gitignored. Mint via scripts/issue_tokens.py.",
+  "tok_example_1234567890abcdef": {
+    "attendee_id": "alice@example.org",
+    "daily_usd_cap": 5.0,
+    "tpm_limit": 30000
+  },
+  "tok_example_fedcba0987654321": {
+    "attendee_id": "bob@example.org",
+    "daily_usd_cap": 5.0,
+    "tpm_limit": 30000
+  }
+}

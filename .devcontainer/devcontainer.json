@@ -1,0 +1,63 @@
+{
+  "name": "API Summit 2026 — Agentic Pathology",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devshell",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "shutdownAction": "stopCompose",
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "forwardPorts": [7860, 6006, 8000],
+  "portsAttributes": {
+    "7860": { "label": "LangFlow",  "visibility": "private", "onAutoForward": "openBrowserOnce" },
+    "6006": { "label": "Phoenix",   "visibility": "private", "onAutoForward": "notify" },
+    "8000": { "label": "KeyBroker", "visibility": "private", "onAutoForward": "silent" }
+  },
+
+  "remoteEnv": {
+    "ATTENDEE_ID": "${localEnv:GITHUB_USER}",
+    "OPENAI_BASE_URL": "http://keybroker:8000/v1",
+    "OPENAI_API_KEY": "${localEnv:ATTENDEE_BROKER_TOKEN}",
+    "PHOENIX_COLLECTOR_ENDPOINT": "http://phoenix:4317",
+    "PHOENIX_PROJECT_NAME": "api-summit-2026"
+  },
+
+  "secrets": {
+    "ATTENDEE_BROKER_TOKEN": {
+      "description": "Per-attendee bearer token issued by facilitators (mints into KeyBroker as your OpenAI key)."
+    },
+    "OPENAI_API_KEY_REAL": {
+      "description": "Real OpenAI key. Org-level secret, scoped to this repo. Never visible to attendees."
+    }
+  },
+
+  "onCreateCommand": "bash .devcontainer/onCreateCommand.sh",
+  "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
+  "postStartCommand": "bash .devcontainer/postStartCommand.sh",
+
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "32gb"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.testing.pytestEnabled": true,
+        "files.eol": "\n"
+      }
+    }
+  }
+}

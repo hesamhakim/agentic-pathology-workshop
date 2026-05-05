@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+*.py     text diff=python
+*.sh     text eol=lf
+*.md     text
+*.json   text
+
+# LangFlow flow JSONs are auto-generated layout noise; don't show diffs by default
+langflow_flows/*.json -diff
+
+# Binary fixtures
+*.vcf.gz binary
+*.tbi    binary
+*.png    binary
+*.jpg    binary

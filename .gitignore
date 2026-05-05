@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+!.vscode/settings.json.example
+.idea/
+
+# Claude Code local settings (per-machine, not for the repo)
+.claude/settings.local.json
+
+# LangFlow runtime
+langflow.db
+langflow-data/
+.langflow/
+
+# Phoenix runtime
+phoenix-data/
+.phoenix/
+
+# Workshop-time HITL rendezvous
+/tmp/hitl/
+WAITING_FOR_HUMAN.txt
+*.approved.json
+
+# Real secrets (templates only are committed)
+proxy/tokens.json
+proxy/.env
+
+# Build artifacts
+*.log
+node_modules/
+
+# Original proposal docx (md is the source of truth)
+API_Summit_Workshop_2026_Proposal_Agentic.docx

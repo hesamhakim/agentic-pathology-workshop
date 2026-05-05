@@ -1,0 +1,9 @@
+-r requirements.txt
+
+pytest>=8
+pytest-asyncio
+pytest-mock
+ruff
+black
+mypy
+types-requests
