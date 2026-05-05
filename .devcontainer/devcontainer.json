@@ -31,7 +31,10 @@
       "description": "Per-attendee bearer token issued by facilitators (mints into KeyBroker as your OpenAI key)."
     },
     "OPENAI_API_KEY_REAL": {
-      "description": "Real OpenAI key. Org-level secret, scoped to this repo. Never visible to attendees."
+      "description": "Real upstream API key (OpenAI or OpenRouter). Scoped to this repo. Never visible to attendees."
+    },
+    "OPENAI_BASE_URL_REAL": {
+      "description": "Optional. Override upstream base URL. Default https://api.openai.com. Set to https://openrouter.ai/api to use OpenRouter."
     }
   },
 

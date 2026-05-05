@@ -60,6 +60,9 @@ services:
     ports: ["8000:8000"]
     environment:
       OPENAI_API_KEY: "${OPENAI_API_KEY_REAL}"
+      # Defaults to OpenAI. Override via OPENAI_BASE_URL_REAL Codespaces secret to
+      # use a compatible provider, e.g. https://openrouter.ai/api for OpenRouter.
+      KEYBROKER_OPENAI_BASE_URL: "${OPENAI_BASE_URL_REAL:-https://api.openai.com}"
       KEYBROKER_TOKENS_FILE: "/etc/keybroker/tokens.json"
       KEYBROKER_DAILY_USD_LIMIT: "5.00"
       KEYBROKER_TPM_LIMIT: "30000"
