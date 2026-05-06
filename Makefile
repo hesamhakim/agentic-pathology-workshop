@@ -1,6 +1,9 @@
 .PHONY: help up down restart smoke test lint format reset clean
 
-COMPOSE := docker compose -f .devcontainer/docker-compose.yml
+# --env-file is added when running locally and a .env exists at repo root.
+# In Codespaces, .env doesn't exist (secrets come from GitHub) and we skip the flag.
+ENV_FILE_FLAG := $(if $(wildcard .env),--env-file .env,)
+COMPOSE := docker compose $(ENV_FILE_FLAG) -f .devcontainer/docker-compose.yml
 
 help:
 	@echo "Targets:"
