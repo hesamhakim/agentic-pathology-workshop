@@ -1,0 +1,17 @@
+variant_id,pmids,top_title
+var-001,8554067;28663177;31040295,BRCA1 5266dupC founder mutation in Ashkenazi Jewish breast cancer families
+var-002,17688236;31040295,Functional analysis of BRCA1 c.68_69delAG: a recurrent pathogenic variant in HBOC
+var-003,32398771;28663177,Cysteine 61 BRCA1 variants disrupt RING domain folding
+var-006,15044678;28663177,BRCA2 6275delTT founder mutation in Mediterranean populations
+var-007,15044678;30441849,Recurrent BRCA2 truncating variants in early-onset breast cancer
+var-010,18301448;31408158,TP53 R175H is a hotspot Li-Fraumeni mutation with dominant-negative effect
+var-011,18301448;31408158,TP53 R248Q gain-of-function mutation in Li-Fraumeni syndrome
+var-013,17287723;30133722,PALB2 truncating variants confer high lifetime breast cancer risk
+var-015,21684077;28411411,MLH1 c.350C>T as a Lynch syndrome variant in MMR-deficient tumors
+var-019,8511991;26511507,The CFTR delta-F508 mutation accounts for ~70% of cystic fibrosis alleles
+var-021,17878920;31040295,SDHB Asp140Tyr in pheochromocytoma-paraganglioma kindreds
+var-022,11181662;25040555,MUTYH Y179C biallelic carriers and colorectal polyposis risk
+var-023,12027572;30441849,ATM V2424G heterozygotes and moderate breast cancer susceptibility
+var-025,18301448,TP53 Y220C is a temperature-sensitive Li-Fraumeni allele amenable to small molecule rescue
+var-027,28411411;30441849,CDKN2A E101K in melanoma and pancreatic cancer kindreds
+var-030,8554067;31408158,BRCA1 R1751* nonsense mutation in early-onset breast/ovarian cancer

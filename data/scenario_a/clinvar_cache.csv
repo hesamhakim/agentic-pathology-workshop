@@ -1,0 +1,31 @@
+variant_id,vcv_id,clinical_significance,review_status,last_evaluated,condition
+var-001,VCV000017661,Pathogenic,reviewed by expert panel,2025-08-12,Hereditary breast and ovarian cancer syndrome
+var-002,VCV000054254,Pathogenic,reviewed by expert panel,2025-09-03,Hereditary breast and ovarian cancer syndrome
+var-003,VCV000037562,Likely pathogenic,criteria provided multiple submitters,2025-04-18,Hereditary breast and ovarian cancer syndrome
+var-004,VCV000055478,Benign,criteria provided multiple submitters,2024-11-02,not provided
+var-005,VCV000125912,Likely benign,criteria provided single submitter,2024-12-17,not provided
+var-006,VCV000037800,Pathogenic,reviewed by expert panel,2025-07-22,Hereditary breast and ovarian cancer syndrome
+var-007,VCV000038001,Pathogenic,reviewed by expert panel,2025-06-14,Hereditary breast and ovarian cancer syndrome
+var-008,VCV000128800,Uncertain significance,criteria provided single submitter,2025-02-09,not provided
+var-009,VCV000128944,Likely benign,criteria provided multiple submitters,2024-08-30,not provided
+var-010,VCV000012345,Pathogenic,reviewed by expert panel,2025-05-01,Li-Fraumeni syndrome
+var-011,VCV000012346,Pathogenic,reviewed by expert panel,2025-05-01,Li-Fraumeni syndrome
+var-012,VCV000012999,Benign,criteria provided multiple submitters,2024-09-12,not provided
+var-013,VCV000128201,Pathogenic,criteria provided multiple submitters,2025-03-14,Familial breast cancer
+var-014,VCV000128777,Uncertain significance,criteria provided single submitter,2024-12-01,not provided
+var-015,VCV000089001,Pathogenic,reviewed by expert panel,2025-07-15,Lynch syndrome
+var-016,VCV000089555,Likely benign,criteria provided multiple submitters,2024-10-08,not provided
+var-017,VCV000089888,Uncertain significance,criteria provided conflicting,2025-01-22,not provided
+var-018,VCV000089999,Likely benign,criteria provided single submitter,2024-11-18,not provided
+var-019,VCV000007199,Pathogenic,reviewed by expert panel,2025-08-30,Cystic fibrosis
+var-020,VCV000007200,Pathogenic,reviewed by expert panel,2025-04-04,Cystic fibrosis
+var-021,VCV000200001,Likely pathogenic,criteria provided multiple submitters,2025-02-02,Hereditary paraganglioma-pheochromocytoma syndrome
+var-022,VCV000200201,Likely pathogenic,criteria provided multiple submitters,2025-01-28,MUTYH-associated polyposis
+var-023,VCV000200300,Likely pathogenic,criteria provided multiple submitters,2025-06-19,Ataxia-telangiectasia
+var-024,VCV000200400,Uncertain significance,criteria provided single submitter,2024-12-22,not provided
+var-025,VCV000012400,Likely pathogenic,criteria provided multiple submitters,2025-03-10,Li-Fraumeni syndrome
+var-026,VCV000300001,Benign,criteria provided multiple submitters,2024-07-15,not provided
+var-027,VCV000300100,Likely pathogenic,criteria provided multiple submitters,2025-04-22,Familial atypical multiple mole melanoma syndrome
+var-028,VCV000300200,Likely benign,criteria provided single submitter,2024-09-30,not provided
+var-029,VCV000300300,Benign,criteria provided multiple submitters,2024-08-11,not provided
+var-030,VCV000017900,Pathogenic,reviewed by expert panel,2025-09-25,Hereditary breast and ovarian cancer syndrome

@@ -1,0 +1,2 @@
+patient_id,age,sex,indication,hpo_terms,family_history,specimen_source,collection_date
+patient-001,42,female,Bilateral breast cancer; hereditary breast/ovarian cancer panel,HP:0003002;HP:0006625;HP:0030279,Mother dx breast cancer age 38; maternal aunt ovarian cancer age 51,Peripheral blood,2026-04-20
