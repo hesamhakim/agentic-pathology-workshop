@@ -49,13 +49,13 @@ explain in the rationale. No commentary, no markdown."""
 
 
 class ScenarioC_v2_RoutingAgent(Component):
-    display_name = "Scenario C v2: Routing Agent"
+    display_name = "Routing Agent"
     description = (
         "LLM agent. Given cases with their eligible pools (from EligibilityFilter) and the "
         "capacity advisory (from CapacityAdvisor), picks one pathologist per case with rationale."
     )
     icon = "git-branch"
-    name = "ScenarioC_v2_RoutingAgent"
+    name = "RoutingAgent S-C.V2"
 
     inputs = [
         HandleInput(

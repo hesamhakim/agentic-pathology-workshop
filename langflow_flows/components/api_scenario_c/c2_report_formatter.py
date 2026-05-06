@@ -122,14 +122,14 @@ def _render_html(rows: list[dict[str, Any]], advisory: str) -> str:
 
 
 class ScenarioC_v2_ReportFormatter(Component):
-    display_name = "Scenario C v2: Report Formatter"
+    display_name = "Report Formatter"
     description = (
         "Pure-Python renderer. Takes QA-reviewed assignments and emits one of: "
         "markdown, csv, json, narrative, html. The Format dropdown is the easiest "
         "attendee knob to demonstrate 'structured intermediate state, presentation last'."
     )
     icon = "file-text"
-    name = "ScenarioC_v2_ReportFormatter"
+    name = "ReportFormatter S-C.V2"
 
     inputs = [
         HandleInput(

@@ -46,13 +46,13 @@ If nothing is suspect, return {"flags": []}. Be terse, actionable, no hedging.""
 
 
 class ScenarioC_v2_QAReviewer(Component):
-    display_name = "Scenario C v2: QA Reviewer"
+    display_name = "QA Reviewer"
     description = (
         "LLM agent. Reviews the routing agent's assignments for subspecialty mismatch, "
         "workload imbalance, ignored capacity advisory. Emits flags but does not block."
     )
     icon = "shield"
-    name = "ScenarioC_v2_QAReviewer"
+    name = "QAReviewer S-C.V2"
 
     inputs = [
         HandleInput(

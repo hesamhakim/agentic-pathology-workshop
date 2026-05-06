@@ -21,14 +21,14 @@ from tools.scenario_c.v2_helpers import DEFAULT_DATA_DIR, resolve_data_dir
 
 
 class ScenarioC_v2_EligibilityFilter(Component):
-    display_name = "Scenario C v2: Eligibility Filter"
+    display_name = "Eligibility Filter"
     description = (
         "Pure-Python step. Combines subspecialty match + IHC capacity + the fatigue cap to "
         "produce a small eligible-pathologist list per case. The fatigue threshold is the "
         "workshop's headline EDIT ME knob."
     )
     icon = "filter"
-    name = "ScenarioC_v2_EligibilityFilter"
+    name = "EligibilityFilter S-C.V2"
 
     inputs = [
         HandleInput(

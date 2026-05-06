@@ -84,13 +84,13 @@ def _route_one(client: OpenAI, model: str, case: dict, eligible: list[dict]) -> 
 
 
 class RouteCases(Component):
-    display_name = "Scenario C: Route Cases"
+    display_name = "Route Cases (single-node)"
     description = (
         "Route incoming pathology cases to pathologists, respecting subspecialty, "
         "instrument availability, and the participant-editable fatigue cap."
     )
     icon = "split"
-    name = "ScenarioC_RouteCases"
+    name = "RouteCases S-C.V1"
 
     inputs = [
         StrInput(

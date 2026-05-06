@@ -43,13 +43,13 @@ Be concrete. Use instrument names and ids. Do not hedge."""
 
 
 class ScenarioC_v2_CapacityAdvisor(Component):
-    display_name = "Scenario C v2: Capacity Advisor"
+    display_name = "Capacity Advisor"
     description = (
         "LLM agent. Reads instruments.csv and writes an operational advisory on lab "
         "capacity bottlenecks. Output is consumed by the Routing Agent as decision context."
     )
     icon = "activity"
-    name = "ScenarioC_v2_CapacityAdvisor"
+    name = "CapacityAdvisor S-C.V2"
 
     inputs = [
         StrInput(

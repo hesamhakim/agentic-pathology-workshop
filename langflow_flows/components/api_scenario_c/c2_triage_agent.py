@@ -49,13 +49,13 @@ Score every case in the input. No commentary, no markdown."""
 
 
 class ScenarioC_v2_TriageAgent(Component):
-    display_name = "Scenario C v2: Triage Agent"
+    display_name = "Triage Agent"
     description = (
         "LLM agent. Reads cases.csv, scores each case 0-100 with clinical rationale. "
         "Output flows into EligibilityFilter and RoutingAgent."
     )
     icon = "thermometer"
-    name = "ScenarioC_v2_TriageAgent"
+    name = "TriageAgent S-C.V2"
 
     inputs = [
         StrInput(
