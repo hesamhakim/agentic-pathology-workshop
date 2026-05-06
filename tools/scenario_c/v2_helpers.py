@@ -39,8 +39,45 @@ def resolve_data_dir(data_dir: str) -> Path:
     return base
 
 
+_OTEL_REGISTERED = False
+
+
+def _ensure_otel_registered() -> None:
+    """Register Phoenix tracing on first call. Idempotent + best-effort.
+
+    LangFlow ships with arize-phoenix-otel and openinference-instrumentation-*
+    pre-installed but does not auto-register. We do it here so any
+    OpenAI SDK call from a v2 component lands as a Phoenix span.
+    """
+    global _OTEL_REGISTERED
+    if _OTEL_REGISTERED:
+        return
+    try:
+        from phoenix.otel import register  # type: ignore[import-not-found]
+        from openinference.instrumentation.openai import OpenAIInstrumentor  # type: ignore[import-not-found]
+    except ImportError:
+        _OTEL_REGISTERED = True  # don't keep retrying
+        return
+    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT") or "http://phoenix:4317"
+    project_name = os.environ.get("PHOENIX_PROJECT_NAME") or "api-summit-2026"
+    try:
+        register(
+            project_name=project_name,
+            endpoint=endpoint,
+            auto_instrument=False,
+            set_global_tracer_provider=True,
+        )
+        OpenAIInstrumentor().instrument()
+    except Exception:
+        # If registration fails (e.g. Phoenix unreachable) we still want LLM
+        # calls to work — just without traces.
+        pass
+    _OTEL_REGISTERED = True
+
+
 def openai_client(base_url: str | None = None, api_key: str | None = None):
     """Return an OpenAI client wired to KeyBroker by default."""
+    _ensure_otel_registered()
     from openai import OpenAI
     return OpenAI(
         base_url=base_url or os.environ.get("OPENAI_BASE_URL", "http://keybroker:8000/v1"),
