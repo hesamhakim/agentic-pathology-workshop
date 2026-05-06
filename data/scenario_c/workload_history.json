@@ -1,0 +1,14 @@
+{
+  "_comment": "7-day rolling case-volume history per pathologist. Index 0 is most recent day (yesterday). Drives the fatigue rule: the workshop teaching point is that p002 (Dr. Jones) and p004 (Dr. Patel) are above any reasonable cap and should be deprioritized when participants set the fatigue threshold.",
+  "as_of_date": "2026-05-05",
+  "history": {
+    "p001": [11, 9, 12, 10, 14, 8, 13],
+    "p002": [22, 21, 23, 24, 22, 25, 23],
+    "p003": [12, 14, 10, 13, 11, 15, 12],
+    "p004": [19, 21, 20, 18, 22, 19, 20],
+    "p005": [8, 9, 7, 10, 9, 8, 7],
+    "p006": [10, 11, 9, 8, 12, 9, 10],
+    "p007": [12, 10, 13, 11, 12, 11, 14],
+    "p008": [15, 14, 13, 16, 14, 15, 13]
+  }
+}
