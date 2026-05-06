@@ -1,0 +1,10 @@
+id,name,type,status,reagent_level_pct,estimated_minutes_until_empty,queue_depth
+stainer-he-01,Sakura Tissue-Tek Prisma 01,h_and_e_stainer,online,78,240,3
+stainer-he-02,Sakura Tissue-Tek Prisma 02,h_and_e_stainer,online,12,35,1
+stainer-he-03,Leica ST5020 Multistainer,h_and_e_stainer,online,64,195,5
+stainer-ihc-01,Roche BenchMark Ultra Plus 01,ihc_stainer,online,88,320,7
+stainer-ihc-02,Roche BenchMark Ultra Plus 02,ihc_stainer,maintenance,0,,0
+stainer-special-01,Leica Bond III Special Stains,special_stainer,online,55,165,2
+scanner-01,Aperio AT2 Slide Scanner 01,slide_scanner,online,,,12
+scanner-02,Aperio AT2 Slide Scanner 02,slide_scanner,online,,,9
+scanner-03,3DHISTECH Pannoramic 250,slide_scanner,online,,,4

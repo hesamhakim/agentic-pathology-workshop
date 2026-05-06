@@ -11,19 +11,19 @@ DATA_DIR = REPO_ROOT / "data" / "scenario_c"
 
 @pytest.fixture(scope="session")
 def cases_path() -> Path:
-    return DATA_DIR / "case_queue.json"
+    return DATA_DIR / "cases.csv"
 
 
 @pytest.fixture(scope="session")
 def instruments_path() -> Path:
-    return DATA_DIR / "instruments.json"
+    return DATA_DIR / "instruments.csv"
 
 
 @pytest.fixture(scope="session")
 def pathologists_path() -> Path:
-    return DATA_DIR / "pathologists.json"
+    return DATA_DIR / "pathologists.csv"
 
 
 @pytest.fixture(scope="session")
 def workload_path() -> Path:
-    return DATA_DIR / "workload_history.json"
+    return DATA_DIR / "workload_history.csv"

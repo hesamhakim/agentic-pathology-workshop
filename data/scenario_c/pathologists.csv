@@ -1,0 +1,9 @@
+id,name,subspecialties,current_queue_depth,available_until,notes
+p001,Dr. Smith,GI,8,2026-05-06T17:00:00Z,"Gastrointestinal pathology, IBD focus."
+p002,Dr. Jones,GI,22,2026-05-06T17:00:00Z,GI generalist; volume has been climbing all week.
+p003,Dr. Lee,Hematopathology,12,2026-05-06T16:00:00Z,Lymphoma + leukemia.
+p004,Dr. Patel,Hematopathology,18,2026-05-06T17:30:00Z,Heme; absorbed half of Dr. Lee's queue Monday after sick day.
+p005,Dr. Garcia,Dermatopathology,7,2026-05-06T17:00:00Z,Derm; melanoma reads.
+p006,Dr. Wong,Renal,9,2026-05-06T15:00:00Z,Renal medical + transplant.
+p007,Dr. Brown,GU,11,2026-05-06T17:00:00Z,Genitourinary.
+p008,Dr. Wilson,Breast,14,2026-05-06T18:00:00Z,"Breast pathology, ER/PR/HER2 panels."

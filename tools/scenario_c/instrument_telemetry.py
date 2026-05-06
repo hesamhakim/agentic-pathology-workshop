@@ -1,15 +1,15 @@
-"""Instrument fleet read helpers backing data/scenario_c/instruments.json."""
+"""Instrument fleet read helpers backing data/scenario_c/instruments.csv."""
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
+from tools.scenario_c import csv_io
+
 
 def load(path: Path | str) -> list[dict[str, Any]]:
-    payload = json.loads(Path(path).read_text())
-    return payload["instruments"]
+    return csv_io.read_instruments(path)
 
 
 def online(instruments: list[dict[str, Any]], type_: str | None = None) -> list[dict[str, Any]]:

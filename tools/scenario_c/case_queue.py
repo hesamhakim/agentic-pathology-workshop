@@ -1,23 +1,19 @@
-"""Case queue read/write helpers backing data/scenario_c/case_queue.json."""
+"""Case queue read/write helpers backing data/scenario_c/cases.csv."""
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
+from tools.scenario_c import csv_io
+
 
 def load(path: Path | str) -> list[dict[str, Any]]:
-    payload = json.loads(Path(path).read_text())
-    return payload["cases"]
+    return csv_io.read_cases(path)
 
 
 def save(cases: list[dict[str, Any]], path: Path | str) -> None:
-    payload = {
-        "_comment": "Modified by Scenario C routing flow.",
-        "cases": cases,
-    }
-    Path(path).write_text(json.dumps(payload, indent=2) + "\n")
+    csv_io.write_cases(cases, path)
 
 
 def unassigned(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:

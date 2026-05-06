@@ -23,12 +23,15 @@ from langflow.schema.message import Message
 from openai import OpenAI
 
 
-# Allow `from tools.scenario_c import ...` from inside the component.
-_REPO_ROOT = Path("/workspaces/agentic-pathology-workshop")
-if not _REPO_ROOT.exists():
-    _REPO_ROOT = Path(__file__).resolve().parents[4]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+# tools/ is bind-mounted into the langflow container at /workshop/tools
+# (see .devcontainer/docker-compose.yml). PYTHONPATH=/workshop makes
+# `from tools.scenario_c import ...` resolve. Fallback for running locally
+# outside the container during dev:
+for candidate in ("/workshop", "/workspaces/agentic-pathology-workshop", str(Path(__file__).resolve().parents[3])):
+    if (Path(candidate) / "tools" / "scenario_c").exists():
+        if candidate not in sys.path:
+            sys.path.insert(0, candidate)
+        break
 
 
 SYSTEM_PROMPT = """You are a pathology lab routing agent. Given a case and a list of
@@ -93,8 +96,8 @@ class RouteCases(Component):
         StrInput(
             name="data_dir",
             display_name="Data Directory",
-            value="data/scenario_c",
-            info="Repo-relative path containing case_queue.json, instruments.json, pathologists.json, workload_history.json",
+            value="/workshop/data/scenario_c",
+            info="Path to directory containing case_queue.json, instruments.json, pathologists.json, workload_history.json. Default works inside the LangFlow container.",
         ),
         IntInput(
             name="fatigue_threshold",
@@ -132,12 +135,20 @@ class RouteCases(Component):
     ]
 
     def _resolve_paths(self) -> dict[str, Path]:
-        base = _REPO_ROOT / self.data_dir
+        # data_dir may be absolute (e.g. "/workshop/data/scenario_c") or relative
+        # to the workshop root that's on sys.path.
+        base = Path(self.data_dir)
+        if not base.is_absolute():
+            for root in ("/workshop", "/workspaces/agentic-pathology-workshop"):
+                candidate = Path(root) / base
+                if candidate.exists():
+                    base = candidate
+                    break
         return {
-            "cases": base / "case_queue.json",
-            "instruments": base / "instruments.json",
-            "pathologists": base / "pathologists.json",
-            "workload": base / "workload_history.json",
+            "cases": base / "cases.csv",
+            "instruments": base / "instruments.csv",
+            "pathologists": base / "pathologists.csv",
+            "workload": base / "workload_history.csv",
         }
 
     def run_routing(self) -> Message:

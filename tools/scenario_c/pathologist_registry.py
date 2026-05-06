@@ -1,20 +1,19 @@
-"""Pathologist roster + workload history helpers."""
+"""Pathologist roster + workload history helpers (CSV-backed)."""
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
+from tools.scenario_c import csv_io
+
 
 def load_pathologists(path: Path | str) -> list[dict[str, Any]]:
-    payload = json.loads(Path(path).read_text())
-    return payload["pathologists"]
+    return csv_io.read_pathologists(path)
 
 
 def load_workload(path: Path | str) -> dict[str, list[int]]:
-    payload = json.loads(Path(path).read_text())
-    return payload["history"]
+    return csv_io.read_workload(path)
 
 
 def by_subspecialty(pathologists: list[dict[str, Any]], subspecialty: str) -> list[dict[str, Any]]:
