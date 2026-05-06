@@ -26,7 +26,7 @@ spot-check, not override. Look for:
   - Clinical context cues from the Evidence Advisor that the Judge ignored.
   - Anything that feels like the Judge fixated on one gene.
 
-Return ONLY:
+Return ONLY a JSON object listing your flags:
 {
   "flags": [
     {"variant_id": "var-007", "severity": "low|medium|high", "concern": "one sentence"},
@@ -34,7 +34,7 @@ Return ONLY:
   ]
 }
 
-If nothing is concerning, return {"flags": []}."""
+If nothing is concerning, return JSON: {"flags": []}."""
 
 
 class ScenarioA_v2_QAReviewer(Component):
