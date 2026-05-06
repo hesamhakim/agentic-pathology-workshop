@@ -4,14 +4,14 @@
   "data": {
     "nodes": [
       {
-        "id": "ChatInput-ee3d4d",
+        "id": "ChatInput-9b7487",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 250
         },
         "data": {
-          "id": "ChatInput-ee3d4d",
+          "id": "ChatInput-9b7487",
           "type": "ChatInput",
           "node": {
             "base_classes": [
@@ -291,14 +291,14 @@
         }
       },
       {
-        "id": "PipelineConfig_S-C.V2-67b336",
+        "id": "PipelineConfig_S-C.V2-f186c7",
         "type": "genericNode",
         "position": {
           "x": 450,
           "y": 250
         },
         "data": {
-          "id": "PipelineConfig_S-C.V2-67b336",
+          "id": "PipelineConfig_S-C.V2-f186c7",
           "type": "PipelineConfig S-C.V2",
           "node": {
             "template": {
@@ -496,14 +496,14 @@
         }
       },
       {
-        "id": "TriageAgent_S-C.V2-89d33c",
+        "id": "TriageAgent_S-C.V2-22439c",
         "type": "genericNode",
         "position": {
           "x": 900,
           "y": 100
         },
         "data": {
-          "id": "TriageAgent_S-C.V2-89d33c",
+          "id": "TriageAgent_S-C.V2-22439c",
           "type": "TriageAgent S-C.V2",
           "node": {
             "template": {
@@ -744,14 +744,14 @@
         }
       },
       {
-        "id": "CapacityAdvisor_S-C.V2-8323e3",
+        "id": "CapacityAdvisor_S-C.V2-17a3b0",
         "type": "genericNode",
         "position": {
           "x": 900,
           "y": 600
         },
         "data": {
-          "id": "CapacityAdvisor_S-C.V2-8323e3",
+          "id": "CapacityAdvisor_S-C.V2-17a3b0",
           "type": "CapacityAdvisor S-C.V2",
           "node": {
             "template": {
@@ -969,14 +969,14 @@
         }
       },
       {
-        "id": "EligibilityFilter_S-C.V2-5da3ac",
+        "id": "EligibilityFilter_S-C.V2-7c9104",
         "type": "genericNode",
         "position": {
           "x": 1350,
           "y": 100
         },
         "data": {
-          "id": "EligibilityFilter_S-C.V2-5da3ac",
+          "id": "EligibilityFilter_S-C.V2-7c9104",
           "type": "EligibilityFilter S-C.V2",
           "node": {
             "template": {
@@ -1207,14 +1207,14 @@
         }
       },
       {
-        "id": "RoutingAgent_S-C.V2-fe3d29",
+        "id": "RoutingAgent_S-C.V2-5d2ba7",
         "type": "genericNode",
         "position": {
           "x": 1800,
           "y": 350
         },
         "data": {
-          "id": "RoutingAgent_S-C.V2-fe3d29",
+          "id": "RoutingAgent_S-C.V2-5d2ba7",
           "type": "RoutingAgent S-C.V2",
           "node": {
             "template": {
@@ -1435,14 +1435,14 @@
         }
       },
       {
-        "id": "QAReviewer_S-C.V2-6e36bf",
+        "id": "QAReviewer_S-C.V2-ad1476",
         "type": "genericNode",
         "position": {
           "x": 2250,
           "y": 350
         },
         "data": {
-          "id": "QAReviewer_S-C.V2-6e36bf",
+          "id": "QAReviewer_S-C.V2-ad1476",
           "type": "QAReviewer S-C.V2",
           "node": {
             "template": {
@@ -1662,14 +1662,14 @@
         }
       },
       {
-        "id": "ReportFormatter_S-C.V2-5e3685",
+        "id": "ReportFormatter_S-C.V2-a48966",
         "type": "genericNode",
         "position": {
           "x": 2700,
           "y": 350
         },
         "data": {
-          "id": "ReportFormatter_S-C.V2-5e3685",
+          "id": "ReportFormatter_S-C.V2-a48966",
           "type": "ReportFormatter S-C.V2",
           "node": {
             "template": {
@@ -1821,14 +1821,14 @@
         }
       },
       {
-        "id": "ChatOutput-d635cc",
+        "id": "ChatOutput-eceecb",
         "type": "genericNode",
         "position": {
           "x": 3150,
           "y": 350
         },
         "data": {
-          "id": "ChatOutput-d635cc",
+          "id": "ChatOutput-eceecb",
           "type": "ChatOutput",
           "node": {
             "base_classes": [
@@ -2116,14 +2116,14 @@
     ],
     "edges": [
       {
-        "source": "ChatInput-ee3d4d",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-ee3d4d\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "PipelineConfig_S-C.V2-67b336",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-67b336\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "source": "ChatInput-9b7487",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-9b7487\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "PipelineConfig_S-C.V2-f186c7",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-f186c7\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ChatInput",
-            "id": "ChatInput-ee3d4d",
+            "id": "ChatInput-9b7487",
             "name": "message",
             "output_types": [
               "Message"
@@ -2131,27 +2131,27 @@
           },
           "targetHandle": {
             "fieldName": "user_message",
-            "id": "PipelineConfig_S-C.V2-67b336",
+            "id": "PipelineConfig_S-C.V2-f186c7",
             "inputTypes": [
               "Message"
             ],
-            "type": "str"
+            "type": "other"
           }
         },
-        "id": "xy-edge__ChatInput-ee3d4d{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-ee3d4d\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-PipelineConfig_S-C.V2-67b336{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-67b336\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "id": "xy-edge__ChatInput-9b7487{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-9b7487\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-PipelineConfig_S-C.V2-f186c7{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-f186c7\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PipelineConfig_S-C.V2-67b336",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PipelineConfig S-C.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-67b336\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "TriageAgent_S-C.V2-89d33c",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-89d33c\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PipelineConfig_S-C.V2-f186c7",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PipelineConfig S-C.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-f186c7\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "TriageAgent_S-C.V2-22439c",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-22439c\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PipelineConfig S-C.V2",
-            "id": "PipelineConfig_S-C.V2-67b336",
+            "id": "PipelineConfig_S-C.V2-f186c7",
             "name": "run_config",
             "output_types": [
               "Data"
@@ -2159,27 +2159,27 @@
           },
           "targetHandle": {
             "fieldName": "run_config",
-            "id": "TriageAgent_S-C.V2-89d33c",
+            "id": "TriageAgent_S-C.V2-22439c",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PipelineConfig_S-C.V2-67b336{\u0153dataType\u0153:\u0153PipelineConfig S-C.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-67b336\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-TriageAgent_S-C.V2-89d33c{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-89d33c\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PipelineConfig_S-C.V2-f186c7{\u0153dataType\u0153:\u0153PipelineConfig S-C.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-f186c7\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-TriageAgent_S-C.V2-22439c{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-22439c\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "TriageAgent_S-C.V2-89d33c",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153TriageAgent S-C.V2\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-89d33c\u0153,\u0153name\u0153:\u0153scored_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "EligibilityFilter_S-C.V2-5da3ac",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153scored_cases\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-5da3ac\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "TriageAgent_S-C.V2-22439c",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153TriageAgent S-C.V2\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-22439c\u0153,\u0153name\u0153:\u0153scored_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "EligibilityFilter_S-C.V2-7c9104",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153scored_cases\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-7c9104\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "TriageAgent S-C.V2",
-            "id": "TriageAgent_S-C.V2-89d33c",
+            "id": "TriageAgent_S-C.V2-22439c",
             "name": "scored_cases",
             "output_types": [
               "Data"
@@ -2187,27 +2187,27 @@
           },
           "targetHandle": {
             "fieldName": "scored_cases",
-            "id": "EligibilityFilter_S-C.V2-5da3ac",
+            "id": "EligibilityFilter_S-C.V2-7c9104",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__TriageAgent_S-C.V2-89d33c{\u0153dataType\u0153:\u0153TriageAgent S-C.V2\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-89d33c\u0153,\u0153name\u0153:\u0153scored_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-EligibilityFilter_S-C.V2-5da3ac{\u0153fieldName\u0153:\u0153scored_cases\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-5da3ac\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__TriageAgent_S-C.V2-22439c{\u0153dataType\u0153:\u0153TriageAgent S-C.V2\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-22439c\u0153,\u0153name\u0153:\u0153scored_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-EligibilityFilter_S-C.V2-7c9104{\u0153fieldName\u0153:\u0153scored_cases\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-7c9104\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "EligibilityFilter_S-C.V2-5da3ac",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153EligibilityFilter S-C.V2\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-5da3ac\u0153,\u0153name\u0153:\u0153eligible_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "RoutingAgent_S-C.V2-fe3d29",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153eligible_cases\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "EligibilityFilter_S-C.V2-7c9104",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153EligibilityFilter S-C.V2\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-7c9104\u0153,\u0153name\u0153:\u0153eligible_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "RoutingAgent_S-C.V2-5d2ba7",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153eligible_cases\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-5d2ba7\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "EligibilityFilter S-C.V2",
-            "id": "EligibilityFilter_S-C.V2-5da3ac",
+            "id": "EligibilityFilter_S-C.V2-7c9104",
             "name": "eligible_cases",
             "output_types": [
               "Data"
@@ -2215,27 +2215,27 @@
           },
           "targetHandle": {
             "fieldName": "eligible_cases",
-            "id": "RoutingAgent_S-C.V2-fe3d29",
+            "id": "RoutingAgent_S-C.V2-5d2ba7",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__EligibilityFilter_S-C.V2-5da3ac{\u0153dataType\u0153:\u0153EligibilityFilter S-C.V2\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-5da3ac\u0153,\u0153name\u0153:\u0153eligible_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-RoutingAgent_S-C.V2-fe3d29{\u0153fieldName\u0153:\u0153eligible_cases\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__EligibilityFilter_S-C.V2-7c9104{\u0153dataType\u0153:\u0153EligibilityFilter S-C.V2\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-7c9104\u0153,\u0153name\u0153:\u0153eligible_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-RoutingAgent_S-C.V2-5d2ba7{\u0153fieldName\u0153:\u0153eligible_cases\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-5d2ba7\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "CapacityAdvisor_S-C.V2-8323e3",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153CapacityAdvisor S-C.V2\u0153,\u0153id\u0153:\u0153CapacityAdvisor_S-C.V2-8323e3\u0153,\u0153name\u0153:\u0153advisory\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "RoutingAgent_S-C.V2-fe3d29",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153capacity_advisory\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "source": "CapacityAdvisor_S-C.V2-17a3b0",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153CapacityAdvisor S-C.V2\u0153,\u0153id\u0153:\u0153CapacityAdvisor_S-C.V2-17a3b0\u0153,\u0153name\u0153:\u0153advisory\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "RoutingAgent_S-C.V2-5d2ba7",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153capacity_advisory\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-5d2ba7\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "CapacityAdvisor S-C.V2",
-            "id": "CapacityAdvisor_S-C.V2-8323e3",
+            "id": "CapacityAdvisor_S-C.V2-17a3b0",
             "name": "advisory",
             "output_types": [
               "Message"
@@ -2243,27 +2243,27 @@
           },
           "targetHandle": {
             "fieldName": "capacity_advisory",
-            "id": "RoutingAgent_S-C.V2-fe3d29",
+            "id": "RoutingAgent_S-C.V2-5d2ba7",
             "inputTypes": [
               "Message"
             ],
-            "type": "str"
+            "type": "other"
           }
         },
-        "id": "xy-edge__CapacityAdvisor_S-C.V2-8323e3{\u0153dataType\u0153:\u0153CapacityAdvisor S-C.V2\u0153,\u0153id\u0153:\u0153CapacityAdvisor_S-C.V2-8323e3\u0153,\u0153name\u0153:\u0153advisory\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-RoutingAgent_S-C.V2-fe3d29{\u0153fieldName\u0153:\u0153capacity_advisory\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "id": "xy-edge__CapacityAdvisor_S-C.V2-17a3b0{\u0153dataType\u0153:\u0153CapacityAdvisor S-C.V2\u0153,\u0153id\u0153:\u0153CapacityAdvisor_S-C.V2-17a3b0\u0153,\u0153name\u0153:\u0153advisory\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-RoutingAgent_S-C.V2-5d2ba7{\u0153fieldName\u0153:\u0153capacity_advisory\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-5d2ba7\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "RoutingAgent_S-C.V2-fe3d29",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153RoutingAgent S-C.V2\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153name\u0153:\u0153assignments\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "QAReviewer_S-C.V2-6e36bf",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153routing_output\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-6e36bf\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "RoutingAgent_S-C.V2-5d2ba7",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153RoutingAgent S-C.V2\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-5d2ba7\u0153,\u0153name\u0153:\u0153assignments\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "QAReviewer_S-C.V2-ad1476",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153routing_output\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-ad1476\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "RoutingAgent S-C.V2",
-            "id": "RoutingAgent_S-C.V2-fe3d29",
+            "id": "RoutingAgent_S-C.V2-5d2ba7",
             "name": "assignments",
             "output_types": [
               "Data"
@@ -2271,27 +2271,27 @@
           },
           "targetHandle": {
             "fieldName": "routing_output",
-            "id": "QAReviewer_S-C.V2-6e36bf",
+            "id": "QAReviewer_S-C.V2-ad1476",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__RoutingAgent_S-C.V2-fe3d29{\u0153dataType\u0153:\u0153RoutingAgent S-C.V2\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153name\u0153:\u0153assignments\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-QAReviewer_S-C.V2-6e36bf{\u0153fieldName\u0153:\u0153routing_output\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-6e36bf\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__RoutingAgent_S-C.V2-5d2ba7{\u0153dataType\u0153:\u0153RoutingAgent S-C.V2\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-5d2ba7\u0153,\u0153name\u0153:\u0153assignments\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-QAReviewer_S-C.V2-ad1476{\u0153fieldName\u0153:\u0153routing_output\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-ad1476\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "QAReviewer_S-C.V2-6e36bf",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153QAReviewer S-C.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-6e36bf\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "ReportFormatter_S-C.V2-5e3685",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-5e3685\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "QAReviewer_S-C.V2-ad1476",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153QAReviewer S-C.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-ad1476\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "ReportFormatter_S-C.V2-a48966",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-a48966\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "QAReviewer S-C.V2",
-            "id": "QAReviewer_S-C.V2-6e36bf",
+            "id": "QAReviewer_S-C.V2-ad1476",
             "name": "reviewed",
             "output_types": [
               "Data"
@@ -2299,27 +2299,27 @@
           },
           "targetHandle": {
             "fieldName": "reviewed",
-            "id": "ReportFormatter_S-C.V2-5e3685",
+            "id": "ReportFormatter_S-C.V2-a48966",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__QAReviewer_S-C.V2-6e36bf{\u0153dataType\u0153:\u0153QAReviewer S-C.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-6e36bf\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-ReportFormatter_S-C.V2-5e3685{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-5e3685\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__QAReviewer_S-C.V2-ad1476{\u0153dataType\u0153:\u0153QAReviewer S-C.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-ad1476\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-ReportFormatter_S-C.V2-a48966{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-a48966\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "ReportFormatter_S-C.V2-5e3685",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ReportFormatter S-C.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-5e3685\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "ChatOutput-d635cc",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-d635cc\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "source": "ReportFormatter_S-C.V2-a48966",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ReportFormatter S-C.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-a48966\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "ChatOutput-eceecb",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-eceecb\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ReportFormatter S-C.V2",
-            "id": "ReportFormatter_S-C.V2-5e3685",
+            "id": "ReportFormatter_S-C.V2-a48966",
             "name": "report",
             "output_types": [
               "Message"
@@ -2327,14 +2327,14 @@
           },
           "targetHandle": {
             "fieldName": "input_value",
-            "id": "ChatOutput-d635cc",
+            "id": "ChatOutput-eceecb",
             "inputTypes": [
               "Message"
             ],
-            "type": "str"
+            "type": "other"
           }
         },
-        "id": "xy-edge__ReportFormatter_S-C.V2-5e3685{\u0153dataType\u0153:\u0153ReportFormatter S-C.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-5e3685\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-d635cc{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-d635cc\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "id": "xy-edge__ReportFormatter_S-C.V2-a48966{\u0153dataType\u0153:\u0153ReportFormatter S-C.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-a48966\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-eceecb{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-eceecb\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false

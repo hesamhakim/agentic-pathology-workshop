@@ -167,10 +167,15 @@ def main() -> int:
 
         nodes = [n_chatin, n_cfg, n_triage, n_capacity, n_eligibility, n_routing, n_qa, n_report, n_chatout]
 
+        # Note: every target here is a LangFlow HandleInput, so the targetHandle
+        # `type` field is "other" regardless of whether the accepted type is
+        # Message or Data. (MessageTextInput and similar use "str", but we don't
+        # use those.) An earlier version got 3 edges silently dropped because
+        # it mismatched on this.
         edges = [
             # ChatInput -> PipelineConfig (Message)
             make_edge(n_chatin, "message", ["Message"],
-                      n_cfg, "user_message", ["Message"], target_type="str"),
+                      n_cfg, "user_message", ["Message"], target_type="other"),
             # PipelineConfig -> TriageAgent (Data, run_config)
             make_edge(n_cfg, "run_config", ["Data"],
                       n_triage, "run_config", ["Data"], target_type="other"),
@@ -182,16 +187,17 @@ def main() -> int:
                       n_routing, "eligible_cases", ["Data"], target_type="other"),
             # CapacityAdvisor -> Routing (Message)
             make_edge(n_capacity, "advisory", ["Message"],
-                      n_routing, "capacity_advisory", ["Message"], target_type="str"),
+                      n_routing, "capacity_advisory", ["Message"], target_type="other"),
             # Routing -> QA (Data)
             make_edge(n_routing, "assignments", ["Data"],
                       n_qa, "routing_output", ["Data"], target_type="other"),
             # QA -> Report (Data)
             make_edge(n_qa, "reviewed", ["Data"],
                       n_report, "reviewed", ["Data"], target_type="other"),
-            # Report -> ChatOutput (Message)
+            # Report -> ChatOutput (Message — ChatOutput's input_value accepts
+            # Data | JSON | DataFrame | Table | Message)
             make_edge(n_report, "report", ["Message"],
-                      n_chatout, "input_value", ["Message"], target_type="str"),
+                      n_chatout, "input_value", ["Message"], target_type="other"),
         ]
 
         flow_payload = {
