@@ -1,0 +1,2349 @@
+{
+  "name": "C_digital_thread_v2",
+  "description": "Scenario C v2: 6-agent multi-step routing flow.",
+  "data": {
+    "nodes": [
+      {
+        "id": "ChatInput-ee3d4d",
+        "type": "genericNode",
+        "position": {
+          "x": 50,
+          "y": 250
+        },
+        "data": {
+          "id": "ChatInput-ee3d4d",
+          "type": "ChatInput",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Get chat inputs from the Playground.",
+            "display_name": "Chat Input",
+            "documentation": "https://docs.langflow.org/chat-input-and-output",
+            "edited": false,
+            "field_order": [
+              "input_value",
+              "should_store_message",
+              "sender",
+              "sender_name",
+              "session_id",
+              "context_id",
+              "files"
+            ],
+            "frozen": false,
+            "icon": "MessagesSquare",
+            "legacy": false,
+            "metadata": {
+              "code_hash": "7a26c54d89ed",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "lfx",
+                    "version": null
+                  }
+                ],
+                "total_dependencies": 1
+              },
+              "module": "lfx.components.input_output.chat.ChatInput"
+            },
+            "minimized": true,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Chat Message",
+                "group_outputs": false,
+                "method": "message_response",
+                "name": "message",
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_type": "Component",
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from lfx.base.data.utils import IMG_FILE_TYPES, TEXT_FILE_TYPES\nfrom lfx.base.io.chat import ChatComponent\nfrom lfx.inputs.inputs import BoolInput\nfrom lfx.io import (\n    DropdownInput,\n    FileInput,\n    MessageTextInput,\n    MultilineInput,\n    Output,\n)\nfrom lfx.schema.message import Message\nfrom lfx.utils.constants import (\n    MESSAGE_SENDER_AI,\n    MESSAGE_SENDER_NAME_USER,\n    MESSAGE_SENDER_USER,\n)\n\n\nclass ChatInput(ChatComponent):\n    display_name = \"Chat Input\"\n    description = \"Get chat inputs from the Playground.\"\n    documentation: str = \"https://docs.langflow.org/chat-input-and-output\"\n    icon = \"MessagesSquare\"\n    name = \"ChatInput\"\n    minimized = True\n\n    inputs = [\n        MultilineInput(\n            name=\"input_value\",\n            display_name=\"Input Text\",\n            value=\"\",\n            info=\"Message to be passed as input.\",\n            input_types=[],\n        ),\n        BoolInput(\n            name=\"should_store_message\",\n            display_name=\"Store Messages\",\n            info=\"Store the message in the history.\",\n            value=True,\n            advanced=True,\n        ),\n        DropdownInput(\n            name=\"sender\",\n            display_name=\"Sender Type\",\n            options=[MESSAGE_SENDER_AI, MESSAGE_SENDER_USER],\n            value=MESSAGE_SENDER_USER,\n            info=\"Type of sender.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"sender_name\",\n            display_name=\"Sender Name\",\n            info=\"Name of the sender.\",\n            value=MESSAGE_SENDER_NAME_USER,\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"session_id\",\n            display_name=\"Session ID\",\n            info=\"The session ID of the chat. If empty, the current session ID parameter will be used.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"context_id\",\n            display_name=\"Context ID\",\n            info=\"The context ID of the chat. Adds an extra layer to the local memory.\",\n            value=\"\",\n            advanced=True,\n        ),\n        FileInput(\n            name=\"files\",\n            display_name=\"Files\",\n            file_types=TEXT_FILE_TYPES + IMG_FILE_TYPES,\n            info=\"Files to be sent with the message.\",\n            advanced=True,\n            is_list=True,\n            temp_file=True,\n        ),\n    ]\n    outputs = [\n        Output(display_name=\"Chat Message\", name=\"message\", method=\"message_response\"),\n    ]\n\n    async def message_response(self) -> Message:\n        # Ensure files is a list and filter out empty/None values\n        files = self.files if self.files else []\n        if files and not isinstance(files, list):\n            files = [files]\n        # Filter out None/empty values\n        files = [f for f in files if f is not None and f != \"\"]\n\n        session_id = self.session_id or self.graph.session_id or \"\"\n        message = await Message.create(\n            text=self.input_value,\n            sender=self.sender,\n            sender_name=self.sender_name,\n            session_id=session_id,\n            context_id=self.context_id,\n            files=files,\n        )\n        if session_id and isinstance(message, Message) and self.should_store_message:\n            stored_message = await self.send_message(\n                message,\n            )\n            self.message.value = stored_message\n            message = stored_message\n\n        self.status = message\n        return message\n"
+              },
+              "context_id": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Context ID",
+                "dynamic": false,
+                "info": "The context ID of the chat. Adds an extra layer to the local memory.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "context_id",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "files": {
+                "_input_type": "FileInput",
+                "advanced": true,
+                "display_name": "Files",
+                "dynamic": false,
+                "fileTypes": [
+                  "csv",
+                  "json",
+                  "pdf",
+                  "txt",
+                  "md",
+                  "mdx",
+                  "yaml",
+                  "yml",
+                  "xml",
+                  "html",
+                  "htm",
+                  "docx",
+                  "py",
+                  "sh",
+                  "sql",
+                  "js",
+                  "ts",
+                  "tsx",
+                  "jpg",
+                  "jpeg",
+                  "png",
+                  "bmp",
+                  "image"
+                ],
+                "file_path": "",
+                "info": "Files to be sent with the message.",
+                "list": true,
+                "list_add_label": "Add More",
+                "name": "files",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "temp_file": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "file",
+                "value": ""
+              },
+              "input_value": {
+                "_input_type": "MultilineInput",
+                "advanced": false,
+                "ai_enabled": false,
+                "copy_field": false,
+                "display_name": "Input Text",
+                "dynamic": false,
+                "info": "Message to be passed as input.",
+                "input_types": [],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "multiline": true,
+                "name": "input_value",
+                "override_skip": false,
+                "password": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "sender": {
+                "_input_type": "DropdownInput",
+                "advanced": true,
+                "combobox": false,
+                "dialog_inputs": {},
+                "display_name": "Sender Type",
+                "dynamic": false,
+                "external_options": {},
+                "info": "Type of sender.",
+                "name": "sender",
+                "options": [
+                  "Machine",
+                  "User"
+                ],
+                "options_metadata": [],
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "toggle": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "str",
+                "value": "User"
+              },
+              "sender_name": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Sender Name",
+                "dynamic": false,
+                "info": "Name of the sender.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "sender_name",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "User"
+              },
+              "session_id": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Session ID",
+                "dynamic": false,
+                "info": "The session ID of the chat. If empty, the current session ID parameter will be used.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "session_id",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "should_store_message": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Store Messages",
+                "dynamic": false,
+                "info": "Store the message in the history.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "should_store_message",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": true
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "PipelineConfig_S-C.V2-67b336",
+        "type": "genericNode",
+        "position": {
+          "x": 450,
+          "y": 250
+        },
+        "data": {
+          "id": "PipelineConfig_S-C.V2-67b336",
+          "type": "PipelineConfig S-C.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "user_message": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "user_message",
+                "value": "",
+                "display_name": "User Message",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "Connect a Chat Input here.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario C v2 \u2014 PipelineConfig.\n\nParses the attendee's chat-input text into a structured run-config dict that\npropagates through the rest of the pipeline. Empty input \u2192 defaults.\n\nPedagogical hook: attendees see how a small LLM \"front desk\" can convert\ninformal natural-language instructions (\"only urgent IHC cases, show as html,\nfatigue cap 15\") into structured parameters that the rest of the agentic\nworkflow respects.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_c.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You translate informal pipeline directives into a\nstrict JSON config. Only keys listed below are allowed; any others must be\nignored. If the user input is empty or doesn't mention a key, leave that key\nout of your output (the pipeline will use its default).\n\nAllowed keys (all optional, all numeric/string):\n  max_cases: integer 1..30\n  fatigue_threshold: integer 1..999\n  format: one of \"markdown\" | \"csv\" | \"json\" | \"narrative\" | \"html\"\n  subspecialty_filter: one of \"GI\" | \"Hematopathology\" | \"Dermatopathology\" |\n                       \"Renal\" | \"GU\" | \"Breast\" | \"\" (empty = no filter)\n  priority_filter: one of \"stat\" | \"urgent\" | \"routine\" | \"\" (empty = all)\n\nReturn ONLY a JSON object with the keys you actually inferred. No commentary,\nno markdown, no explanation. Examples:\n\nUser: \"5 urgent cases, html output\"\nYou: {\"max_cases\": 5, \"priority_filter\": \"urgent\", \"format\": \"html\"}\n\nUser: \"fatigue 15\"\nYou: {\"fatigue_threshold\": 15}\n\nUser: \"\" (empty)\nYou: {}\"\"\"\n\n\n_VALID_FORMATS = {\"markdown\", \"csv\", \"json\", \"narrative\", \"html\"}\n_VALID_PRIORITIES = {\"stat\", \"urgent\", \"routine\", \"\"}\n_VALID_SUBSPECIALTIES = {\n    \"GI\", \"Hematopathology\", \"Dermatopathology\", \"Renal\", \"GU\", \"Breast\", \"\",\n}\n\n\ndef _sanitize(parsed: dict) -> dict:\n    out = {}\n    if isinstance(parsed.get(\"max_cases\"), int) and 1 <= parsed[\"max_cases\"] <= 30:\n        out[\"max_cases\"] = parsed[\"max_cases\"]\n    if isinstance(parsed.get(\"fatigue_threshold\"), int) and 1 <= parsed[\"fatigue_threshold\"] <= 999:\n        out[\"fatigue_threshold\"] = parsed[\"fatigue_threshold\"]\n    fmt = parsed.get(\"format\")\n    if isinstance(fmt, str) and fmt.lower() in _VALID_FORMATS:\n        out[\"format\"] = fmt.lower()\n    sub = parsed.get(\"subspecialty_filter\")\n    if isinstance(sub, str) and sub in _VALID_SUBSPECIALTIES and sub != \"\":\n        out[\"subspecialty_filter\"] = sub\n    pri = parsed.get(\"priority_filter\")\n    if isinstance(pri, str) and pri.lower() in _VALID_PRIORITIES and pri.lower() != \"\":\n        out[\"priority_filter\"] = pri.lower()\n    return out\n\n\nclass ScenarioC_v2_PipelineConfig(Component):\n    display_name = \"Pipeline Config\"\n    description = (\n        \"Parses the chat-input directive into a structured config that overrides downstream \"\n        \"defaults: max_cases, fatigue_threshold, format, subspecialty_filter, priority_filter.\"\n    )\n    icon = \"settings\"\n    name = \"PipelineConfig S-C.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"user_message\",\n            display_name=\"User Message\",\n            input_types=[\"Message\"],\n            info=\"Connect a Chat Input here.\",\n        ),\n        StrInput(\n            name=\"model\",\n            display_name=\"Model\",\n            value=\"openai/gpt-4o-mini\",\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"temperature\",\n            display_name=\"Temperature\",\n            value=0.0,\n            advanced=True,\n        ),\n        IntInput(\n            name=\"max_tokens\",\n            display_name=\"Max Tokens\",\n            value=200,\n            advanced=True,\n        ),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Reshape what directives the parser accepts.\",\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Run Config\", name=\"run_config\", method=\"run_parse\"),\n    ]\n\n    def run_parse(self) -> Data:\n        user_text = (self.user_message.text or \"\") if self.user_message else \"\"\n        user_text = user_text.strip()\n        if not user_text:\n            # Empty input \u2192 empty override dict (downstream will use UI defaults).\n            return Data(data={\"run_config\": {}, \"user_text\": \"\"})\n\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=user_text,\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError:\n            parsed = {}\n        config = _sanitize(parsed if isinstance(parsed, dict) else {})\n        return Data(data={\"run_config\": config, \"user_text\": user_text, \"raw_llm\": raw})\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 200,
+                "display_name": "Max Tokens",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o-mini",
+                "display_name": "Model",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You translate informal pipeline directives into a\nstrict JSON config. Only keys listed below are allowed; any others must be\nignored. If the user input is empty or doesn't mention a key, leave that key\nout of your output (the pipeline will use its default).\n\nAllowed keys (all optional, all numeric/string):\n  max_cases: integer 1..30\n  fatigue_threshold: integer 1..999\n  format: one of \"markdown\" | \"csv\" | \"json\" | \"narrative\" | \"html\"\n  subspecialty_filter: one of \"GI\" | \"Hematopathology\" | \"Dermatopathology\" |\n                       \"Renal\" | \"GU\" | \"Breast\" | \"\" (empty = no filter)\n  priority_filter: one of \"stat\" | \"urgent\" | \"routine\" | \"\" (empty = all)\n\nReturn ONLY a JSON object with the keys you actually inferred. No commentary,\nno markdown, no explanation. Examples:\n\nUser: \"5 urgent cases, html output\"\nYou: {\"max_cases\": 5, \"priority_filter\": \"urgent\", \"format\": \"html\"}\n\nUser: \"fatigue 15\"\nYou: {\"fatigue_threshold\": 15}\n\nUser: \"\" (empty)\nYou: {}",
+                "display_name": "System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Reshape what directives the parser accepts.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.0,
+                "display_name": "Temperature",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              }
+            },
+            "description": "Parses the chat-input directive into a structured config that overrides downstream defaults: max_cases, fatigue_threshold, format, subspecialty_filter, priority_filter.",
+            "icon": "settings",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "Pipeline Config",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "run_config",
+                "display_name": "Run Config",
+                "method": "run_parse",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "user_message",
+              "model",
+              "temperature",
+              "max_tokens",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.pipeline_config",
+              "code_hash": "bb30bf1684cb",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "TriageAgent_S-C.V2-89d33c",
+        "type": "genericNode",
+        "position": {
+          "x": 900,
+          "y": 100
+        },
+        "data": {
+          "id": "TriageAgent_S-C.V2-89d33c",
+          "type": "TriageAgent S-C.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "run_config": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "run_config",
+                "value": "",
+                "display_name": "Run Config",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Optional. Connect Pipeline Config to override Max Cases / priority filter from chat input.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario C v2 \u2014 TriageAgent.\n\nFirst agent in the pipeline. Reads cases.csv, asks the LLM to assign each\ncase a priority_score (0-100) considering specimen, age, the stated priority,\nand any clinical urgency cues. The downstream EligibilityFilter and\nRoutingAgent use this score to break ties and order processing.\n\nPedagogical hook: attendees see how an LLM augments structured data with\nclinical judgment. They edit the system prompt to weight age vs. priority\nvs. specimen complexity differently and watch the routing change.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_c.v2_helpers import (\n    DEFAULT_DATA_DIR,\n    chat_completion_text,\n    openai_client,\n    resolve_data_dir,\n)\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a pathology triage agent. You receive a JSON\nlist of incoming cases. For each case, assign a numerical priority_score\nbetween 0 (defer) and 100 (drop everything). Consider:\n- Stated priority (stat > urgent > routine).\n- Specimen type and what it implies clinically (e.g., bone marrow + aspirate\n  for a 72-year-old typically warrants very high priority; fibroadenoma in\n  a 28-year-old is rarely urgent).\n- Patient age (older patients with malignancy-suspect specimens score higher).\n- Whether IHC is required (IHC turn-around adds latency, so a urgent IHC case\n  may warrant a higher score to start its prep sooner).\n\nReturn ONLY a JSON object:\n{\n  \"scored\": [\n    {\"id\": \"case-001\", \"priority_score\": 85, \"rationale\": \"one sentence\"},\n    ...\n  ]\n}\n\nScore every case in the input. No commentary, no markdown.\"\"\"\n\n\nclass ScenarioC_v2_TriageAgent(Component):\n    display_name = \"Triage Agent\"\n    description = (\n        \"LLM agent. Reads cases.csv, scores each case 0-100 with clinical rationale. \"\n        \"Output flows into EligibilityFilter and RoutingAgent.\"\n    )\n    icon = \"thermometer\"\n    name = \"TriageAgent S-C.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"run_config\",\n            display_name=\"Run Config\",\n            input_types=[\"Data\"],\n            required=False,\n            info=\"Optional. Connect Pipeline Config to override Max Cases / priority filter from chat input.\",\n        ),\n        StrInput(\n            name=\"data_dir\",\n            display_name=\"Data Directory\",\n            value=DEFAULT_DATA_DIR,\n            advanced=True,\n        ),\n        IntInput(\n            name=\"max_cases\",\n            display_name=\"Max Cases\",\n            value=10,\n            info=\"Cap to keep workshop runs cheap. Cases are taken in stat\u2192urgent\u2192routine order. Overridden by Run Config when connected.\",\n        ),\n        StrInput(\n            name=\"model\",\n            display_name=\"Model\",\n            value=\"openai/gpt-4o-mini\",\n        ),\n        FloatInput(\n            name=\"temperature\",\n            display_name=\"Temperature\",\n            value=0.0,\n            info=\"0.0 keeps scoring reproducible across runs.\",\n        ),\n        IntInput(\n            name=\"max_tokens\",\n            display_name=\"Max Tokens\",\n            value=1500,\n            advanced=True,\n        ),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Reweighting age vs. priority vs. specimen here changes the whole flow's order.\",\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Scored Cases\", name=\"scored_cases\", method=\"run_triage\"),\n    ]\n\n    def run_triage(self) -> Data:\n        from tools.scenario_c import case_queue\n\n        # Pull overrides from upstream Pipeline Config, fall back to UI inputs.\n        run_config = (self.run_config.data.get(\"run_config\", {}) if self.run_config else {})\n        max_cases = run_config.get(\"max_cases\", self.max_cases)\n        priority_filter = run_config.get(\"priority_filter\")\n        subspecialty_filter = run_config.get(\"subspecialty_filter\")\n\n        base = resolve_data_dir(self.data_dir)\n        all_cases = case_queue.load(base / \"cases.csv\")\n        unassigned = case_queue.unassigned(all_cases)\n        if priority_filter:\n            unassigned = [c for c in unassigned if c[\"priority\"] == priority_filter]\n        if subspecialty_filter:\n            unassigned = [c for c in unassigned if c[\"requested_subspecialty\"] == subspecialty_filter]\n        ordered = case_queue.by_priority(unassigned)\n        batch = ordered[: max_cases]\n\n        payload = {\n            \"cases\": [\n                {\n                    \"id\": c[\"id\"],\n                    \"received_at\": c[\"received_at\"],\n                    \"requested_subspecialty\": c[\"requested_subspecialty\"],\n                    \"priority\": c[\"priority\"],\n                    \"requires_ihc\": c[\"requires_ihc\"],\n                    \"specimen\": c[\"specimen\"],\n                    \"patient_age\": c[\"patient_age\"],\n                }\n                for c in batch\n            ]\n        }\n\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError as e:\n            raise ValueError(f\"TriageAgent did not return valid JSON: {raw!r}\") from e\n\n        scored_by_id = {s[\"id\"]: s for s in parsed.get(\"scored\", [])}\n        enriched = []\n        for c in batch:\n            s = scored_by_id.get(c[\"id\"], {})\n            enriched.append({\n                **c,\n                \"priority_score\": int(s.get(\"priority_score\", 50)),\n                \"triage_rationale\": s.get(\"rationale\", \"\"),\n            })\n        # Re-sort by descending priority_score so downstream nodes process the most urgent first.\n        enriched.sort(key=lambda x: x[\"priority_score\"], reverse=True)\n        return Data(data={\"cases\": enriched, \"raw_llm\": raw, \"run_config\": run_config})\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "data_dir": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "data_dir",
+                "value": "/workshop/data/scenario_c",
+                "display_name": "Data Directory",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "max_cases": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_cases",
+                "value": 10,
+                "display_name": "Max Cases",
+                "advanced": false,
+                "dynamic": false,
+                "info": "Cap to keep workshop runs cheap. Cases are taken in stat\u2192urgent\u2192routine order. Overridden by Run Config when connected.",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 1500,
+                "display_name": "Max Tokens",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o-mini",
+                "display_name": "Model",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You are a pathology triage agent. You receive a JSON\nlist of incoming cases. For each case, assign a numerical priority_score\nbetween 0 (defer) and 100 (drop everything). Consider:\n- Stated priority (stat > urgent > routine).\n- Specimen type and what it implies clinically (e.g., bone marrow + aspirate\n  for a 72-year-old typically warrants very high priority; fibroadenoma in\n  a 28-year-old is rarely urgent).\n- Patient age (older patients with malignancy-suspect specimens score higher).\n- Whether IHC is required (IHC turn-around adds latency, so a urgent IHC case\n  may warrant a higher score to start its prep sooner).\n\nReturn ONLY a JSON object:\n{\n  \"scored\": [\n    {\"id\": \"case-001\", \"priority_score\": 85, \"rationale\": \"one sentence\"},\n    ...\n  ]\n}\n\nScore every case in the input. No commentary, no markdown.",
+                "display_name": "System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Reweighting age vs. priority vs. specimen here changes the whole flow's order.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.0,
+                "display_name": "Temperature",
+                "advanced": false,
+                "dynamic": false,
+                "info": "0.0 keeps scoring reproducible across runs.",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              }
+            },
+            "description": "LLM agent. Reads cases.csv, scores each case 0-100 with clinical rationale. Output flows into EligibilityFilter and RoutingAgent.",
+            "icon": "thermometer",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "Triage Agent",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "scored_cases",
+                "display_name": "Scored Cases",
+                "method": "run_triage",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "run_config",
+              "data_dir",
+              "max_cases",
+              "model",
+              "temperature",
+              "max_tokens",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.triage_agent",
+              "code_hash": "8e9fa26e95e7",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "CapacityAdvisor_S-C.V2-8323e3",
+        "type": "genericNode",
+        "position": {
+          "x": 900,
+          "y": 600
+        },
+        "data": {
+          "id": "CapacityAdvisor_S-C.V2-8323e3",
+          "type": "CapacityAdvisor S-C.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario C v2 \u2014 CapacityAdvisor.\n\nReads the instrument fleet (instruments.csv) and asks an LLM to produce a\nshort narrative on capacity bottlenecks: which subspecialties might be\nconstrained, which instruments are near-empty or in maintenance, what the\nshift lead should keep an eye on. Output is plain text that downstream\nagents (the RoutingAgent) fold into their decision context.\n\nPedagogical hook: attendees edit the system prompt or low-reagent threshold\nto change the advisory's emphasis (terse vs. verbose, rule-based vs.\nLLM-narrated).\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\nfrom pathlib import Path\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.message import Message\n\nfrom tools.scenario_c.v2_helpers import (\n    DEFAULT_DATA_DIR,\n    chat_completion_text,\n    openai_client,\n    resolve_data_dir,\n)\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are the lab capacity advisor. Given a JSON snapshot\nof pathology lab instruments (stainers, scanners), write a brief operational\nadvisory (3-5 sentences) for the morning routing run. Cover:\n- Which instrument subtypes (H&E, IHC, special stains, slide scanners) are\n  fully online, partially constrained, or offline.\n- Any specific instruments that are near-empty (reagent below the threshold)\n  or in maintenance.\n- The specific case sub-specialties most likely to be impacted (e.g., IHC\n  capacity affects all cases with requires_ihc=true).\n- A one-line 'watch this today' takeaway.\n\nBe concrete. Use instrument names and ids. Do not hedge.\"\"\"\n\n\nclass ScenarioC_v2_CapacityAdvisor(Component):\n    display_name = \"Capacity Advisor\"\n    description = (\n        \"LLM agent. Reads instruments.csv and writes an operational advisory on lab \"\n        \"capacity bottlenecks. Output is consumed by the Routing Agent as decision context.\"\n    )\n    icon = \"activity\"\n    name = \"CapacityAdvisor S-C.V2\"\n\n    inputs = [\n        StrInput(\n            name=\"data_dir\",\n            display_name=\"Data Directory\",\n            value=DEFAULT_DATA_DIR,\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"low_reagent_threshold_pct\",\n            display_name=\"Low Reagent Threshold (%)\",\n            value=20.0,\n            info=\"Stainers at or below this reagent level are flagged in the LLM input.\",\n        ),\n        StrInput(\n            name=\"model\",\n            display_name=\"Model\",\n            value=\"openai/gpt-4o-mini\",\n        ),\n        FloatInput(\n            name=\"temperature\",\n            display_name=\"Temperature\",\n            value=0.2,\n            info=\"0.0 = deterministic, 1.0 = creative. Mid-range often produces better narratives.\",\n        ),\n        IntInput(\n            name=\"max_tokens\",\n            display_name=\"Max Tokens\",\n            value=300,\n        ),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Reshapes the advisory style.\",\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Capacity Advisory\", name=\"advisory\", method=\"run_advisor\"),\n    ]\n\n    def run_advisor(self) -> Message:\n        from tools.scenario_c import instrument_telemetry\n\n        base = resolve_data_dir(self.data_dir)\n        instruments = instrument_telemetry.load(base / \"instruments.csv\")\n\n        # Annotate near-empty / maintenance instruments so the LLM sees them clearly.\n        flagged = []\n        for i in instruments:\n            level = i.get(\"reagent_level_pct\")\n            note = []\n            if i[\"status\"] != \"online\":\n                note.append(f\"STATUS={i['status']}\")\n            if level is not None and level <= self.low_reagent_threshold_pct:\n                note.append(f\"LOW_REAGENT ({level:.0f}%)\")\n            entry = {**i}\n            if note:\n                entry[\"_advisor_flags\"] = note\n            flagged.append(entry)\n\n        user_payload = json.dumps({\"instruments\": flagged}, indent=2, default=str)\n\n        client = openai_client()\n        advisory = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=user_payload,\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n        )\n        return Message(text=advisory.strip())\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "data_dir": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "data_dir",
+                "value": "/workshop/data/scenario_c",
+                "display_name": "Data Directory",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "low_reagent_threshold_pct": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "low_reagent_threshold_pct",
+                "value": 20.0,
+                "display_name": "Low Reagent Threshold (%)",
+                "advanced": false,
+                "dynamic": false,
+                "info": "Stainers at or below this reagent level are flagged in the LLM input.",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 300,
+                "display_name": "Max Tokens",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o-mini",
+                "display_name": "Model",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You are the lab capacity advisor. Given a JSON snapshot\nof pathology lab instruments (stainers, scanners), write a brief operational\nadvisory (3-5 sentences) for the morning routing run. Cover:\n- Which instrument subtypes (H&E, IHC, special stains, slide scanners) are\n  fully online, partially constrained, or offline.\n- Any specific instruments that are near-empty (reagent below the threshold)\n  or in maintenance.\n- The specific case sub-specialties most likely to be impacted (e.g., IHC\n  capacity affects all cases with requires_ihc=true).\n- A one-line 'watch this today' takeaway.\n\nBe concrete. Use instrument names and ids. Do not hedge.",
+                "display_name": "System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Reshapes the advisory style.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.2,
+                "display_name": "Temperature",
+                "advanced": false,
+                "dynamic": false,
+                "info": "0.0 = deterministic, 1.0 = creative. Mid-range often produces better narratives.",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              }
+            },
+            "description": "LLM agent. Reads instruments.csv and writes an operational advisory on lab capacity bottlenecks. Output is consumed by the Routing Agent as decision context.",
+            "icon": "activity",
+            "base_classes": [
+              "Message"
+            ],
+            "display_name": "Capacity Advisor",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "Message"
+                ],
+                "selected": "Message",
+                "name": "advisory",
+                "display_name": "Capacity Advisory",
+                "method": "run_advisor",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "data_dir",
+              "low_reagent_threshold_pct",
+              "model",
+              "temperature",
+              "max_tokens",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.capacity_advisor",
+              "code_hash": "9356d6230698",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "EligibilityFilter_S-C.V2-5da3ac",
+        "type": "genericNode",
+        "position": {
+          "x": 1350,
+          "y": 100
+        },
+        "data": {
+          "id": "EligibilityFilter_S-C.V2-5da3ac",
+          "type": "EligibilityFilter S-C.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "scored_cases": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "scored_cases",
+                "value": "",
+                "display_name": "Scored Cases",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Connect the Triage Agent's output here.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario C v2 \u2014 EligibilityFilter.\n\nPure-Python rule-based step. Takes the triaged cases and narrows each one's\neligible pathologist pool by:\n  - subspecialty match (toggleable for experimentation)\n  - IHC capability of the lab (toggleable)\n  - the participant-editable fatigue threshold\n\nThis component deliberately does NOT call an LLM. The pedagogical message is\n'rules and LLMs cooperate'; the routing agent is more useful when fed a small,\nalready-filtered candidate list.\n\"\"\"\n\nfrom __future__ import annotations\n\nfrom langflow.custom import Component\nfrom langflow.io import BoolInput, HandleInput, IntInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_c.v2_helpers import DEFAULT_DATA_DIR, resolve_data_dir\n\n\nclass ScenarioC_v2_EligibilityFilter(Component):\n    display_name = \"Eligibility Filter\"\n    description = (\n        \"Pure-Python step. Combines subspecialty match + IHC capacity + the fatigue cap to \"\n        \"produce a small eligible-pathologist list per case. The fatigue threshold is the \"\n        \"workshop's headline EDIT ME knob.\"\n    )\n    icon = \"filter\"\n    name = \"EligibilityFilter S-C.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"scored_cases\",\n            display_name=\"Scored Cases\",\n            input_types=[\"Data\"],\n            info=\"Connect the Triage Agent's output here.\",\n        ),\n        StrInput(\n            name=\"data_dir\",\n            display_name=\"Data Directory\",\n            value=DEFAULT_DATA_DIR,\n            advanced=True,\n        ),\n        IntInput(\n            name=\"fatigue_threshold\",\n            display_name=\"Fatigue Threshold (avg slides/day)\",\n            value=999,\n            info=\"Pathologists whose recent average meets/exceeds this are dropped. 999=no cap; 15=workshop's recommended setting.\",\n        ),\n        IntInput(\n            name=\"lookback_days\",\n            display_name=\"Fatigue Lookback Days\",\n            value=7,\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"enforce_subspecialty_match\",\n            display_name=\"Enforce Subspecialty Match\",\n            value=True,\n            info=\"If off, any pathologist may receive any case (useful to demonstrate why subspecialty matters).\",\n        ),\n        BoolInput(\n            name=\"enforce_ihc_capacity\",\n            display_name=\"Enforce IHC Capacity\",\n            value=True,\n            info=\"If off, IHC-required cases get assigned even when no IHC stainer is online.\",\n        ),\n        IntInput(\n            name=\"ihc_min_reagent_pct\",\n            display_name=\"IHC Min Reagent %\",\n            value=10,\n            advanced=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Cases With Eligible Pool\", name=\"eligible_cases\", method=\"run_filter\"),\n    ]\n\n    def run_filter(self) -> Data:\n        from tools.scenario_c import (\n            instrument_telemetry,\n            pathologist_registry as reg,\n        )\n\n        run_config = self.scored_cases.data.get(\"run_config\", {})\n        fatigue_threshold = run_config.get(\"fatigue_threshold\", self.fatigue_threshold)\n\n        base = resolve_data_dir(self.data_dir)\n        instruments = instrument_telemetry.load(base / \"instruments.csv\")\n        pathologists = reg.load_pathologists(base / \"pathologists.csv\")\n        history = reg.load_workload(base / \"workload_history.csv\")\n\n        cases = self.scored_cases.data.get(\"cases\", [])\n        ihc_capable = instrument_telemetry.can_run_ihc(instruments, self.ihc_min_reagent_pct)\n\n        out_cases = []\n        for case in cases:\n            pool = list(pathologists)\n            if self.enforce_subspecialty_match:\n                pool = reg.by_subspecialty(pool, case[\"requested_subspecialty\"])\n            if self.enforce_ihc_capacity and case[\"requires_ihc\"] and not ihc_capable:\n                pool = []\n            # Apply fatigue cap.\n            pool = [\n                p for p in pool\n                if reg.recent_load_avg(history, p[\"id\"], days=self.lookback_days) < fatigue_threshold\n            ]\n            out_cases.append({\n                **case,\n                \"eligible_pathologists\": [\n                    {\"id\": p[\"id\"], \"name\": p[\"name\"], \"current_queue_depth\": p[\"current_queue_depth\"]}\n                    for p in pool\n                ],\n            })\n\n        return Data(data={\n            \"cases\": out_cases,\n            \"run_config\": run_config,\n            \"stats\": {\n                \"ihc_capable\": ihc_capable,\n                \"fatigue_threshold\": fatigue_threshold,\n                \"subspecialty_enforced\": self.enforce_subspecialty_match,\n                \"ihc_enforced\": self.enforce_ihc_capacity,\n            },\n        })\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "data_dir": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "data_dir",
+                "value": "/workshop/data/scenario_c",
+                "display_name": "Data Directory",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "enforce_ihc_capacity": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "enforce_ihc_capacity",
+                "value": true,
+                "display_name": "Enforce IHC Capacity",
+                "advanced": false,
+                "dynamic": false,
+                "info": "If off, IHC-required cases get assigned even when no IHC stainer is online.",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "_input_type": "BoolInput"
+              },
+              "enforce_subspecialty_match": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "enforce_subspecialty_match",
+                "value": true,
+                "display_name": "Enforce Subspecialty Match",
+                "advanced": false,
+                "dynamic": false,
+                "info": "If off, any pathologist may receive any case (useful to demonstrate why subspecialty matters).",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "_input_type": "BoolInput"
+              },
+              "fatigue_threshold": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "fatigue_threshold",
+                "value": 999,
+                "display_name": "Fatigue Threshold (avg slides/day)",
+                "advanced": false,
+                "dynamic": false,
+                "info": "Pathologists whose recent average meets/exceeds this are dropped. 999=no cap; 15=workshop's recommended setting.",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "ihc_min_reagent_pct": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "ihc_min_reagent_pct",
+                "value": 10,
+                "display_name": "IHC Min Reagent %",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "lookback_days": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "lookback_days",
+                "value": 7,
+                "display_name": "Fatigue Lookback Days",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              }
+            },
+            "description": "Pure-Python step. Combines subspecialty match + IHC capacity + the fatigue cap to produce a small eligible-pathologist list per case. The fatigue threshold is the workshop's headline EDIT ME knob.",
+            "icon": "filter",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "Eligibility Filter",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "eligible_cases",
+                "display_name": "Cases With Eligible Pool",
+                "method": "run_filter",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "scored_cases",
+              "data_dir",
+              "fatigue_threshold",
+              "lookback_days",
+              "enforce_subspecialty_match",
+              "enforce_ihc_capacity",
+              "ihc_min_reagent_pct"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.eligibility_filter",
+              "code_hash": "c992f315fb77",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "RoutingAgent_S-C.V2-fe3d29",
+        "type": "genericNode",
+        "position": {
+          "x": 1800,
+          "y": 350
+        },
+        "data": {
+          "id": "RoutingAgent_S-C.V2-fe3d29",
+          "type": "RoutingAgent S-C.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "capacity_advisory": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "capacity_advisory",
+                "value": "",
+                "display_name": "Capacity Advisory",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "Connect CapacityAdvisor's output (optional but recommended).",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "eligible_cases": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "eligible_cases",
+                "value": "",
+                "display_name": "Eligible Cases",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Connect EligibilityFilter's output.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario C v2 \u2014 RoutingAgent.\n\nTakes the cases-with-eligible-pools (from EligibilityFilter) and the capacity\nadvisory text (from CapacityAdvisor), and asks an LLM to pick exactly one\npathologist per case, returning a rationale that explicitly references the\nadvisory when relevant.\n\nDifference from v1: the LLM here does NOT do filtering. It only picks among\nan already-narrowed eligible list. That keeps its prompt short and its\ndecisions defensible.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_c.v2_helpers import (\n    chat_completion_text,\n    openai_client,\n)\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a pathology lab routing agent. For each case\nyou are given:\n  - the case (with priority_score from triage)\n  - the eligible pathologists (already filtered by subspecialty, IHC\n    capacity, and the fatigue cap)\n  - a capacity advisory describing today's lab bottlenecks\n\nPick exactly one pathologist per case. Reason in this order:\n  1. Lowest current_queue_depth among the eligible.\n  2. Higher priority_score \u2192 assign to the pathologist most able to start now.\n  3. Reference the capacity advisory if it changes the calculus.\n\nReturn ONLY a JSON object:\n{\n  \"assignments\": [\n    {\"case_id\": \"case-001\", \"pathologist_id\": \"p001\", \"rationale\": \"one sentence\"},\n    ...\n  ]\n}\n\nIf a case has zero eligible pathologists, set pathologist_id to null and\nexplain in the rationale. No commentary, no markdown.\"\"\"\n\n\nclass ScenarioC_v2_RoutingAgent(Component):\n    display_name = \"Routing Agent\"\n    description = (\n        \"LLM agent. Given cases with their eligible pools (from EligibilityFilter) and the \"\n        \"capacity advisory (from CapacityAdvisor), picks one pathologist per case with rationale.\"\n    )\n    icon = \"git-branch\"\n    name = \"RoutingAgent S-C.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"eligible_cases\",\n            display_name=\"Eligible Cases\",\n            input_types=[\"Data\"],\n            info=\"Connect EligibilityFilter's output.\",\n        ),\n        HandleInput(\n            name=\"capacity_advisory\",\n            display_name=\"Capacity Advisory\",\n            input_types=[\"Message\"],\n            info=\"Connect CapacityAdvisor's output (optional but recommended).\",\n        ),\n        StrInput(\n            name=\"model\",\n            display_name=\"Model\",\n            value=\"openai/gpt-4o-mini\",\n        ),\n        FloatInput(\n            name=\"temperature\",\n            display_name=\"Temperature\",\n            value=0.0,\n        ),\n        IntInput(\n            name=\"max_tokens\",\n            display_name=\"Max Tokens\",\n            value=1500,\n            advanced=True,\n        ),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Reorder the decision criteria, change tie-breakers, etc.\",\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Assignments\", name=\"assignments\", method=\"run_routing\"),\n    ]\n\n    def run_routing(self) -> Data:\n        cases = self.eligible_cases.data.get(\"cases\", [])\n        stats = self.eligible_cases.data.get(\"stats\", {})\n        advisory_text = self.capacity_advisory.text if self.capacity_advisory else \"\"\n\n        payload = {\n            \"capacity_advisory\": advisory_text,\n            \"filtering_stats\": stats,\n            \"cases\": [\n                {\n                    \"case_id\": c[\"id\"],\n                    \"specimen\": c[\"specimen\"],\n                    \"requested_subspecialty\": c[\"requested_subspecialty\"],\n                    \"priority\": c[\"priority\"],\n                    \"priority_score\": c.get(\"priority_score\"),\n                    \"requires_ihc\": c[\"requires_ihc\"],\n                    \"patient_age\": c.get(\"patient_age\"),\n                    \"eligible_pathologists\": c[\"eligible_pathologists\"],\n                }\n                for c in cases\n            ],\n        }\n\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError as e:\n            raise ValueError(f\"RoutingAgent did not return valid JSON: {raw!r}\") from e\n\n        return Data(data={\n            \"assignments\": parsed.get(\"assignments\", []),\n            \"cases\": cases,\n            \"advisory\": advisory_text,\n            \"raw_llm\": raw,\n            \"run_config\": self.eligible_cases.data.get(\"run_config\", {}),\n        })\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 1500,
+                "display_name": "Max Tokens",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o-mini",
+                "display_name": "Model",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You are a pathology lab routing agent. For each case\nyou are given:\n  - the case (with priority_score from triage)\n  - the eligible pathologists (already filtered by subspecialty, IHC\n    capacity, and the fatigue cap)\n  - a capacity advisory describing today's lab bottlenecks\n\nPick exactly one pathologist per case. Reason in this order:\n  1. Lowest current_queue_depth among the eligible.\n  2. Higher priority_score \u2192 assign to the pathologist most able to start now.\n  3. Reference the capacity advisory if it changes the calculus.\n\nReturn ONLY a JSON object:\n{\n  \"assignments\": [\n    {\"case_id\": \"case-001\", \"pathologist_id\": \"p001\", \"rationale\": \"one sentence\"},\n    ...\n  ]\n}\n\nIf a case has zero eligible pathologists, set pathologist_id to null and\nexplain in the rationale. No commentary, no markdown.",
+                "display_name": "System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Reorder the decision criteria, change tie-breakers, etc.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.0,
+                "display_name": "Temperature",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              }
+            },
+            "description": "LLM agent. Given cases with their eligible pools (from EligibilityFilter) and the capacity advisory (from CapacityAdvisor), picks one pathologist per case with rationale.",
+            "icon": "git-branch",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "Routing Agent",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "assignments",
+                "display_name": "Assignments",
+                "method": "run_routing",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "eligible_cases",
+              "capacity_advisory",
+              "model",
+              "temperature",
+              "max_tokens",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.routing_agent",
+              "code_hash": "dc43e8797a79",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "QAReviewer_S-C.V2-6e36bf",
+        "type": "genericNode",
+        "position": {
+          "x": 2250,
+          "y": 350
+        },
+        "data": {
+          "id": "QAReviewer_S-C.V2-6e36bf",
+          "type": "QAReviewer S-C.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "routing_output": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "routing_output",
+                "value": "",
+                "display_name": "Routing Output",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Connect the Routing Agent's Assignments output.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario C v2 \u2014 QAReviewer.\n\nReview-only step (per workshop decision: no HITL block). Takes the routing\nagent's assignments and asks a separate LLM to spot-check them: anything that\nlooks clinically off, anything that ignores the capacity advisory, anything\nthat creates a workload imbalance. Emits flags for each suspect assignment.\n\nFlagged assignments are NOT overridden. The downstream ReportFormatter\nincludes the flags so attendees can see where the routing agent and reviewer\ndisagreed \u2014 that disagreement is the pedagogical point.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_c.v2_helpers import (\n    chat_completion_text,\n    openai_client,\n)\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a pathology QA reviewer. Another agent\nproposed assignments; your job is to spot-check, not override. Look for:\n  - subspecialty mismatch (case requested X but assigned to a non-X reader)\n  - workload imbalance (one pathologist absorbing a disproportionate share)\n  - capacity-advisory ignored (e.g., advisory said IHC is constrained but\n    multiple urgent IHC cases were stacked on one IHC-stainer-dependent\n    workflow)\n  - priority inversions (low priority_score case scheduled before higher one\n    on the same pathologist)\n\nReturn ONLY a JSON object listing flags:\n{\n  \"flags\": [\n    {\"case_id\": \"case-001\", \"severity\": \"low|medium|high\", \"concern\": \"one sentence\"},\n    ...\n  ]\n}\n\nIf nothing is suspect, return {\"flags\": []}. Be terse, actionable, no hedging.\"\"\"\n\n\nclass ScenarioC_v2_QAReviewer(Component):\n    display_name = \"QA Reviewer\"\n    description = (\n        \"LLM agent. Reviews the routing agent's assignments for subspecialty mismatch, \"\n        \"workload imbalance, ignored capacity advisory. Emits flags but does not block.\"\n    )\n    icon = \"shield\"\n    name = \"QAReviewer S-C.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"routing_output\",\n            display_name=\"Routing Output\",\n            input_types=[\"Data\"],\n            info=\"Connect the Routing Agent's Assignments output.\",\n        ),\n        StrInput(\n            name=\"model\",\n            display_name=\"Model\",\n            value=\"openai/gpt-4o-mini\",\n        ),\n        FloatInput(\n            name=\"temperature\",\n            display_name=\"Temperature\",\n            value=0.0,\n        ),\n        IntInput(\n            name=\"max_tokens\",\n            display_name=\"Max Tokens\",\n            value=600,\n            advanced=True,\n        ),\n        StrInput(\n            name=\"severity_threshold\",\n            display_name=\"Min Severity to Surface\",\n            value=\"low\",\n            info=\"One of: low, medium, high. Flags below this severity are dropped.\",\n        ),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Make the reviewer stricter or looser, or change what it watches for.\",\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Reviewed Output\", name=\"reviewed\", method=\"run_review\"),\n    ]\n\n    def run_review(self) -> Data:\n        routing_data = self.routing_output.data\n        assignments = routing_data.get(\"assignments\", [])\n        cases = routing_data.get(\"cases\", [])\n        advisory = routing_data.get(\"advisory\", \"\")\n\n        payload = {\n            \"capacity_advisory\": advisory,\n            \"assignments\": assignments,\n            \"cases\": [\n                {\n                    \"case_id\": c[\"id\"],\n                    \"requested_subspecialty\": c[\"requested_subspecialty\"],\n                    \"priority\": c[\"priority\"],\n                    \"priority_score\": c.get(\"priority_score\"),\n                    \"requires_ihc\": c[\"requires_ihc\"],\n                    \"specimen\": c[\"specimen\"],\n                }\n                for c in cases\n            ],\n        }\n\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError as e:\n            raise ValueError(f\"QAReviewer did not return valid JSON: {raw!r}\") from e\n\n        flags = parsed.get(\"flags\", [])\n        order = {\"low\": 0, \"medium\": 1, \"high\": 2}\n        min_rank = order.get((self.severity_threshold or \"low\").lower(), 0)\n        flags = [f for f in flags if order.get(str(f.get(\"severity\", \"low\")).lower(), 0) >= min_rank]\n\n        return Data(data={\n            **routing_data,\n            \"flags\": flags,\n        })\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 600,
+                "display_name": "Max Tokens",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o-mini",
+                "display_name": "Model",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "severity_threshold": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "severity_threshold",
+                "value": "low",
+                "display_name": "Min Severity to Surface",
+                "advanced": false,
+                "dynamic": false,
+                "info": "One of: low, medium, high. Flags below this severity are dropped.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You are a pathology QA reviewer. Another agent\nproposed assignments; your job is to spot-check, not override. Look for:\n  - subspecialty mismatch (case requested X but assigned to a non-X reader)\n  - workload imbalance (one pathologist absorbing a disproportionate share)\n  - capacity-advisory ignored (e.g., advisory said IHC is constrained but\n    multiple urgent IHC cases were stacked on one IHC-stainer-dependent\n    workflow)\n  - priority inversions (low priority_score case scheduled before higher one\n    on the same pathologist)\n\nReturn ONLY a JSON object listing flags:\n{\n  \"flags\": [\n    {\"case_id\": \"case-001\", \"severity\": \"low|medium|high\", \"concern\": \"one sentence\"},\n    ...\n  ]\n}\n\nIf nothing is suspect, return {\"flags\": []}. Be terse, actionable, no hedging.",
+                "display_name": "System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Make the reviewer stricter or looser, or change what it watches for.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.0,
+                "display_name": "Temperature",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              }
+            },
+            "description": "LLM agent. Reviews the routing agent's assignments for subspecialty mismatch, workload imbalance, ignored capacity advisory. Emits flags but does not block.",
+            "icon": "shield",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "QA Reviewer",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "reviewed",
+                "display_name": "Reviewed Output",
+                "method": "run_review",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "routing_output",
+              "model",
+              "temperature",
+              "max_tokens",
+              "severity_threshold",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.qa_reviewer",
+              "code_hash": "fc7b475560d6",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "ReportFormatter_S-C.V2-5e3685",
+        "type": "genericNode",
+        "position": {
+          "x": 2700,
+          "y": 350
+        },
+        "data": {
+          "id": "ReportFormatter_S-C.V2-5e3685",
+          "type": "ReportFormatter S-C.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "reviewed": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "reviewed",
+                "value": "",
+                "display_name": "Reviewed Output",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Connect the QA Reviewer's output.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario C v2 \u2014 ReportFormatter.\n\nPure-Python step. Takes the QA-reviewed assignments and renders them in one\nof five formats: markdown, csv, json, narrative, html. The format dropdown is\na single attendee knob that radically changes the output without touching\nany other node \u2014 a clean way to show 'agentic workflows produce structured\nintermediate state; the final renderer is just presentation'.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport csv\nimport io\nimport json\nfrom typing import Any\n\nfrom langflow.custom import Component\nfrom langflow.io import HandleInput, MultilineInput, Output, StrInput\nfrom langflow.schema.message import Message\n\n\nVALID_FORMATS = {\"markdown\", \"csv\", \"json\", \"narrative\", \"html\"}\n\n\ndef _row_for_case(case: dict[str, Any], assignment: dict[str, Any] | None, flag: dict[str, Any] | None) -> dict[str, Any]:\n    return {\n        \"case_id\": case[\"id\"],\n        \"subspecialty\": case[\"requested_subspecialty\"],\n        \"priority\": case[\"priority\"],\n        \"priority_score\": case.get(\"priority_score\", \"\"),\n        \"requires_ihc\": case[\"requires_ihc\"],\n        \"specimen\": case[\"specimen\"],\n        \"patient_age\": case.get(\"patient_age\", \"\"),\n        \"pathologist_id\": (assignment or {}).get(\"pathologist_id\") or \"\",\n        \"rationale\": (assignment or {}).get(\"rationale\", \"\"),\n        \"qa_flag_severity\": (flag or {}).get(\"severity\", \"\"),\n        \"qa_flag_concern\": (flag or {}).get(\"concern\", \"\"),\n    }\n\n\ndef _render_markdown(rows: list[dict[str, Any]], advisory: str) -> str:\n    out = [\"# Scenario C v2 \u2014 routing report\", \"\"]\n    if advisory:\n        out += [\"## Capacity advisory\", \"\", advisory, \"\"]\n    out += [\"## Assignments\", \"\"]\n    out += [\"| # | Case | Sub-spec | Pri | Score | IHC | \u2192 Pathologist | Rationale | QA Flag |\"]\n    out += [\"|---|---|---|---|---|---|---|---|---|\"]\n    for i, r in enumerate(rows, 1):\n        flag = f\"{r['qa_flag_severity']}: {r['qa_flag_concern']}\" if r['qa_flag_severity'] else \"\"\n        out.append(\n            f\"| {i} | {r['case_id']} | {r['subspecialty']} | {r['priority']} | \"\n            f\"{r['priority_score']} | {'yes' if r['requires_ihc'] else 'no'} | \"\n            f\"{r['pathologist_id']} | {r['rationale']} | {flag} |\"\n        )\n    return \"\\n\".join(out)\n\n\ndef _render_csv(rows: list[dict[str, Any]]) -> str:\n    if not rows:\n        return \"\"\n    buf = io.StringIO()\n    w = csv.DictWriter(buf, fieldnames=list(rows[0].keys()))\n    w.writeheader()\n    for r in rows:\n        w.writerow(r)\n    return buf.getvalue()\n\n\ndef _render_json(rows: list[dict[str, Any]], advisory: str) -> str:\n    return json.dumps({\"advisory\": advisory, \"assignments\": rows}, indent=2, default=str)\n\n\ndef _render_narrative(rows: list[dict[str, Any]], advisory: str) -> str:\n    parts = []\n    if advisory:\n        parts.append(f\"Today's lab capacity advisory: {advisory}\\n\")\n    parts.append(f\"This routing run produced {len(rows)} assignment(s).\")\n    for r in rows:\n        flag = f\" QA flagged this ({r['qa_flag_severity']}): {r['qa_flag_concern']}.\" if r['qa_flag_severity'] else \"\"\n        pid = r[\"pathologist_id\"] or \"UNASSIGNED\"\n        parts.append(\n            f\"\\n- {r['case_id']} ({r['priority']}, {r['subspecialty']}, score={r['priority_score']}): \"\n            f\"routed to {pid}. {r['rationale']}{flag}\"\n        )\n    return \"\".join(parts)\n\n\ndef _render_html(rows: list[dict[str, Any]], advisory: str) -> str:\n    body = [\n        \"<!doctype html>\",\n        \"<html><head><meta charset='utf-8'><title>Scenario C v2 \u2014 routing report</title>\",\n        \"<style>\"\n        \"body{font-family:system-ui,sans-serif;max-width:960px;margin:24px auto;padding:0 16px;color:#111}\"\n        \"h1{margin-bottom:4px}h2{color:#444;margin-top:24px}\"\n        \"table{border-collapse:collapse;width:100%;font-size:14px}\"\n        \"th,td{border:1px solid #ddd;padding:6px 8px;text-align:left;vertical-align:top}\"\n        \"th{background:#f4f4f4}\"\n        \".flag-low{background:#fffbe6}.flag-medium{background:#ffe9d1}.flag-high{background:#ffd5d1}\"\n        \"</style></head><body>\",\n        \"<h1>Scenario C v2 \u2014 routing report</h1>\",\n    ]\n    if advisory:\n        body.append(\"<h2>Capacity advisory</h2>\")\n        body.append(f\"<p>{advisory}</p>\")\n    body.append(\"<h2>Assignments</h2>\")\n    body.append(\"<table><tr>\"\n                \"<th>#</th><th>Case</th><th>Sub-spec</th><th>Pri</th><th>Score</th>\"\n                \"<th>IHC</th><th>Pathologist</th><th>Rationale</th><th>QA Flag</th></tr>\")\n    for i, r in enumerate(rows, 1):\n        sev = r['qa_flag_severity']\n        cls = f\" class='flag-{sev}'\" if sev else \"\"\n        flag_cell = f\"{sev}: {r['qa_flag_concern']}\" if sev else \"\"\n        body.append(\n            f\"<tr{cls}><td>{i}</td><td>{r['case_id']}</td><td>{r['subspecialty']}</td>\"\n            f\"<td>{r['priority']}</td><td>{r['priority_score']}</td>\"\n            f\"<td>{'yes' if r['requires_ihc'] else 'no'}</td>\"\n            f\"<td>{r['pathologist_id'] or '\u2014'}</td><td>{r['rationale']}</td>\"\n            f\"<td>{flag_cell}</td></tr>\"\n        )\n    body.append(\"</table></body></html>\")\n    return \"\\n\".join(body)\n\n\nclass ScenarioC_v2_ReportFormatter(Component):\n    display_name = \"Report Formatter\"\n    description = (\n        \"Pure-Python renderer. Takes QA-reviewed assignments and emits one of: \"\n        \"markdown, csv, json, narrative, html. The Format dropdown is the easiest \"\n        \"attendee knob to demonstrate 'structured intermediate state, presentation last'.\"\n    )\n    icon = \"file-text\"\n    name = \"ReportFormatter S-C.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"reviewed\",\n            display_name=\"Reviewed Output\",\n            input_types=[\"Data\"],\n            info=\"Connect the QA Reviewer's output.\",\n        ),\n        StrInput(\n            name=\"format\",\n            display_name=\"Format\",\n            value=\"markdown\",\n            info=\"One of: markdown, csv, json, narrative, html.\",\n        ),\n        MultilineInput(\n            name=\"header_note\",\n            display_name=\"Header Note (optional)\",\n            value=\"\",\n            info=\"Prepended to markdown / narrative / html outputs.\",\n            advanced=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Report\", name=\"report\", method=\"run_format\"),\n    ]\n\n    def run_format(self) -> Message:\n        data = self.reviewed.data\n        cases = data.get(\"cases\", [])\n        assignments_by_case = {a[\"case_id\"]: a for a in data.get(\"assignments\", [])}\n        flags_by_case = {f[\"case_id\"]: f for f in data.get(\"flags\", [])}\n        advisory = data.get(\"advisory\", \"\")\n        run_config = data.get(\"run_config\", {})\n\n        rows = [\n            _row_for_case(c, assignments_by_case.get(c[\"id\"]), flags_by_case.get(c[\"id\"]))\n            for c in cases\n        ]\n\n        # Prefer format from upstream run_config; fall back to UI input.\n        fmt = (run_config.get(\"format\") or self.format or \"markdown\").strip().lower()\n        if fmt not in VALID_FORMATS:\n            raise ValueError(f\"Format must be one of {sorted(VALID_FORMATS)}, got {fmt!r}\")\n\n        if fmt == \"markdown\":\n            text = _render_markdown(rows, advisory)\n        elif fmt == \"csv\":\n            text = _render_csv(rows)\n        elif fmt == \"json\":\n            text = _render_json(rows, advisory)\n        elif fmt == \"narrative\":\n            text = _render_narrative(rows, advisory)\n        elif fmt == \"html\":\n            text = _render_html(rows, advisory)\n\n        if self.header_note and fmt in {\"markdown\", \"narrative\"}:\n            text = self.header_note.strip() + \"\\n\\n\" + text\n        elif self.header_note and fmt == \"html\":\n            text = text.replace(\"<body>\", f\"<body><p><em>{self.header_note}</em></p>\")\n\n        return Message(text=text)\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "format": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "format",
+                "value": "markdown",
+                "display_name": "Format",
+                "advanced": false,
+                "dynamic": false,
+                "info": "One of: markdown, csv, json, narrative, html.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "header_note": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "header_note",
+                "value": "",
+                "display_name": "Header Note (optional)",
+                "advanced": true,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "Prepended to markdown / narrative / html outputs.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              }
+            },
+            "description": "Pure-Python renderer. Takes QA-reviewed assignments and emits one of: markdown, csv, json, narrative, html. The Format dropdown is the easiest attendee knob to demonstrate 'structured intermediate state, presentation last'.",
+            "icon": "file-text",
+            "base_classes": [
+              "Message"
+            ],
+            "display_name": "Report Formatter",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "Message"
+                ],
+                "selected": "Message",
+                "name": "report",
+                "display_name": "Report",
+                "method": "run_format",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "reviewed",
+              "format",
+              "header_note"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.report_formatter",
+              "code_hash": "7aec6054544f",
+              "dependencies": {
+                "total_dependencies": 1,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "ChatOutput-d635cc",
+        "type": "genericNode",
+        "position": {
+          "x": 3150,
+          "y": 350
+        },
+        "data": {
+          "id": "ChatOutput-d635cc",
+          "type": "ChatOutput",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Display a chat message in the Playground.",
+            "display_name": "Chat Output",
+            "documentation": "https://docs.langflow.org/chat-input-and-output",
+            "edited": false,
+            "field_order": [
+              "input_value",
+              "should_store_message",
+              "sender",
+              "sender_name",
+              "session_id",
+              "context_id",
+              "data_template",
+              "clean_data"
+            ],
+            "frozen": false,
+            "icon": "MessagesSquare",
+            "legacy": false,
+            "metadata": {
+              "code_hash": "84009527d08c",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "orjson",
+                    "version": "3.11.8"
+                  },
+                  {
+                    "name": "fastapi",
+                    "version": "0.136.1"
+                  },
+                  {
+                    "name": "lfx",
+                    "version": null
+                  }
+                ],
+                "total_dependencies": 3
+              },
+              "module": "lfx.components.input_output.chat_output.ChatOutput"
+            },
+            "minimized": true,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Output Message",
+                "group_outputs": false,
+                "method": "message_response",
+                "name": "message",
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_type": "Component",
+              "clean_data": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Basic Clean Data",
+                "dynamic": false,
+                "info": "Whether to clean data before converting to string.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "clean_data",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": true
+              },
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from collections.abc import Generator\nfrom typing import Any\n\nimport orjson\nfrom fastapi.encoders import jsonable_encoder\n\nfrom lfx.base.io.chat import ChatComponent\nfrom lfx.helpers.data import safe_convert\nfrom lfx.inputs.inputs import BoolInput, DropdownInput, HandleInput, MessageTextInput\nfrom lfx.schema.data import Data\nfrom lfx.schema.dataframe import DataFrame\nfrom lfx.schema.message import Message\nfrom lfx.schema.properties import Source\nfrom lfx.template.field.base import Output\nfrom lfx.utils.constants import (\n    MESSAGE_SENDER_AI,\n    MESSAGE_SENDER_NAME_AI,\n    MESSAGE_SENDER_USER,\n)\n\n\nclass ChatOutput(ChatComponent):\n    display_name = \"Chat Output\"\n    description = \"Display a chat message in the Playground.\"\n    documentation: str = \"https://docs.langflow.org/chat-input-and-output\"\n    icon = \"MessagesSquare\"\n    name = \"ChatOutput\"\n    minimized = True\n\n    inputs = [\n        HandleInput(\n            name=\"input_value\",\n            display_name=\"Inputs\",\n            info=\"Message to be passed as output.\",\n            input_types=[\"Data\", \"JSON\", \"DataFrame\", \"Table\", \"Message\"],\n            required=True,\n        ),\n        BoolInput(\n            name=\"should_store_message\",\n            display_name=\"Store Messages\",\n            info=\"Store the message in the history.\",\n            value=True,\n            advanced=True,\n        ),\n        DropdownInput(\n            name=\"sender\",\n            display_name=\"Sender Type\",\n            options=[MESSAGE_SENDER_AI, MESSAGE_SENDER_USER],\n            value=MESSAGE_SENDER_AI,\n            advanced=True,\n            info=\"Type of sender.\",\n        ),\n        MessageTextInput(\n            name=\"sender_name\",\n            display_name=\"Sender Name\",\n            info=\"Name of the sender.\",\n            value=MESSAGE_SENDER_NAME_AI,\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"session_id\",\n            display_name=\"Session ID\",\n            info=\"The session ID of the chat. If empty, the current session ID parameter will be used.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"context_id\",\n            display_name=\"Context ID\",\n            info=\"The context ID of the chat. Adds an extra layer to the local memory.\",\n            value=\"\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"data_template\",\n            display_name=\"Data Template\",\n            value=\"{text}\",\n            advanced=True,\n            info=\"Template to convert Data to Text. If left empty, it will be dynamically set to the Data's text key.\",\n        ),\n        BoolInput(\n            name=\"clean_data\",\n            display_name=\"Basic Clean Data\",\n            value=True,\n            advanced=True,\n            info=\"Whether to clean data before converting to string.\",\n        ),\n    ]\n    outputs = [\n        Output(\n            display_name=\"Output Message\",\n            name=\"message\",\n            method=\"message_response\",\n        ),\n    ]\n\n    def _build_source(self, id_: str | None, display_name: str | None, source: str | None) -> Source:\n        source_dict = {}\n        if id_:\n            source_dict[\"id\"] = id_\n        if display_name:\n            source_dict[\"display_name\"] = display_name\n        if source:\n            # Handle case where source is a ChatOpenAI object\n            if hasattr(source, \"model_name\"):\n                source_dict[\"source\"] = source.model_name\n            elif hasattr(source, \"model\"):\n                source_dict[\"source\"] = str(source.model)\n            else:\n                source_dict[\"source\"] = str(source)\n        return Source(**source_dict)\n\n    async def message_response(self) -> Message:\n        # First convert the input to string if needed\n        text = self.convert_to_string()\n\n        # Get source properties\n        source, _, display_name, source_id = self.get_properties_from_source_component()\n\n        # Create or use existing Message object\n        if isinstance(self.input_value, Message) and not self.is_connected_to_chat_input():\n            message = self.input_value\n            # Update message properties\n            message.text = text\n            # Preserve existing session_id from the incoming message if it exists\n            existing_session_id = message.session_id\n        else:\n            message = Message(text=text)\n            existing_session_id = None\n\n        # Set message properties\n        message.sender = self.sender\n        message.sender_name = self.sender_name\n        # Preserve session_id from incoming message, or use component/graph session_id\n        message.session_id = (\n            self.session_id or existing_session_id or (self.graph.session_id if hasattr(self, \"graph\") else None) or \"\"\n        )\n        message.context_id = self.context_id\n        message.flow_id = self.graph.flow_id if hasattr(self, \"graph\") else None\n        message.properties.source = self._build_source(source_id, display_name, source)\n\n        # Store message if needed\n        if message.session_id and self.should_store_message:\n            stored_message = await self.send_message(message)\n            self.message.value = stored_message\n            message = stored_message\n\n        # Set accumulated token usage from all upstream LLM vertices.\n        # This must happen AFTER send_message() because streaming captures\n        # usage from chunks and would overwrite accumulated totals.\n        if hasattr(self, \"_vertex\") and self._vertex is not None:\n            accumulated_usage = self._vertex._accumulate_upstream_token_usage()  # noqa: SLF001\n            if accumulated_usage:\n                message.properties.usage = accumulated_usage\n                if self.should_store_message and message.get_id():\n                    message = await self._update_stored_message(message)\n                    await self._send_message_event(message, id_=message.get_id())\n\n        self.status = message\n        return message\n\n    def _serialize_data(self, data: Data) -> str:\n        \"\"\"Serialize Data object to JSON string.\"\"\"\n        # Convert data.data to JSON-serializable format\n        serializable_data = jsonable_encoder(data.data)\n        # Serialize with orjson, enabling pretty printing with indentation\n        json_bytes = orjson.dumps(serializable_data, option=orjson.OPT_INDENT_2)\n        # Convert bytes to string and wrap in Markdown code blocks\n        return \"```json\\n\" + json_bytes.decode(\"utf-8\") + \"\\n```\"\n\n    def _validate_input(self) -> None:\n        \"\"\"Validate the input data and raise ValueError if invalid.\"\"\"\n        if self.input_value is None:\n            msg = \"Input data cannot be None\"\n            raise ValueError(msg)\n        if isinstance(self.input_value, list) and not all(\n            isinstance(item, Message | Data | DataFrame | str) for item in self.input_value\n        ):\n            invalid_types = [\n                type(item).__name__\n                for item in self.input_value\n                if not isinstance(item, Message | Data | DataFrame | str)\n            ]\n            msg = f\"Expected Data or DataFrame or Message or str, got {invalid_types}\"\n            raise TypeError(msg)\n        if not isinstance(\n            self.input_value,\n            Message | Data | DataFrame | str | list | Generator | type(None),\n        ):\n            type_name = type(self.input_value).__name__\n            msg = f\"Expected Data or DataFrame or Message or str, Generator or None, got {type_name}\"\n            raise TypeError(msg)\n\n    def convert_to_string(self) -> str | Generator[Any, None, None]:\n        \"\"\"Convert input data to string with proper error handling.\"\"\"\n        self._validate_input()\n        if isinstance(self.input_value, list):\n            clean_data: bool = getattr(self, \"clean_data\", False)\n            return \"\\n\".join([safe_convert(item, clean_data=clean_data) for item in self.input_value])\n        if isinstance(self.input_value, Generator):\n            return self.input_value\n        return safe_convert(self.input_value)\n"
+              },
+              "context_id": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Context ID",
+                "dynamic": false,
+                "info": "The context ID of the chat. Adds an extra layer to the local memory.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "context_id",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "data_template": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Data Template",
+                "dynamic": false,
+                "info": "Template to convert Data to Text. If left empty, it will be dynamically set to the Data's text key.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "data_template",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "{text}"
+              },
+              "input_value": {
+                "_input_type": "HandleInput",
+                "advanced": false,
+                "display_name": "Inputs",
+                "dynamic": false,
+                "info": "Message to be passed as output.",
+                "input_types": [
+                  "Data",
+                  "JSON",
+                  "DataFrame",
+                  "Table",
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "input_value",
+                "override_skip": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "other",
+                "value": ""
+              },
+              "sender": {
+                "_input_type": "DropdownInput",
+                "advanced": true,
+                "combobox": false,
+                "dialog_inputs": {},
+                "display_name": "Sender Type",
+                "dynamic": false,
+                "external_options": {},
+                "info": "Type of sender.",
+                "name": "sender",
+                "options": [
+                  "Machine",
+                  "User"
+                ],
+                "options_metadata": [],
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "toggle": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "str",
+                "value": "Machine"
+              },
+              "sender_name": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Sender Name",
+                "dynamic": false,
+                "info": "Name of the sender.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "sender_name",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "AI"
+              },
+              "session_id": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Session ID",
+                "dynamic": false,
+                "info": "The session ID of the chat. If empty, the current session ID parameter will be used.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "session_id",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "should_store_message": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Store Messages",
+                "dynamic": false,
+                "info": "Store the message in the history.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "should_store_message",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": true
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "source": "ChatInput-ee3d4d",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-ee3d4d\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "PipelineConfig_S-C.V2-67b336",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-67b336\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "ChatInput",
+            "id": "ChatInput-ee3d4d",
+            "name": "message",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "user_message",
+            "id": "PipelineConfig_S-C.V2-67b336",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__ChatInput-ee3d4d{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-ee3d4d\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-PipelineConfig_S-C.V2-67b336{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-67b336\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "PipelineConfig_S-C.V2-67b336",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PipelineConfig S-C.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-67b336\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "TriageAgent_S-C.V2-89d33c",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-89d33c\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "PipelineConfig S-C.V2",
+            "id": "PipelineConfig_S-C.V2-67b336",
+            "name": "run_config",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "run_config",
+            "id": "TriageAgent_S-C.V2-89d33c",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__PipelineConfig_S-C.V2-67b336{\u0153dataType\u0153:\u0153PipelineConfig S-C.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-C.V2-67b336\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-TriageAgent_S-C.V2-89d33c{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-89d33c\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "TriageAgent_S-C.V2-89d33c",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153TriageAgent S-C.V2\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-89d33c\u0153,\u0153name\u0153:\u0153scored_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "EligibilityFilter_S-C.V2-5da3ac",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153scored_cases\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-5da3ac\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "TriageAgent S-C.V2",
+            "id": "TriageAgent_S-C.V2-89d33c",
+            "name": "scored_cases",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "scored_cases",
+            "id": "EligibilityFilter_S-C.V2-5da3ac",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__TriageAgent_S-C.V2-89d33c{\u0153dataType\u0153:\u0153TriageAgent S-C.V2\u0153,\u0153id\u0153:\u0153TriageAgent_S-C.V2-89d33c\u0153,\u0153name\u0153:\u0153scored_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-EligibilityFilter_S-C.V2-5da3ac{\u0153fieldName\u0153:\u0153scored_cases\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-5da3ac\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "EligibilityFilter_S-C.V2-5da3ac",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153EligibilityFilter S-C.V2\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-5da3ac\u0153,\u0153name\u0153:\u0153eligible_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "RoutingAgent_S-C.V2-fe3d29",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153eligible_cases\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "EligibilityFilter S-C.V2",
+            "id": "EligibilityFilter_S-C.V2-5da3ac",
+            "name": "eligible_cases",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "eligible_cases",
+            "id": "RoutingAgent_S-C.V2-fe3d29",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__EligibilityFilter_S-C.V2-5da3ac{\u0153dataType\u0153:\u0153EligibilityFilter S-C.V2\u0153,\u0153id\u0153:\u0153EligibilityFilter_S-C.V2-5da3ac\u0153,\u0153name\u0153:\u0153eligible_cases\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-RoutingAgent_S-C.V2-fe3d29{\u0153fieldName\u0153:\u0153eligible_cases\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "CapacityAdvisor_S-C.V2-8323e3",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153CapacityAdvisor S-C.V2\u0153,\u0153id\u0153:\u0153CapacityAdvisor_S-C.V2-8323e3\u0153,\u0153name\u0153:\u0153advisory\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "RoutingAgent_S-C.V2-fe3d29",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153capacity_advisory\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "CapacityAdvisor S-C.V2",
+            "id": "CapacityAdvisor_S-C.V2-8323e3",
+            "name": "advisory",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "capacity_advisory",
+            "id": "RoutingAgent_S-C.V2-fe3d29",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__CapacityAdvisor_S-C.V2-8323e3{\u0153dataType\u0153:\u0153CapacityAdvisor S-C.V2\u0153,\u0153id\u0153:\u0153CapacityAdvisor_S-C.V2-8323e3\u0153,\u0153name\u0153:\u0153advisory\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-RoutingAgent_S-C.V2-fe3d29{\u0153fieldName\u0153:\u0153capacity_advisory\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "RoutingAgent_S-C.V2-fe3d29",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153RoutingAgent S-C.V2\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153name\u0153:\u0153assignments\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "QAReviewer_S-C.V2-6e36bf",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153routing_output\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-6e36bf\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "RoutingAgent S-C.V2",
+            "id": "RoutingAgent_S-C.V2-fe3d29",
+            "name": "assignments",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "routing_output",
+            "id": "QAReviewer_S-C.V2-6e36bf",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__RoutingAgent_S-C.V2-fe3d29{\u0153dataType\u0153:\u0153RoutingAgent S-C.V2\u0153,\u0153id\u0153:\u0153RoutingAgent_S-C.V2-fe3d29\u0153,\u0153name\u0153:\u0153assignments\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-QAReviewer_S-C.V2-6e36bf{\u0153fieldName\u0153:\u0153routing_output\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-6e36bf\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "QAReviewer_S-C.V2-6e36bf",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153QAReviewer S-C.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-6e36bf\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "ReportFormatter_S-C.V2-5e3685",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-5e3685\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "QAReviewer S-C.V2",
+            "id": "QAReviewer_S-C.V2-6e36bf",
+            "name": "reviewed",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "reviewed",
+            "id": "ReportFormatter_S-C.V2-5e3685",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__QAReviewer_S-C.V2-6e36bf{\u0153dataType\u0153:\u0153QAReviewer S-C.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-C.V2-6e36bf\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-ReportFormatter_S-C.V2-5e3685{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-5e3685\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "ReportFormatter_S-C.V2-5e3685",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ReportFormatter S-C.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-5e3685\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "ChatOutput-d635cc",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-d635cc\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "ReportFormatter S-C.V2",
+            "id": "ReportFormatter_S-C.V2-5e3685",
+            "name": "report",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "input_value",
+            "id": "ChatOutput-d635cc",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__ReportFormatter_S-C.V2-5e3685{\u0153dataType\u0153:\u0153ReportFormatter S-C.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-C.V2-5e3685\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-d635cc{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-d635cc\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153str\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      }
+    ],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 0.5
+    }
+  }
+}

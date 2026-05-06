@@ -163,13 +163,15 @@ class ScenarioC_v2_ReportFormatter(Component):
         assignments_by_case = {a["case_id"]: a for a in data.get("assignments", [])}
         flags_by_case = {f["case_id"]: f for f in data.get("flags", [])}
         advisory = data.get("advisory", "")
+        run_config = data.get("run_config", {})
 
         rows = [
             _row_for_case(c, assignments_by_case.get(c["id"]), flags_by_case.get(c["id"]))
             for c in cases
         ]
 
-        fmt = (self.format or "markdown").strip().lower()
+        # Prefer format from upstream run_config; fall back to UI input.
+        fmt = (run_config.get("format") or self.format or "markdown").strip().lower()
         if fmt not in VALID_FORMATS:
             raise ValueError(f"Format must be one of {sorted(VALID_FORMATS)}, got {fmt!r}")
 

@@ -141,4 +141,5 @@ class ScenarioC_v2_RoutingAgent(Component):
             "cases": cases,
             "advisory": advisory_text,
             "raw_llm": raw,
+            "run_config": self.eligible_cases.data.get("run_config", {}),
         })

@@ -85,6 +85,9 @@ class ScenarioC_v2_EligibilityFilter(Component):
             pathologist_registry as reg,
         )
 
+        run_config = self.scored_cases.data.get("run_config", {})
+        fatigue_threshold = run_config.get("fatigue_threshold", self.fatigue_threshold)
+
         base = resolve_data_dir(self.data_dir)
         instruments = instrument_telemetry.load(base / "instruments.csv")
         pathologists = reg.load_pathologists(base / "pathologists.csv")
@@ -103,7 +106,7 @@ class ScenarioC_v2_EligibilityFilter(Component):
             # Apply fatigue cap.
             pool = [
                 p for p in pool
-                if reg.recent_load_avg(history, p["id"], days=self.lookback_days) < self.fatigue_threshold
+                if reg.recent_load_avg(history, p["id"], days=self.lookback_days) < fatigue_threshold
             ]
             out_cases.append({
                 **case,
@@ -115,9 +118,10 @@ class ScenarioC_v2_EligibilityFilter(Component):
 
         return Data(data={
             "cases": out_cases,
+            "run_config": run_config,
             "stats": {
                 "ihc_capable": ihc_capable,
-                "fatigue_threshold": self.fatigue_threshold,
+                "fatigue_threshold": fatigue_threshold,
                 "subspecialty_enforced": self.enforce_subspecialty_match,
                 "ihc_enforced": self.enforce_ihc_capacity,
             },

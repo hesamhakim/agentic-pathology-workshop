@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 
 from langflow.custom import Component
-from langflow.io import FloatInput, IntInput, MultilineInput, Output, StrInput
+from langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput
 from langflow.schema.data import Data
 
 from tools.scenario_c.v2_helpers import (
@@ -58,6 +58,13 @@ class ScenarioC_v2_TriageAgent(Component):
     name = "TriageAgent S-C.V2"
 
     inputs = [
+        HandleInput(
+            name="run_config",
+            display_name="Run Config",
+            input_types=["Data"],
+            required=False,
+            info="Optional. Connect Pipeline Config to override Max Cases / priority filter from chat input.",
+        ),
         StrInput(
             name="data_dir",
             display_name="Data Directory",
@@ -68,7 +75,7 @@ class ScenarioC_v2_TriageAgent(Component):
             name="max_cases",
             display_name="Max Cases",
             value=10,
-            info="Cap to keep workshop runs cheap. Cases are taken in stat→urgent→routine order.",
+            info="Cap to keep workshop runs cheap. Cases are taken in stat→urgent→routine order. Overridden by Run Config when connected.",
         ),
         StrInput(
             name="model",
@@ -102,11 +109,21 @@ class ScenarioC_v2_TriageAgent(Component):
     def run_triage(self) -> Data:
         from tools.scenario_c import case_queue
 
+        # Pull overrides from upstream Pipeline Config, fall back to UI inputs.
+        run_config = (self.run_config.data.get("run_config", {}) if self.run_config else {})
+        max_cases = run_config.get("max_cases", self.max_cases)
+        priority_filter = run_config.get("priority_filter")
+        subspecialty_filter = run_config.get("subspecialty_filter")
+
         base = resolve_data_dir(self.data_dir)
         all_cases = case_queue.load(base / "cases.csv")
         unassigned = case_queue.unassigned(all_cases)
+        if priority_filter:
+            unassigned = [c for c in unassigned if c["priority"] == priority_filter]
+        if subspecialty_filter:
+            unassigned = [c for c in unassigned if c["requested_subspecialty"] == subspecialty_filter]
         ordered = case_queue.by_priority(unassigned)
-        batch = ordered[: self.max_cases]
+        batch = ordered[: max_cases]
 
         payload = {
             "cases": [
@@ -149,4 +166,4 @@ class ScenarioC_v2_TriageAgent(Component):
             })
         # Re-sort by descending priority_score so downstream nodes process the most urgent first.
         enriched.sort(key=lambda x: x["priority_score"], reverse=True)
-        return Data(data={"cases": enriched, "raw_llm": raw})
+        return Data(data={"cases": enriched, "raw_llm": raw, "run_config": run_config})
