@@ -29,12 +29,12 @@ services:
       LANGFLOW_COMPONENTS_PATH: "/flows/components"
       OPENAI_BASE_URL: "http://keybroker:8000/v1"
       OPENAI_API_KEY: "${ATTENDEE_BROKER_TOKEN}"
-      # Don't expose OTEL_EXPORTER_OTLP_ENDPOINT here — LangFlow auto-instruments
-      # its own FastAPI handlers when that var is set, spamming Phoenix with
-      # /events and /health_check traces. Use a private var instead and let
-      # tools/scenario_c/v2_helpers.py register only OpenAIInstrumentor.
-      WORKSHOP_PHOENIX_ENDPOINT: "http://phoenix:4317"
-      WORKSHOP_PHOENIX_PROJECT: "api-summit-2026"
+      # LangFlow's image bundles a pre-configured OTEL tracer that auto-
+      # instruments its own FastAPI handlers, flooding Phoenix with
+      # /events and /health_check polling spans. Disabling the SDK
+      # globally stops the noise; we don't rely on Phoenix tracing for
+      # the workshop deliverable. Re-enable later if needed.
+      OTEL_SDK_DISABLED: "true"
       PYTHONPATH: "/workshop"
     volumes:
       - langflow-data:/app/data
