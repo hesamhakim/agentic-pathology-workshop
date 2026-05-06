@@ -58,8 +58,8 @@ def _ensure_otel_registered() -> None:
     except ImportError:
         _OTEL_REGISTERED = True  # don't keep retrying
         return
-    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT") or "http://phoenix:4317"
-    project_name = os.environ.get("PHOENIX_PROJECT_NAME") or "api-summit-2026"
+    endpoint = os.environ.get("WORKSHOP_PHOENIX_ENDPOINT") or "http://phoenix:4317"
+    project_name = os.environ.get("WORKSHOP_PHOENIX_PROJECT") or "api-summit-2026"
     try:
         register(
             project_name=project_name,
@@ -94,8 +94,14 @@ def chat_completion_text(
     temperature: float = 0.0,
     max_tokens: int = 400,
     json_mode: bool = False,
+    span_name: str | None = None,
 ) -> str:
-    """One-shot chat completion. Returns the assistant's text content."""
+    """One-shot chat completion. Returns the assistant's text content.
+
+    `span_name`, if provided, wraps the call in an OTEL span with that name
+    so Phoenix shows the component (e.g. "scenario_c.triage_agent") rather
+    than just the generic ChatCompletion span from OpenAIInstrumentor.
+    """
     kwargs: dict[str, Any] = {
         "model": model,
         "messages": [
@@ -107,5 +113,20 @@ def chat_completion_text(
     }
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
+
+    if span_name:
+        try:
+            from opentelemetry import trace
+            tracer = trace.get_tracer("workshop.scenario_c")
+            with tracer.start_as_current_span(span_name) as span:
+                span.set_attribute("workshop.model", model)
+                resp = client.chat.completions.create(**kwargs)
+                if hasattr(resp, "usage") and resp.usage:
+                    span.set_attribute("workshop.prompt_tokens", resp.usage.prompt_tokens or 0)
+                    span.set_attribute("workshop.completion_tokens", resp.usage.completion_tokens or 0)
+                return resp.choices[0].message.content or ""
+        except Exception:
+            pass  # tracer unavailable; fall through to untraced call below
+
     resp = client.chat.completions.create(**kwargs)
     return resp.choices[0].message.content or ""

@@ -126,6 +126,7 @@ class ScenarioC_v2_QAReviewer(Component):
             temperature=self.temperature,
             max_tokens=self.max_tokens,
             json_mode=True,
+            span_name="scenario_c.qa_reviewer",
         )
         try:
             parsed = json.loads(raw)

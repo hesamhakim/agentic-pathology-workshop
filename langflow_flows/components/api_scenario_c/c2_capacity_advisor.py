@@ -122,5 +122,6 @@ class ScenarioC_v2_CapacityAdvisor(Component):
             user_content=user_payload,
             temperature=self.temperature,
             max_tokens=self.max_tokens,
+            span_name="scenario_c.capacity_advisor",
         )
         return Message(text=advisory.strip())

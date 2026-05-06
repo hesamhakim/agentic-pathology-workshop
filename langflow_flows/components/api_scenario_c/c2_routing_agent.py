@@ -130,6 +130,7 @@ class ScenarioC_v2_RoutingAgent(Component):
             temperature=self.temperature,
             max_tokens=self.max_tokens,
             json_mode=True,
+            span_name="scenario_c.routing_agent",
         )
         try:
             parsed = json.loads(raw)

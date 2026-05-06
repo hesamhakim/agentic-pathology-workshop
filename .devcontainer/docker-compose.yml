@@ -29,12 +29,21 @@ services:
       LANGFLOW_COMPONENTS_PATH: "/flows/components"
       OPENAI_BASE_URL: "http://keybroker:8000/v1"
       OPENAI_API_KEY: "${ATTENDEE_BROKER_TOKEN}"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://phoenix:4317"
-      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
-      OTEL_SERVICE_NAME: "langflow"
+      # Don't expose OTEL_EXPORTER_OTLP_ENDPOINT here — LangFlow auto-instruments
+      # its own FastAPI handlers when that var is set, spamming Phoenix with
+      # /events and /health_check traces. Use a private var instead and let
+      # tools/scenario_c/v2_helpers.py register only OpenAIInstrumentor.
+      WORKSHOP_PHOENIX_ENDPOINT: "http://phoenix:4317"
+      WORKSHOP_PHOENIX_PROJECT: "api-summit-2026"
+      PYTHONPATH: "/workshop"
     volumes:
       - langflow-data:/app/data
       - ../langflow_flows:/flows:ro
+      # Mount the workshop's Python tools and data fixtures so custom components
+      # can `import tools.scenario_x.foo` and read data/scenario_x/*.json. Path
+      # is the same on local and on Codespaces.
+      - ../tools:/workshop/tools:ro
+      - ../data:/workshop/data:ro
     depends_on:
       - phoenix
       - keybroker

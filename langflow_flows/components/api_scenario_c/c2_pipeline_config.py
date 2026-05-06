@@ -140,6 +140,7 @@ class ScenarioC_v2_PipelineConfig(Component):
             temperature=self.temperature,
             max_tokens=self.max_tokens,
             json_mode=True,
+            span_name="scenario_c.pipeline_config",
         )
         try:
             parsed = json.loads(raw)

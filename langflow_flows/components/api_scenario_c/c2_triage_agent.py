@@ -149,6 +149,7 @@ class ScenarioC_v2_TriageAgent(Component):
             temperature=self.temperature,
             max_tokens=self.max_tokens,
             json_mode=True,
+            span_name="scenario_c.triage_agent",
         )
         try:
             parsed = json.loads(raw)
