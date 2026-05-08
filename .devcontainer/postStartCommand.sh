@@ -21,3 +21,10 @@ docker compose -f .devcontainer/docker-compose.yml up -d
 if [ -x scripts/verify_attendee_codespace.sh ]; then
     bash scripts/verify_attendee_codespace.sh || echo "Services still warming up; check ports panel in a moment."
 fi
+
+# Import the three workshop flows on first start. Idempotent via a sentinel
+# file; subsequent codespace starts will skip this so attendee canvas edits
+# aren't overwritten. Run in the background so postStartCommand returns fast.
+if [ -x scripts/import_workshop_flows.sh ]; then
+    nohup bash scripts/import_workshop_flows.sh > /tmp/import_workshop_flows.log 2>&1 &
+fi
