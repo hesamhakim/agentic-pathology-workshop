@@ -48,6 +48,9 @@ WAITING_FOR_HUMAN.txt
 proxy/tokens.json
 proxy/.env
 
+# Per-codespace / per-machine sentinel from scripts/import_workshop_flows.sh
+.workshop-flows-imported
+
 # Build artifacts
 *.log
 node_modules/
