@@ -24,7 +24,14 @@ services:
     user: root
     ports: ["7860:7860"]
     environment:
-      LANGFLOW_AUTO_LOGIN: "true"
+      # Single-user dev default (true) lets the build scripts log in as
+      # langflow:langflow. Flip to false in .env to enable multi-user mode;
+      # then LANGFLOW_SUPERUSER + LANGFLOW_SUPERUSER_PASSWORD must be set
+      # and scripts/provision_workshop_users.py creates per-attendee accounts.
+      LANGFLOW_AUTO_LOGIN: "${LANGFLOW_AUTO_LOGIN:-true}"
+      LANGFLOW_SUPERUSER: "${LANGFLOW_SUPERUSER:-facilitator}"
+      LANGFLOW_SUPERUSER_PASSWORD: "${LANGFLOW_SUPERUSER_PASSWORD:-changeme-please}"
+      LANGFLOW_NEW_USER_IS_ACTIVE: "true"
       LANGFLOW_DATABASE_URL: "sqlite:////app/data/langflow.db"
       LANGFLOW_COMPONENTS_PATH: "/flows/components"
       OPENAI_BASE_URL: "http://keybroker:8000/v1"

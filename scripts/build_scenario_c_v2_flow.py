@@ -43,9 +43,12 @@ def encode_handle(d: dict) -> str:
 
 
 def login(client: httpx.Client) -> str:
+    import os
+    user = os.environ.get("WORKSHOP_LF_USER", "langflow")
+    pw = os.environ.get("WORKSHOP_LF_PASSWORD", "langflow")
     resp = client.post(
         "/api/v1/login",
-        data={"username": "langflow", "password": "langflow"},
+        data={"username": user, "password": pw},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
     resp.raise_for_status()

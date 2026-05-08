@@ -51,6 +51,9 @@ proxy/.env
 # Per-codespace / per-machine sentinel from scripts/import_workshop_flows.sh
 .workshop-flows-imported
 
+# Provisioning output (per-attendee credentials — never commit)
+users.csv
+
 # Build artifacts
 *.log
 node_modules/
