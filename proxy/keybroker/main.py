@@ -1,3 +1,4 @@
+import hashlib
 import logging
 from contextlib import asynccontextmanager
 from typing import Any
@@ -13,6 +14,16 @@ from .settings import Settings, get_settings
 
 logger = logging.getLogger("keybroker")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+
+
+def _pick_upstream_key(attendee_id: str, keys: list[str]) -> str:
+    """Stable hash-based selection: same attendee always gets the same key,
+    so per-key rate-limit pools are predictable. Spreads 50 attendees evenly
+    across N keys."""
+    if not keys:
+        return ""
+    h = int(hashlib.md5(attendee_id.encode()).hexdigest(), 16)
+    return keys[h % len(keys)]
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -32,10 +43,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db_path=settings.state_db,
         daily_usd_limit=settings.daily_usd_limit,
         tpm_limit=settings.tpm_limit,
+        global_daily_usd_limit=settings.global_daily_usd_limit,
     )
+    app.state.upstream_keys = settings.upstream_keys
     app.state.http_client = httpx.AsyncClient(
         base_url=settings.openai_base_url, timeout=settings.request_timeout_s
     )
+    if app.state.upstream_keys:
+        logger.info("KeyBroker upstream pool: %d key(s)", len(app.state.upstream_keys))
+    else:
+        logger.warning("KeyBroker has no upstream key configured!")
 
     def get_attendee_dep(authorization: str | None = Header(default=None)) -> Attendee:
         token = parse_bearer(authorization)
@@ -50,9 +67,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/v1/models")
     async def list_models(attendee: Attendee = Depends(get_attendee_dep)) -> JSONResponse:
+        key = _pick_upstream_key(attendee.attendee_id, app.state.upstream_keys)
         upstream = await app.state.http_client.get(
             "/v1/models",
-            headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+            headers={"Authorization": f"Bearer {key}"},
         )
         return JSONResponse(content=upstream.json(), status_code=upstream.status_code)
 
@@ -89,14 +107,22 @@ async def _proxy_with_usage(
     payload = await request.json()
     model = payload.get("model", "unknown")
 
+    # Clamp per-request output cap to the broker's ceiling so a runaway prompt
+    # ("write 5000 words") can't drain the budget by itself.
+    if settings.max_output_tokens_ceiling > 0:
+        requested_max = payload.get("max_tokens")
+        if requested_max is None or int(requested_max) > settings.max_output_tokens_ceiling:
+            payload["max_tokens"] = settings.max_output_tokens_ceiling
+
     app.state.quota.preflight(
         attendee.attendee_id, attendee.daily_usd_cap, attendee.tpm_limit
     )
 
+    key = _pick_upstream_key(attendee.attendee_id, app.state.upstream_keys)
     upstream = await app.state.http_client.post(
         upstream_path,
         json=payload,
-        headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+        headers={"Authorization": f"Bearer {key}"},
     )
 
     body: dict[str, Any] = upstream.json()

@@ -75,13 +75,21 @@ services:
       dockerfile: Dockerfile
     ports: ["8000:8000"]
     environment:
-      OPENAI_API_KEY: "${OPENAI_API_KEY_REAL}"
+      # Single-key mode (dev): set OPENAI_API_KEY_REAL.
+      # Multi-key mode (workshop): set OPENAI_API_KEYS_REAL to ';'-separated list
+      # of upstream keys; broker hash-routes each attendee to one of them.
+      OPENAI_API_KEY: "${OPENAI_API_KEY_REAL:-}"
+      OPENAI_API_KEYS: "${OPENAI_API_KEYS_REAL:-}"
       # Defaults to OpenAI. Override via OPENAI_BASE_URL_REAL Codespaces secret to
       # use a compatible provider, e.g. https://openrouter.ai/api for OpenRouter.
       KEYBROKER_OPENAI_BASE_URL: "${OPENAI_BASE_URL_REAL:-https://api.openai.com}"
       KEYBROKER_TOKENS_FILE: "/etc/keybroker/tokens.json"
-      KEYBROKER_DAILY_USD_LIMIT: "5.00"
-      KEYBROKER_TPM_LIMIT: "30000"
+      KEYBROKER_DAILY_USD_LIMIT: "${KEYBROKER_DAILY_USD_LIMIT:-5.00}"
+      KEYBROKER_TPM_LIMIT: "${KEYBROKER_TPM_LIMIT:-30000}"
+      # Global pool cap (workshop budget hard cap). 0 = disabled. Default $100.
+      KEYBROKER_GLOBAL_DAILY_USD_LIMIT: "${KEYBROKER_GLOBAL_DAILY_USD_LIMIT:-100.00}"
+      # Per-request output cap. Clamps any max_tokens > this before forwarding.
+      KEYBROKER_MAX_OUTPUT_TOKENS_CEILING: "${KEYBROKER_MAX_OUTPUT_TOKENS_CEILING:-3000}"
     volumes:
       - ../proxy/tokens.json:/etc/keybroker/tokens.json:ro
     networks: [summit]

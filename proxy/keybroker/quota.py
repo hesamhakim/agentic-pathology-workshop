@@ -36,10 +36,20 @@ class Bucket:
     tpm_window: deque[tuple[float, int]] = field(default_factory=deque)
 
 
+_GLOBAL_KEY = "__global__"
+
+
 class QuotaTracker:
-    def __init__(self, db_path: Path, daily_usd_limit: float, tpm_limit: int):
+    def __init__(
+        self,
+        db_path: Path,
+        daily_usd_limit: float,
+        tpm_limit: int,
+        global_daily_usd_limit: float = 0.0,
+    ):
         self.daily_usd_limit = daily_usd_limit
         self.tpm_limit = tpm_limit
+        self.global_daily_usd_limit = global_daily_usd_limit
         self._buckets: dict[str, Bucket] = {}
         self._lock = threading.Lock()
         self._db_path = db_path
@@ -85,6 +95,19 @@ class QuotaTracker:
         cap = min(attendee_cap, self.daily_usd_limit)
         tpm_cap = min(attendee_tpm, self.tpm_limit)
         with self._lock:
+            # Global pool cap — applied first so an exhausted workshop budget fails
+            # everyone immediately, not just over-spenders.
+            if self.global_daily_usd_limit > 0:
+                g = self._bucket(_GLOBAL_KEY)
+                if g.spent_usd_today >= self.global_daily_usd_limit:
+                    raise HTTPException(
+                        429,
+                        detail={
+                            "error": "global_daily_usd_cap_exceeded",
+                            "spent_usd": round(g.spent_usd_today, 4),
+                            "cap_usd": self.global_daily_usd_limit,
+                        },
+                    )
             b = self._bucket(attendee_id)
             if b.spent_usd_today >= cap:
                 raise HTTPException(
@@ -120,18 +143,30 @@ class QuotaTracker:
         completion_tokens: int,
     ) -> float:
         cost = usd_for_usage(model, prompt_tokens, completion_tokens)
+        total_tokens = prompt_tokens + completion_tokens
         with self._lock:
             b = self._bucket(attendee_id)
             b.spent_usd_today += cost
-            b.tpm_window.append((time.time(), prompt_tokens + completion_tokens))
+            b.tpm_window.append((time.time(), total_tokens))
             self._persist(attendee_id, b)
+            # Track the global pool too. Recorded under a sentinel attendee_id
+            # so the existing schema works without migration.
+            if self.global_daily_usd_limit > 0:
+                g = self._bucket(_GLOBAL_KEY)
+                g.spent_usd_today += cost
+                self._persist(_GLOBAL_KEY, g)
         return cost
 
     def status(self, attendee_id: str) -> dict[str, float | str]:
         with self._lock:
             b = self._bucket(attendee_id)
-            return {
+            out: dict[str, float | str] = {
                 "attendee_id": attendee_id,
                 "day": b.day_key,
                 "spent_usd_today": round(b.spent_usd_today, 4),
             }
+            if self.global_daily_usd_limit > 0:
+                g = self._bucket(_GLOBAL_KEY)
+                out["global_spent_usd_today"] = round(g.spent_usd_today, 4)
+                out["global_cap_usd"] = self.global_daily_usd_limit
+            return out
