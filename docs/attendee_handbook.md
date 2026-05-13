@@ -22,12 +22,12 @@ Each takes ~20 minutes of hands-on time.
 
 ## 1. Accessing the workshop
 
-You will receive a personal username and password at the door (printed on your badge or sent via email shortly before the session). It will look like `attendee-017` with a 12-character password.
+You will receive a personal username at the door (printed on your badge or sent via email shortly before the session). It will look like `pi-user-017`. Everyone uses the same shared password, which the facilitator will announce from the stage at the start of the session.
 
 **Workshop URL:** [https://pi-2026-workshop.javadilab.org](https://pi-2026-workshop.javadilab.org)
 
 1. Open the URL in any modern browser (Chrome, Edge, Firefox, Safari).
-2. Sign in with the username and password from your badge.
+2. Sign in with your `pi-user-NNN` username from your badge and the shared password.
 3. You will land on a page titled **My Projects** showing three flows:
    - `A_variant_tournament`
    - `B_longitudinal_ghost`
@@ -238,7 +238,7 @@ You will have around two hours of room time. A useful pacing is:
 ## 8. If something goes wrong
 
 - **A flow returns garbled output or no output.** Wave to a facilitator. They can reset your flows to default in about ten seconds and you can pick up where you left off.
-- **You forget your password.** DM the facilitator on the workshop Slack channel or wave them over — they have the master credential list.
+- **You forget the shared password.** Wave to a facilitator — they will say it again. (It is the same password for everyone in the room.)
 - **A node sits yellow for more than a minute.** The model upstream is probably rate-limited. Wait thirty more seconds. If it still does not finish, click the node, click the play button (▶) on it specifically, and re-run.
 - **You see "global cap exceeded" or "daily cap exceeded."** This means total LLM spend across the workshop has hit its cap. Tell a facilitator.
 
