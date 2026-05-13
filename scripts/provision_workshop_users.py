@@ -71,6 +71,26 @@ def create_user(client: httpx.Client, username: str, password: str) -> dict:
     return resp.json()
 
 
+def list_users(client: httpx.Client) -> list[dict]:
+    """Return all users visible to the calling superuser."""
+    resp = client.get("/api/v1/users/", params={"limit": 1000})
+    if resp.status_code >= 400:
+        raise SystemExit(f"list_users failed: {resp.status_code} {resp.text[:200]}")
+    body = resp.json()
+    # LangFlow returns either a list or {"total_count", "users": [...]}.
+    if isinstance(body, dict) and "users" in body:
+        return body["users"]
+    return body
+
+
+def delete_user(client: httpx.Client, user_id: str) -> bool:
+    resp = client.delete(f"/api/v1/users/{user_id}")
+    if resp.status_code >= 400:
+        print(f"   delete_user({user_id}) failed: {resp.status_code} {resp.text[:150]}", file=sys.stderr)
+        return False
+    return True
+
+
 def import_flows_for_user(host: str, username: str, password: str) -> int:
     """Run the three build scripts under this user's credentials.
 
@@ -105,6 +125,12 @@ def main() -> int:
     ap.add_argument("--prefix", default="attendee")
     ap.add_argument("--out", default="users.csv")
     ap.add_argument("--start-index", type=int, default=1)
+    ap.add_argument("--password", default=None,
+                    help="Shared password to use for all created users. If omitted, "
+                         "a random 12-char password is generated per user.")
+    ap.add_argument("--delete-prefix", default=None,
+                    help="Before provisioning, delete every existing user whose "
+                         "username starts with this prefix (e.g. 'attendee').")
     ap.add_argument("--skip-flow-import", action="store_true",
                     help="Just create the user accounts; don't pre-load the three workshop flows.")
     args = ap.parse_args()
@@ -121,10 +147,23 @@ def main() -> int:
         admin_token = login(client, superuser, superuser_pw)
         client.headers["Authorization"] = f"Bearer {admin_token}"
 
+        if args.delete_prefix:
+            print(f"=> deleting existing users with prefix '{args.delete_prefix}'")
+            users = list_users(client)
+            stale = [u for u in users if str(u.get("username", "")).startswith(args.delete_prefix)]
+            print(f"   found {len(stale)} stale account(s)")
+            for u in stale:
+                uid = u.get("id") or u.get("user_id")
+                if not uid:
+                    print(f"   skip {u.get('username')!r}: no id field", file=sys.stderr)
+                    continue
+                if delete_user(client, uid):
+                    print(f"   deleted {u.get('username')}")
+
         rows = []
         for i in range(args.start_index, args.start_index + args.num_users):
             username = f"{args.prefix}-{i:03d}"
-            password = random_password()
+            password = args.password or random_password()
             print(f"=> create user {username}")
             create_user(client, username, password)
             rows.append({"username": username, "password": password})
