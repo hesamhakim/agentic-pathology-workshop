@@ -1,0 +1,78 @@
+
+=== PAGE 1 ===
+
+GenomeAxis Reference Laboratory | GA-2026-09102 | Patient ID 44021
+GenomeAxis Reference Laboratory Comprehensive Tumor Profiling — Pediatric Brain Panel v3.2
+Patient Specimen / Site Accession Reported
+[REDACTED, J.] Cerebellar vermis mass, subtotal resection. GA-2026-09102 2026-03-19
+Patient ID 44021
+8 M
+TIER I — FINDINGS WITH STRONG CLINICAL SIGNIFICANCE
+Gene / Marker Alteration Variant Class Functional Impact Clinical Note
+PTCH1 p.R691* SNV Pathogenic Tier I
+rna_signature SHH-pathway transcriptional signSaigtunraet u(creentroid maAtccthiv: aMtiBng, SHH-activated,S suubbggrorouupp-d 3e)fining
+BIOMARKER STATUS
+Biomarker Result
+Microsatellite Instability (MSI) MSS
+Tumor Mutational Burden (TMB) 1.1 mut/Mb (cutoff for High: ‡10)
+Methylation class (DKFZ classifier v12.5) MB, SHH-activated (subgroup 3) — calibrated score 0.94
+Report v1.0 · Reported 2026-03-19 · For investigational/clinical use Page 1
+
+=== PAGE 2 ===
+
+GenomeAxis Reference Laboratory | GA-2026-09102 | Patient ID 44021
+VARIANT DETAIL (TIER I – III)
+Variants below tiered per AMP/ASCO/CAP 2017. Tier IV (benign / likely benign / artifactual) variants are not displayed in this report;
+see CSV deliverable for full list.*
+Gene HGVSc HGVSp VAF Tier / Class
+PTCH1 c.2071C>T p.R691* 0.49 Pathogenic — Tier I
+TP53 wild-type wild-type Wild-type — confirmed by Sanger
+SUFU wild-type wild-type Wild-type
+Copy number alterations:
+Gene Copy Number Status
+MYC 2 no amplification
+MYCN 2 no amplification
+GLI2 2 no amplification
+Structural variants / expression signatures:
+Kind Description
+rna_signature SHH-pathway transcriptional signature (centroid match: MB, SHH-activated, subgroup 3)
+METHYLATION CLASSIFIER
+Methylation class (DKFZ classifier v12.5)
+MB, SHH-activated (subgroup 3) — calibrated score 0.94
+ANCILLARY HISTOLOGY / IHC SUMMARY
+Morphology (per submitted slides): Densely cellular small round blue cell tumor with classic medulloblastoma morphology. Tumor cells
+exhibit hyperchromatic nuclei, scant cytoplasm, and brisk mitotic activity (>15/10 HPF in hotspots). Homer Wright rosettes identified
+focally. No large-cell or anaplastic features. No nodularity. Adjacent cerebellar parenchyma shows reactive gliosis.
+Marker Result
+Synaptophysin Diffuse positive
+NeuN Focal positive
+INI1 (SMARCB1) Retained nuclear expression
+b-catenin Cytoplasmic only (no nuclear translocation)
+GAB1 Cytoplasmic, diffuse positive
+YAP1 Nuclear and cytoplasmic positive
+p53 Wild-type pattern (weak, patchy nuclear)
+Ki-67 (MIB-1) ~45% in hotspots
+Report v1.0 · Reported 2026-03-19 · For investigational/clinical use Page 2
+
+=== PAGE 3 ===
+
+GenomeAxis Reference Laboratory | GA-2026-09102 | Patient ID 44021
+REPRESENTATIVE IMAGES
+H&E; ×20 — small round blue cell tumor GAB1 IHC ×20 — cytoplasmic positivity
+INTERPRETATION
+Tier I: PTCH1 p.R691* pathogenic variant + SHH transcriptional signature + DKFZ methylation class MB-SHH (calibrated
+0.94) establish SHH-activated subgroup. TP53 wild-type (Sanger confirmed) — places case in favorable SHH-WT
+category vs. high-risk SHH-mut. No MYC/MYCN amplification. INI1 retained excludes AT/RT. Suggest craniospinal
+staging and risk-adapted therapy per current pediatric MB protocol.
+METHODOLOGY & LIMITATIONS
+DNA / RNA extracted from FFPE tissue. Hybrid-capture next-generation sequencing of 612 cancer-associated genes; mean target
+coverage ‡250x. RNA expression signatures derived via medulloblastoma centroid classifier (MB-class v2.1). Methylation by Illumina
+EPIC v2.0 array, processed by the DKFZ classifier v12.5. Variant tiering per AMP/ASCO/CAP 2017. Tumor purity estimate: 71% (range
+60-80%). Not reportable for variants below 5% VAF in low-purity samples.
+Electronically signed: Dr. L. Chen, MD, FCAP — 2026-03-19
+Co-signed: Dr. R. Park, PhD (Molecular Director)
+ADDENDUM (2026-03-26)
+Methylation classifier re-run after pathologist request: calibrated score confirmed at 0.94 (MB-SHH-3). Reproducibility
+OK. No change to molecular interpretation.
+*Tier IV variants and assay performance metrics available upon request; see report deliverable bundle, file tier4_vus.csv.
+Report v1.0 · Reported 2026-03-19 · For investigational/clinical use Page 3

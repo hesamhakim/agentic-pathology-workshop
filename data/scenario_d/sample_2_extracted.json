@@ -2,27 +2,30 @@
   "sample_id": "sample_2",
   "tumor_family": "medulloblastoma",
   "source_pdf": "sample_2.pdf",
-  "institution": "Children's Diagnostic Center",
-  "accession": "CDC-2026-002910",
+  "style": "reference_lab",
+  "institution": "GenomeAxis Reference Laboratory",
+  "accession": "GA-2026-09102",
   "report_date": "2026-03-19",
+  "addendum_date": "2026-03-26",
   "demographics": {
-    "patient_id": "PID-44021",
+    "patient_id": "Patient ID 44021",
+    "name_redacted": "[REDACTED, J.]",
     "age": 8,
     "sex": "M",
-    "indication": "Posterior fossa mass with obstructive hydrocephalus"
+    "indication": "Posterior fossa mass, post-resection profiling"
   },
-  "clinical_history": "8-year-old male presenting with 3-week history of progressive morning headaches, ataxia, and one episode of emesis. Imaging revealed a 3.1 cm midline cerebellar vermis mass with obstructive hydrocephalus. Underwent posterior fossa craniotomy and subtotal resection. No history of Gorlin syndrome. No family history of childhood CNS neoplasm.",
-  "specimen": "Cerebellar vermis mass, subtotal resection (multiple fragments, aggregate 2.4 cm).",
-  "macroscopic": "Soft, friable, gray-pink tissue fragments. No grossly identifiable necrosis.",
-  "histology_text": "Sections demonstrate a densely cellular small round blue cell tumor with classic medulloblastoma morphology. Tumor cells exhibit hyperchromatic nuclei, scant cytoplasm, and brisk mitotic activity. Homer Wright rosettes are identified focally. No large cell or anaplastic features are appreciated. No nodularity is seen. Surrounding cerebellar parenchyma shows reactive gliosis.",
+  "clinical_history": "8-year-old M with 3-week hx of progressive morning headaches, ataxia, one emesis. MRI: 3.1 cm midline cerebellar vermis mass with obstructive hydrocephalus. Subtotal resection 2026-03-12. No Gorlin syndrome. No FHx of pediatric CNS neoplasm. Specimen received in formalin 2026-03-13.",
+  "specimen": "Cerebellar vermis mass, subtotal resection.",
+  "macroscopic": "Multiple soft, friable, gray-pink tissue fragments, aggregate 2.4 cm. No gross necrosis. Submitted entirely (B1-B7).",
+  "histology_text": "Densely cellular small round blue cell tumor with classic medulloblastoma morphology. Tumor cells exhibit hyperchromatic nuclei, scant cytoplasm, and brisk mitotic activity (>15/10 HPF in hotspots). Homer Wright rosettes identified focally. No large-cell or anaplastic features. No nodularity. Adjacent cerebellar parenchyma shows reactive gliosis.",
   "ihc_profile": [
     {
       "marker": "Synaptophysin",
-      "result": "Positive (diffuse)"
+      "result": "Diffuse positive"
     },
     {
       "marker": "NeuN",
-      "result": "Focal positivity"
+      "result": "Focal positive"
     },
     {
       "marker": "INI1 (SMARCB1)",
@@ -30,23 +33,23 @@
     },
     {
       "marker": "\u03b2-catenin",
-      "result": "Cytoplasmic (no nuclear translocation)"
+      "result": "Cytoplasmic only (no nuclear translocation)"
     },
     {
       "marker": "GAB1",
-      "result": "Positive (cytoplasmic, diffuse)"
+      "result": "Cytoplasmic, diffuse positive"
     },
     {
       "marker": "YAP1",
-      "result": "Positive (nuclear and cytoplasmic)"
+      "result": "Nuclear and cytoplasmic positive"
     },
     {
       "marker": "p53",
-      "result": "Wild-type pattern (weak, patchy)"
+      "result": "Wild-type pattern (weak, patchy nuclear)"
     },
     {
       "marker": "Ki-67 (MIB-1)",
-      "result": "Approximately 45% in hotspots"
+      "result": "~45% in hotspots"
     }
   ],
   "molecular_findings": {
@@ -56,10 +59,17 @@
         "hgvsc": "c.2071C>T",
         "hgvsp": "p.R691*",
         "vaf": 0.49,
-        "classification": "Pathogenic"
+        "classification": "Pathogenic \u2014 Tier I"
       },
       {
         "gene": "TP53",
+        "hgvsc": "wild-type",
+        "hgvsp": "wild-type",
+        "vaf": null,
+        "classification": "Wild-type \u2014 confirmed by Sanger"
+      },
+      {
+        "gene": "SUFU",
         "hgvsc": "wild-type",
         "hgvsp": "wild-type",
         "vaf": null,
@@ -69,31 +79,37 @@
     "structural_variants": [
       {
         "kind": "rna_signature",
-        "description": "SHH-pathway transcriptional signature (centroid match: SHH-activated)"
+        "description": "SHH-pathway transcriptional signature (centroid match: MB, SHH-activated, subgroup 3)"
       }
     ],
     "copy_number": [
       {
         "gene": "MYC",
         "copy_number": 2,
-        "kind": "diploid (no amplification)"
+        "kind": "no amplification"
       },
       {
         "gene": "MYCN",
         "copy_number": 2,
-        "kind": "diploid (no amplification)"
+        "kind": "no amplification"
+      },
+      {
+        "gene": "GLI2",
+        "copy_number": 2,
+        "kind": "no amplification"
       }
     ],
     "msi_status": "MSS",
     "tmb_mutations_per_mb": 1.1,
     "methylation": [
       {
-        "locus": "Methylation class (DKFZ classifier)",
-        "status": "MB, SHH (subgroup 3)"
+        "locus": "Methylation class (DKFZ classifier v12.5)",
+        "status": "MB, SHH-activated (subgroup 3) \u2014 calibrated score 0.94"
       }
     ]
   },
-  "pathologist_comments": "Morphology consistent with classic medulloblastoma. IHC profile (GAB1+, YAP1+, \u03b2-catenin cytoplasmic) supports SHH activation; methylation classifier confirms MB, SHH subgroup. TP53 wild-type and no MYC/MYCN amplification \u2014 favorable molecular risk relative to TP53-mutant SHH subtype. INI1 retained excludes AT/RT. Recommend craniospinal staging and integrated risk stratification per current pediatric MB protocols.",
+  "pathologist_comments": "Tier I: PTCH1 p.R691* pathogenic variant + SHH transcriptional signature + DKFZ methylation class MB-SHH (calibrated 0.94) establish SHH-activated subgroup. TP53 wild-type (Sanger confirmed) \u2014 places case in favorable SHH-WT category vs. high-risk SHH-mut. No MYC/MYCN amplification. INI1 retained excludes AT/RT. Suggest craniospinal staging and risk-adapted therapy per current pediatric MB protocol.",
+  "addendum_text": "Methylation classifier re-run after pathologist request: calibrated score confirmed at 0.94 (MB-SHH-3). Reproducibility OK. No change to molecular interpretation.",
   "images": [
     {
       "label": "H&E \u00d720 \u2014 small round blue cell tumor",
@@ -101,9 +117,20 @@
       "file": "images/sample_2_image_1.png"
     },
     {
-      "label": "GAB1 IHC \u00d720",
+      "label": "GAB1 IHC \u00d720 \u2014 cytoplasmic positivity",
       "kind": "ihc",
       "file": "images/sample_2_image_2.png"
     }
-  ]
+  ],
+  "ground_truth": {
+    "integrated_diagnosis": "Medulloblastoma, SHH-activated and TP53-wildtype, CNS WHO grade 4",
+    "histologic_diagnosis": "Classic medulloblastoma",
+    "who_grade": 4,
+    "guideline_source": "WHO CNS5 (2021)",
+    "required_molecular_features": [
+      "PTCH1",
+      "TP53",
+      "SHH"
+    ]
+  }
 }

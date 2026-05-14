@@ -4,14 +4,14 @@
   "data": {
     "nodes": [
       {
-        "id": "ChatInput-df96b3",
+        "id": "ChatInput-720391",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 400
         },
         "data": {
-          "id": "ChatInput-df96b3",
+          "id": "ChatInput-720391",
           "type": "ChatInput",
           "node": {
             "base_classes": [
@@ -291,14 +291,14 @@
         }
       },
       {
-        "id": "PipelineConfig_S-D.V2-ffb8d0",
+        "id": "PipelineConfig_S-D.V2-67c761",
         "type": "genericNode",
         "position": {
           "x": 450,
           "y": 400
         },
         "data": {
-          "id": "PipelineConfig_S-D.V2-ffb8d0",
+          "id": "PipelineConfig_S-D.V2-67c761",
           "type": "PipelineConfig S-D.V2",
           "node": {
             "template": {
@@ -496,14 +496,14 @@
         }
       },
       {
-        "id": "PDFIntake_S-D.V2-5eae3b",
+        "id": "PDFIntake_S-D.V2-3e1fd0",
         "type": "genericNode",
         "position": {
           "x": 900,
           "y": 400
         },
         "data": {
-          "id": "PDFIntake_S-D.V2-5eae3b",
+          "id": "PDFIntake_S-D.V2-3e1fd0",
           "type": "PDFIntake S-D.V2",
           "node": {
             "template": {
@@ -537,7 +537,7 @@
                 "list": false,
                 "show": true,
                 "multiline": true,
-                "value": "\"\"\"Scenario D v2 \u2014 PDFIntake.\n\nLoads the pre-extracted JSON sidecar for the chosen fabricated report.\nWhen `use_vision` is on, makes a single multimodal call to the chosen\nvision model and asks for a one-paragraph description of each embedded\nimage (synthetic H&E and IHC placeholders).\n\nThe PDF itself is a viewable artifact for attendees; the workflow reads\nfrom the JSON sidecar so we don't need pdfplumber inside the langflow\ncontainer. To replace the sidecar with live PDF parsing, swap\n`pdf_io.load_extracted` for a function that runs pdfplumber + an LLM\nsection-classifier.\n\"\"\"\n\nfrom __future__ import annotations\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    BoolInput,\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import (\n    DEFAULT_DATA_DIR,\n    chat_completion_text,\n    make_image_message,\n    openai_client,\n    resolve_data_dir,\n)\n\n\nDEFAULT_VISION_PROMPT = \"\"\"You are a pathology image describer. For each\nimage you receive, write ONE concise paragraph (about 3 sentences)\ndescribing the dominant features a pathologist would note: cellularity,\nnuclear morphology, staining pattern, and whether the image is H&E or\nimmunohistochemical. Do NOT attempt diagnosis. Be specific about color\ndistribution. If an image clearly does not contain biological tissue,\nsay so plainly.\"\"\"\n\n\nclass ScenarioD_v2_PDFIntake(Component):\n    display_name = \"PDF Intake\"\n    description = (\n        \"Loads the pre-extracted JSON for the chosen sample. Optionally runs a vision \"\n        \"model on the embedded H&E / IHC images and folds those descriptions into the \"\n        \"Data object passed downstream.\"\n    )\n    icon = \"file-text\"\n    name = \"PDFIntake S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"run_config\",\n            display_name=\"Run Config\",\n            input_types=[\"Data\"],\n            required=False,\n            info=\"Optional. Connect Pipeline Config to override Sample ID / use_vision from the chat directive.\",\n        ),\n        StrInput(name=\"data_dir\", display_name=\"Data Directory\", value=DEFAULT_DATA_DIR, advanced=True),\n        StrInput(\n            name=\"sample_id\",\n            display_name=\"Sample ID\",\n            value=\"sample_1\",\n            info=\"One of sample_1 (glioma), sample_2 (medulloblastoma), sample_3 (breast).\",\n        ),\n        BoolInput(\n            name=\"use_vision\",\n            display_name=\"Run Vision Call On Embedded Images\",\n            value=False,\n            info=\"When true, a multimodal call describes the H&E/IHC placeholders.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Vision Model\", value=\"openai/gpt-4o\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=600, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"Vision System Prompt\",\n            value=DEFAULT_VISION_PROMPT,\n            info=\"EDIT ME. Reshape how the vision model describes images.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Intake\", name=\"intake\", method=\"run_intake\")]\n\n    def run_intake(self) -> Data:\n        from tools.scenario_d import pdf_io\n\n        run_config = (self.run_config.data.get(\"run_config\", {}) if self.run_config else {})\n        sample_id = run_config.get(\"sample_id\", self.sample_id)\n        use_vision = run_config.get(\"use_vision\", self.use_vision)\n\n        base = resolve_data_dir(self.data_dir)\n        extracted = pdf_io.load_extracted(base, sample_id)\n\n        image_descriptions: list[dict] = []\n        if use_vision and extracted.get(\"images\"):\n            client = openai_client()\n            images_payload = [\n                (img[\"label\"], pdf_io.load_image_bytes(base, img[\"file\"]))\n                for img in extracted[\"images\"]\n            ]\n            user_content = make_image_message(\n                text=(\n                    \"Describe each of the following images in one short paragraph each. \"\n                    \"Number your paragraphs to match the image order.\"\n                ),\n                images=images_payload,\n            )\n            try:\n                raw = chat_completion_text(\n                    client,\n                    model=self.model,\n                    system_prompt=self.system_prompt or DEFAULT_VISION_PROMPT,\n                    user_content=user_content,\n                    temperature=self.temperature,\n                    max_tokens=self.max_tokens,\n                    span_name=\"scenario_d.pdf_intake.vision\",\n                )\n                # Split into per-image paragraphs by blank-line or numbered prefix.\n                paragraphs = [p.strip() for p in raw.split(\"\\n\\n\") if p.strip()]\n                # Pad / trim to match image count\n                while len(paragraphs) < len(extracted[\"images\"]):\n                    paragraphs.append(\"\")\n                paragraphs = paragraphs[: len(extracted[\"images\"])]\n                for img, desc in zip(extracted[\"images\"], paragraphs):\n                    image_descriptions.append({\n                        \"label\": img[\"label\"],\n                        \"kind\": img[\"kind\"],\n                        \"description\": desc,\n                    })\n            except Exception as e:  # vision failure shouldn't kill the run\n                for img in extracted[\"images\"]:\n                    image_descriptions.append({\n                        \"label\": img[\"label\"],\n                        \"kind\": img[\"kind\"],\n                        \"description\": f\"(vision call failed: {type(e).__name__})\",\n                    })\n\n        return Data(data={\n            \"sample_id\": sample_id,\n            \"tumor_family\": extracted[\"tumor_family\"],\n            \"extracted\": extracted,\n            \"image_descriptions\": image_descriptions,\n            \"run_config\": run_config,\n        })\n",
+                "value": "\"\"\"Scenario D v2 \u2014 PDFIntake.\n\nTHIS is the document-AI step. It reads the pdfplumber raw-text dump of\nthe chosen fabricated report (a single linearized blob with repeating\npage headers, broken tables, addenda appended, abbreviations without\nexpansion \u2014 exactly what a real extractor gets) and runs an LLM with\nan editable system prompt to produce a structured `extracted` payload\nin the shape the rest of the pipeline expects.\n\nOptionally also runs a vision-capable model on the two embedded\nplaceholder images and folds those descriptions into the Data so the\nHistology Synthesizer can use them.\n\nThere are TWO editable levers in this single component:\n  - The extraction system prompt (this is the heart of the demo).\n  - The vision system prompt (only used when use_vision=true).\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    BoolInput,\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import (\n    DEFAULT_DATA_DIR,\n    chat_completion_text,\n    make_image_message,\n    openai_client,\n    resolve_data_dir,\n)\n\n\nDEFAULT_EXTRACTION_PROMPT = \"\"\"You are a document-AI extractor for\nintegrated pathology reports. The input is a raw text dump of a\nmulti-page PDF \u2014 produced by a generic PDF-text extractor \u2014 so it will\ncontain layout artifacts: page headers and footers repeated on every\npage, tables flattened into space-separated rows, occasional column\ncollisions, character-encoding oddities (e.g. (cid:127), \u2021, ligatures\nlike \"fi\"), and an ADDENDUM section appended after the primary\nsign-out. Different labs format their reports differently \u2014 some are\nprose-heavy with sections in ALL CAPS, others are table-heavy with\n\"TIER I/II/III\" classifications, others use synoptic checklist\nlayouts. Your job is to ignore the noise and produce a clean\nstructured object.\n\nOutput a SINGLE JSON object with exactly these top-level fields. If a\nfield is genuinely absent from the report, use an empty string or\nempty list \u2014 do NOT invent values.\n\n{\n  \"tumor_family\":       \"glioma\" | \"medulloblastoma\" | \"breast\" | \"other\",\n  \"demographics\":       {\"patient_id\": \"...\", \"age\": <int|null>, \"sex\": \"M\"|\"F\"|\"\", \"indication\": \"...\"},\n  \"clinical_history\":   \"<full clinical-history paragraph>\",\n  \"specimen\":           \"<specimen description>\",\n  \"macroscopic\":        \"<gross description, may be empty>\",\n  \"histology_text\":     \"<microscopic / histology description, full prose>\",\n  \"ihc_profile\":        [{\"marker\": \"...\", \"result\": \"...\"}, ...],\n  \"molecular_findings\": {\n    \"snv_indel\":         [{\"gene\": \"...\", \"hgvsc\": \"...\", \"hgvsp\": \"...\",\n                            \"vaf\": <float|null>, \"classification\": \"...\"}],\n    \"structural_variants\": [{\"kind\": \"...\", \"description\": \"...\"}],\n    \"copy_number\":       [{\"gene\": \"...\", \"copy_number\": <int>, \"kind\": \"...\"}],\n    \"msi_status\":        \"<MSS|MSI-H|... or empty>\",\n    \"tmb_mutations_per_mb\": <float|null>,\n    \"methylation\":       [{\"locus\": \"...\", \"status\": \"...\"}],\n    \"germline\":          \"<germline screen summary or empty>\"\n  },\n  \"pathologist_comments\": \"<the interpretation / comment paragraph(s)>\",\n  \"addendum_text\":        \"<addendum body if one exists, else empty string>\"\n}\n\nRules:\n  1. tumor_family must be inferred from the diagnosis / specimen /\n     molecular findings \u2014 do not leave it empty unless truly unclear.\n  2. Sweep across all pages \u2014 fields you need may appear after table\n     breaks or in the ADDENDUM section at the end.\n  3. Strip repeating page headers/footers and \"Page N\" markers before\n     attributing text to a field.\n  4. For tables flattened into rows, recover the columns from context\n     (e.g. for an SNV table the columns are usually Gene / HGVSc /\n     HGVSp / VAF / Classification).\n  5. Preserve exact gene symbols and HGVS strings \u2014 do not paraphrase.\n  6. Return ONLY the JSON object; no commentary, no markdown fences,\n     no backticks. Use the word json in your reasoning if needed.\n\"\"\"\n\n\nDEFAULT_VISION_PROMPT = \"\"\"You are a pathology image describer. For each\nimage you receive, write ONE concise paragraph (about 3 sentences)\ndescribing the dominant features a pathologist would note: cellularity,\nnuclear morphology, staining pattern, and whether the image is H&E or\nimmunohistochemical. Do NOT attempt diagnosis. Be specific about color\ndistribution. If an image clearly does not contain biological tissue,\nsay so plainly.\"\"\"\n\n\n_DEFAULT_IMAGES = {\n    \"sample_1\": [\n        {\"label\": \"H&E \u00d720 \u2014 frontal lobe infiltrative astrocytic tumor\", \"kind\": \"he\",\n         \"file\": \"images/sample_1_image_1.png\"},\n        {\"label\": \"IDH1 R132H IHC \u00d720\", \"kind\": \"ihc\",\n         \"file\": \"images/sample_1_image_2.png\"},\n    ],\n    \"sample_2\": [\n        {\"label\": \"H&E \u00d720 \u2014 small round blue cell tumor\", \"kind\": \"he\",\n         \"file\": \"images/sample_2_image_1.png\"},\n        {\"label\": \"GAB1 IHC \u00d720 \u2014 cytoplasmic positivity\", \"kind\": \"ihc\",\n         \"file\": \"images/sample_2_image_2.png\"},\n    ],\n    \"sample_3\": [\n        {\"label\": \"H&E \u00d720 \u2014 invasive ductal carcinoma NST\", \"kind\": \"he\",\n         \"file\": \"images/sample_3_image_1.png\"},\n        {\"label\": \"ER IHC \u00d720 \u2014 Allred 8/8\", \"kind\": \"ihc\",\n         \"file\": \"images/sample_3_image_2.png\"},\n    ],\n}\n\n\ndef _fallback_extracted(sample_id: str) -> dict:\n    \"\"\"Minimal shape used when LLM extraction fails so downstream nodes\n    don't blow up. Records a flag so the QA reviewer can see it.\"\"\"\n    return {\n        \"tumor_family\": \"\",\n        \"demographics\": {},\n        \"clinical_history\": \"\",\n        \"specimen\": \"\",\n        \"macroscopic\": \"\",\n        \"histology_text\": \"\",\n        \"ihc_profile\": [],\n        \"molecular_findings\": {\n            \"snv_indel\": [], \"structural_variants\": [], \"copy_number\": [],\n            \"msi_status\": \"\", \"tmb_mutations_per_mb\": None,\n            \"methylation\": [], \"germline\": \"\",\n        },\n        \"pathologist_comments\": \"\",\n        \"addendum_text\": \"\",\n        \"_extraction_failed\": True,\n    }\n\n\nclass ScenarioD_v2_PDFIntake(Component):\n    display_name = \"PDF Intake\"\n    description = (\n        \"Reads the raw-text dump of the chosen sample's PDF and uses an LLM to \"\n        \"extract a structured payload. THIS is the document-AI step \u2014 the \"\n        \"extraction system prompt is the workshop's key editable lever.\"\n    )\n    icon = \"file-text\"\n    name = \"PDFIntake S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"run_config\",\n            display_name=\"Run Config\",\n            input_types=[\"Data\"],\n            required=False,\n            info=\"Optional. Connect Pipeline Config to override Sample ID / use_vision from the chat directive.\",\n        ),\n        StrInput(name=\"data_dir\", display_name=\"Data Directory\", value=DEFAULT_DATA_DIR, advanced=True),\n        StrInput(\n            name=\"sample_id\",\n            display_name=\"Sample ID\",\n            value=\"sample_1\",\n            info=\"One of sample_1 (glioma), sample_2 (medulloblastoma), sample_3 (breast).\",\n        ),\n        BoolInput(\n            name=\"use_vision\",\n            display_name=\"Run Vision Call On Embedded Images\",\n            value=False,\n            info=\"When true, a multimodal call describes the H&E/IHC placeholders.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Extraction Model\", value=\"openai/gpt-4o-mini\",\n                 info=\"The LLM that turns the raw PDF text into structured fields.\"),\n        StrInput(name=\"vision_model\", display_name=\"Vision Model\", value=\"openai/gpt-4o\",\n                 info=\"Multimodal model used when Use Vision is on.\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens (extraction)\", value=2500, advanced=True),\n        IntInput(name=\"vision_max_tokens\", display_name=\"Max Tokens (vision)\", value=600, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"Extraction System Prompt\",\n            value=DEFAULT_EXTRACTION_PROMPT,\n            info=\"EDIT ME. Reshape what the document-AI extractor pulls out of the raw text.\",\n        ),\n        MultilineInput(\n            name=\"vision_system_prompt\",\n            display_name=\"Vision System Prompt\",\n            value=DEFAULT_VISION_PROMPT,\n            info=\"EDIT ME. Reshape how the vision model describes embedded images.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Intake\", name=\"intake\", method=\"run_intake\")]\n\n    def run_intake(self) -> Data:\n        from tools.scenario_d import pdf_io\n\n        run_config = (self.run_config.data.get(\"run_config\", {}) if self.run_config else {})\n        sample_id = run_config.get(\"sample_id\", self.sample_id)\n        use_vision = run_config.get(\"use_vision\", self.use_vision)\n\n        base = resolve_data_dir(self.data_dir)\n        raw_text = pdf_io.load_raw_text(base, sample_id)\n\n        client = openai_client()\n        try:\n            raw_llm = chat_completion_text(\n                client,\n                model=self.model,\n                system_prompt=self.system_prompt or DEFAULT_EXTRACTION_PROMPT,\n                user_content=raw_text,\n                temperature=self.temperature,\n                max_tokens=self.max_tokens,\n                json_mode=True,\n                span_name=\"scenario_d.pdf_intake.extraction\",\n            )\n            extracted = json.loads(raw_llm)\n            if not isinstance(extracted, dict):\n                raise ValueError(\"extraction did not return a JSON object\")\n        except Exception as e:\n            extracted = _fallback_extracted(sample_id)\n            extracted[\"_extraction_error\"] = f\"{type(e).__name__}: {e}\"\n            raw_llm = \"\"\n\n        # Backstop tumor_family for the WHO classifier downstream:\n        # if the LLM failed to infer it from a messy dump, fall back to\n        # a hint based on the sample_id chosen in the chat directive.\n        if not extracted.get(\"tumor_family\"):\n            extracted[\"tumor_family\"] = {\n                \"sample_1\": \"glioma\",\n                \"sample_2\": \"medulloblastoma\",\n                \"sample_3\": \"breast\",\n            }.get(sample_id, \"\")\n\n        # Optional vision pass: embeds the two placeholder images for the\n        # sample. Image filenames are deterministic per sample.\n        image_descriptions: list[dict] = []\n        if use_vision:\n            images_meta = _DEFAULT_IMAGES.get(sample_id, [])\n            if images_meta:\n                images_payload = []\n                try:\n                    images_payload = [\n                        (m[\"label\"], pdf_io.load_image_bytes(base, m[\"file\"]))\n                        for m in images_meta\n                    ]\n                except FileNotFoundError as e:\n                    image_descriptions.append({\"label\": \"\", \"kind\": \"\",\n                                               \"description\": f\"(image file missing: {e})\"})\n\n                if images_payload:\n                    user_content = make_image_message(\n                        text=(\n                            \"Describe each of the following images in one short \"\n                            \"paragraph each. Number your paragraphs to match the \"\n                            \"image order.\"\n                        ),\n                        images=images_payload,\n                    )\n                    try:\n                        vision_raw = chat_completion_text(\n                            client,\n                            model=self.vision_model,\n                            system_prompt=self.vision_system_prompt or DEFAULT_VISION_PROMPT,\n                            user_content=user_content,\n                            temperature=self.temperature,\n                            max_tokens=self.vision_max_tokens,\n                            span_name=\"scenario_d.pdf_intake.vision\",\n                        )\n                        paragraphs = [p.strip() for p in vision_raw.split(\"\\n\\n\") if p.strip()]\n                        while len(paragraphs) < len(images_meta):\n                            paragraphs.append(\"\")\n                        paragraphs = paragraphs[: len(images_meta)]\n                        for m, desc in zip(images_meta, paragraphs):\n                            image_descriptions.append({\n                                \"label\": m[\"label\"], \"kind\": m[\"kind\"],\n                                \"description\": desc,\n                            })\n                    except Exception as e:\n                        for m in images_meta:\n                            image_descriptions.append({\n                                \"label\": m[\"label\"], \"kind\": m[\"kind\"],\n                                \"description\": f\"(vision call failed: {type(e).__name__})\",\n                            })\n\n        return Data(data={\n            \"sample_id\": sample_id,\n            \"tumor_family\": extracted.get(\"tumor_family\", \"\"),\n            \"extracted\": extracted,\n            \"image_descriptions\": image_descriptions,\n            \"extraction_raw_llm\": raw_llm,\n            \"run_config\": run_config,\n        })\n",
                 "fileTypes": [],
                 "file_path": "",
                 "password": false,
@@ -579,8 +579,8 @@
                 "placeholder": "",
                 "show": true,
                 "name": "max_tokens",
-                "value": 600,
-                "display_name": "Max Tokens",
+                "value": 2500,
+                "display_name": "Max Tokens (extraction)",
                 "advanced": true,
                 "dynamic": false,
                 "info": "",
@@ -600,11 +600,11 @@
                 "placeholder": "",
                 "show": true,
                 "name": "model",
-                "value": "openai/gpt-4o",
-                "display_name": "Vision Model",
+                "value": "openai/gpt-4o-mini",
+                "display_name": "Extraction Model",
                 "advanced": false,
                 "dynamic": false,
-                "info": "",
+                "info": "The LLM that turns the raw PDF text into structured fields.",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "type": "str",
@@ -645,14 +645,14 @@
                 "placeholder": "",
                 "show": true,
                 "name": "system_prompt",
-                "value": "You are a pathology image describer. For each\nimage you receive, write ONE concise paragraph (about 3 sentences)\ndescribing the dominant features a pathologist would note: cellularity,\nnuclear morphology, staining pattern, and whether the image is H&E or\nimmunohistochemical. Do NOT attempt diagnosis. Be specific about color\ndistribution. If an image clearly does not contain biological tissue,\nsay so plainly.",
-                "display_name": "Vision System Prompt",
+                "value": "You are a document-AI extractor for\nintegrated pathology reports. The input is a raw text dump of a\nmulti-page PDF \u2014 produced by a generic PDF-text extractor \u2014 so it will\ncontain layout artifacts: page headers and footers repeated on every\npage, tables flattened into space-separated rows, occasional column\ncollisions, character-encoding oddities (e.g. (cid:127), \u2021, ligatures\nlike \"fi\"), and an ADDENDUM section appended after the primary\nsign-out. Different labs format their reports differently \u2014 some are\nprose-heavy with sections in ALL CAPS, others are table-heavy with\n\"TIER I/II/III\" classifications, others use synoptic checklist\nlayouts. Your job is to ignore the noise and produce a clean\nstructured object.\n\nOutput a SINGLE JSON object with exactly these top-level fields. If a\nfield is genuinely absent from the report, use an empty string or\nempty list \u2014 do NOT invent values.\n\n{\n  \"tumor_family\":       \"glioma\" | \"medulloblastoma\" | \"breast\" | \"other\",\n  \"demographics\":       {\"patient_id\": \"...\", \"age\": <int|null>, \"sex\": \"M\"|\"F\"|\"\", \"indication\": \"...\"},\n  \"clinical_history\":   \"<full clinical-history paragraph>\",\n  \"specimen\":           \"<specimen description>\",\n  \"macroscopic\":        \"<gross description, may be empty>\",\n  \"histology_text\":     \"<microscopic / histology description, full prose>\",\n  \"ihc_profile\":        [{\"marker\": \"...\", \"result\": \"...\"}, ...],\n  \"molecular_findings\": {\n    \"snv_indel\":         [{\"gene\": \"...\", \"hgvsc\": \"...\", \"hgvsp\": \"...\",\n                            \"vaf\": <float|null>, \"classification\": \"...\"}],\n    \"structural_variants\": [{\"kind\": \"...\", \"description\": \"...\"}],\n    \"copy_number\":       [{\"gene\": \"...\", \"copy_number\": <int>, \"kind\": \"...\"}],\n    \"msi_status\":        \"<MSS|MSI-H|... or empty>\",\n    \"tmb_mutations_per_mb\": <float|null>,\n    \"methylation\":       [{\"locus\": \"...\", \"status\": \"...\"}],\n    \"germline\":          \"<germline screen summary or empty>\"\n  },\n  \"pathologist_comments\": \"<the interpretation / comment paragraph(s)>\",\n  \"addendum_text\":        \"<addendum body if one exists, else empty string>\"\n}\n\nRules:\n  1. tumor_family must be inferred from the diagnosis / specimen /\n     molecular findings \u2014 do not leave it empty unless truly unclear.\n  2. Sweep across all pages \u2014 fields you need may appear after table\n     breaks or in the ADDENDUM section at the end.\n  3. Strip repeating page headers/footers and \"Page N\" markers before\n     attributing text to a field.\n  4. For tables flattened into rows, recover the columns from context\n     (e.g. for an SNV table the columns are usually Gene / HGVSc /\n     HGVSp / VAF / Classification).\n  5. Preserve exact gene symbols and HGVS strings \u2014 do not paraphrase.\n  6. Return ONLY the JSON object; no commentary, no markdown fences,\n     no backticks. Use the word json in your reasoning if needed.\n",
+                "display_name": "Extraction System Prompt",
                 "advanced": false,
                 "input_types": [
                   "Message"
                 ],
                 "dynamic": false,
-                "info": "EDIT ME. Reshape how the vision model describes images.",
+                "info": "EDIT ME. Reshape what the document-AI extractor pulls out of the raw text.",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "copy_field": false,
@@ -699,9 +699,79 @@
                 "track_in_telemetry": true,
                 "type": "bool",
                 "_input_type": "BoolInput"
+              },
+              "vision_max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "vision_max_tokens",
+                "value": 600,
+                "display_name": "Max Tokens (vision)",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "vision_model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "vision_model",
+                "value": "openai/gpt-4o",
+                "display_name": "Vision Model",
+                "advanced": false,
+                "dynamic": false,
+                "info": "Multimodal model used when Use Vision is on.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "vision_system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "vision_system_prompt",
+                "value": "You are a pathology image describer. For each\nimage you receive, write ONE concise paragraph (about 3 sentences)\ndescribing the dominant features a pathologist would note: cellularity,\nnuclear morphology, staining pattern, and whether the image is H&E or\nimmunohistochemical. Do NOT attempt diagnosis. Be specific about color\ndistribution. If an image clearly does not contain biological tissue,\nsay so plainly.",
+                "display_name": "Vision System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Reshape how the vision model describes embedded images.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
               }
             },
-            "description": "Loads the pre-extracted JSON for the chosen sample. Optionally runs a vision model on the embedded H&E / IHC images and folds those descriptions into the Data object passed downstream.",
+            "description": "Reads the raw-text dump of the chosen sample's PDF and uses an LLM to extract a structured payload. THIS is the document-AI step \u2014 the extraction system prompt is the workshop's key editable lever.",
             "icon": "file-text",
             "base_classes": [
               "JSON"
@@ -736,16 +806,19 @@
               "sample_id",
               "use_vision",
               "model",
+              "vision_model",
               "temperature",
               "max_tokens",
-              "system_prompt"
+              "vision_max_tokens",
+              "system_prompt",
+              "vision_system_prompt"
             ],
             "beta": false,
             "legacy": false,
             "edited": false,
             "metadata": {
               "module": "custom_components.pdf_intake",
-              "code_hash": "e327d00d9153",
+              "code_hash": "6a9df8e6893c",
               "dependencies": {
                 "total_dependencies": 2,
                 "dependencies": [
@@ -766,14 +839,14 @@
         }
       },
       {
-        "id": "MolecularParser_S-D.V2-cf33c4",
+        "id": "MolecularParser_S-D.V2-8eb18e",
         "type": "genericNode",
         "position": {
           "x": 1350,
           "y": 200
         },
         "data": {
-          "id": "MolecularParser_S-D.V2-cf33c4",
+          "id": "MolecularParser_S-D.V2-8eb18e",
           "type": "MolecularParser S-D.V2",
           "node": {
             "template": {
@@ -971,14 +1044,14 @@
         }
       },
       {
-        "id": "HistologySynthesizer_S-D.V2-973b99",
+        "id": "HistologySynthesizer_S-D.V2-ea9765",
         "type": "genericNode",
         "position": {
           "x": 1350,
           "y": 700
         },
         "data": {
-          "id": "HistologySynthesizer_S-D.V2-973b99",
+          "id": "HistologySynthesizer_S-D.V2-ea9765",
           "type": "HistologySynthesizer S-D.V2",
           "node": {
             "template": {
@@ -1176,14 +1249,14 @@
         }
       },
       {
-        "id": "WHOClassifier_S-D.V2-9f0241",
+        "id": "WHOClassifier_S-D.V2-f9c649",
         "type": "genericNode",
         "position": {
           "x": 1900,
           "y": 400
         },
         "data": {
-          "id": "WHOClassifier_S-D.V2-9f0241",
+          "id": "WHOClassifier_S-D.V2-f9c649",
           "type": "WHOClassifier S-D.V2",
           "node": {
             "template": {
@@ -1404,14 +1477,14 @@
         }
       },
       {
-        "id": "QAReviewer_S-D.V2-b51d64",
+        "id": "QAReviewer_S-D.V2-ae7bf3",
         "type": "genericNode",
         "position": {
           "x": 2400,
           "y": 400
         },
         "data": {
-          "id": "QAReviewer_S-D.V2-b51d64",
+          "id": "QAReviewer_S-D.V2-ae7bf3",
           "type": "QAReviewer S-D.V2",
           "node": {
             "template": {
@@ -1631,14 +1704,14 @@
         }
       },
       {
-        "id": "ReportFormatter_S-D.V2-c9d088",
+        "id": "ReportFormatter_S-D.V2-cb2055",
         "type": "genericNode",
         "position": {
           "x": 2900,
           "y": 400
         },
         "data": {
-          "id": "ReportFormatter_S-D.V2-c9d088",
+          "id": "ReportFormatter_S-D.V2-cb2055",
           "type": "ReportFormatter S-D.V2",
           "node": {
             "template": {
@@ -1790,14 +1863,14 @@
         }
       },
       {
-        "id": "ChatOutput-3516d2",
+        "id": "ChatOutput-3de978",
         "type": "genericNode",
         "position": {
           "x": 3400,
           "y": 400
         },
         "data": {
-          "id": "ChatOutput-3516d2",
+          "id": "ChatOutput-3de978",
           "type": "ChatOutput",
           "node": {
             "base_classes": [
@@ -2085,14 +2158,14 @@
     ],
     "edges": [
       {
-        "source": "ChatInput-df96b3",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-df96b3\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "PipelineConfig_S-D.V2-ffb8d0",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-ffb8d0\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "ChatInput-720391",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-720391\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "PipelineConfig_S-D.V2-67c761",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-67c761\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ChatInput",
-            "id": "ChatInput-df96b3",
+            "id": "ChatInput-720391",
             "name": "message",
             "output_types": [
               "Message"
@@ -2100,27 +2173,27 @@
           },
           "targetHandle": {
             "fieldName": "user_message",
-            "id": "PipelineConfig_S-D.V2-ffb8d0",
+            "id": "PipelineConfig_S-D.V2-67c761",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__ChatInput-df96b3{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-df96b3\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-PipelineConfig_S-D.V2-ffb8d0{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-ffb8d0\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__ChatInput-720391{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-720391\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-PipelineConfig_S-D.V2-67c761{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-67c761\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PipelineConfig_S-D.V2-ffb8d0",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-ffb8d0\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "PDFIntake_S-D.V2-5eae3b",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PipelineConfig_S-D.V2-67c761",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-67c761\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "PDFIntake_S-D.V2-3e1fd0",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PipelineConfig S-D.V2",
-            "id": "PipelineConfig_S-D.V2-ffb8d0",
+            "id": "PipelineConfig_S-D.V2-67c761",
             "name": "run_config",
             "output_types": [
               "Data"
@@ -2128,27 +2201,27 @@
           },
           "targetHandle": {
             "fieldName": "run_config",
-            "id": "PDFIntake_S-D.V2-5eae3b",
+            "id": "PDFIntake_S-D.V2-3e1fd0",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PipelineConfig_S-D.V2-ffb8d0{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-ffb8d0\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-PDFIntake_S-D.V2-5eae3b{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PipelineConfig_S-D.V2-67c761{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-67c761\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-PDFIntake_S-D.V2-3e1fd0{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PDFIntake_S-D.V2-5eae3b",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "MolecularParser_S-D.V2-cf33c4",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-cf33c4\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PDFIntake_S-D.V2-3e1fd0",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "MolecularParser_S-D.V2-8eb18e",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-8eb18e\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PDFIntake S-D.V2",
-            "id": "PDFIntake_S-D.V2-5eae3b",
+            "id": "PDFIntake_S-D.V2-3e1fd0",
             "name": "intake",
             "output_types": [
               "Data"
@@ -2156,27 +2229,27 @@
           },
           "targetHandle": {
             "fieldName": "intake",
-            "id": "MolecularParser_S-D.V2-cf33c4",
+            "id": "MolecularParser_S-D.V2-8eb18e",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PDFIntake_S-D.V2-5eae3b{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-MolecularParser_S-D.V2-cf33c4{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-cf33c4\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PDFIntake_S-D.V2-3e1fd0{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-MolecularParser_S-D.V2-8eb18e{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-8eb18e\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PDFIntake_S-D.V2-5eae3b",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "HistologySynthesizer_S-D.V2-973b99",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-973b99\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PDFIntake_S-D.V2-3e1fd0",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "HistologySynthesizer_S-D.V2-ea9765",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-ea9765\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PDFIntake S-D.V2",
-            "id": "PDFIntake_S-D.V2-5eae3b",
+            "id": "PDFIntake_S-D.V2-3e1fd0",
             "name": "intake",
             "output_types": [
               "Data"
@@ -2184,27 +2257,27 @@
           },
           "targetHandle": {
             "fieldName": "intake",
-            "id": "HistologySynthesizer_S-D.V2-973b99",
+            "id": "HistologySynthesizer_S-D.V2-ea9765",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PDFIntake_S-D.V2-5eae3b{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-HistologySynthesizer_S-D.V2-973b99{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-973b99\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PDFIntake_S-D.V2-3e1fd0{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-HistologySynthesizer_S-D.V2-ea9765{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-ea9765\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "MolecularParser_S-D.V2-cf33c4",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-cf33c4\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "WHOClassifier_S-D.V2-9f0241",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "MolecularParser_S-D.V2-8eb18e",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-8eb18e\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "WHOClassifier_S-D.V2-f9c649",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "MolecularParser S-D.V2",
-            "id": "MolecularParser_S-D.V2-cf33c4",
+            "id": "MolecularParser_S-D.V2-8eb18e",
             "name": "molecular",
             "output_types": [
               "Data"
@@ -2212,27 +2285,27 @@
           },
           "targetHandle": {
             "fieldName": "molecular",
-            "id": "WHOClassifier_S-D.V2-9f0241",
+            "id": "WHOClassifier_S-D.V2-f9c649",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__MolecularParser_S-D.V2-cf33c4{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-cf33c4\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-WHOClassifier_S-D.V2-9f0241{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__MolecularParser_S-D.V2-8eb18e{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-8eb18e\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-WHOClassifier_S-D.V2-f9c649{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "HistologySynthesizer_S-D.V2-973b99",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153HistologySynthesizer S-D.V2\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-973b99\u0153,\u0153name\u0153:\u0153synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "WHOClassifier_S-D.V2-9f0241",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153histology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "HistologySynthesizer_S-D.V2-ea9765",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153HistologySynthesizer S-D.V2\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-ea9765\u0153,\u0153name\u0153:\u0153synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "WHOClassifier_S-D.V2-f9c649",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153histology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "HistologySynthesizer S-D.V2",
-            "id": "HistologySynthesizer_S-D.V2-973b99",
+            "id": "HistologySynthesizer_S-D.V2-ea9765",
             "name": "synthesis",
             "output_types": [
               "Message"
@@ -2240,27 +2313,27 @@
           },
           "targetHandle": {
             "fieldName": "histology_synthesis",
-            "id": "WHOClassifier_S-D.V2-9f0241",
+            "id": "WHOClassifier_S-D.V2-f9c649",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__HistologySynthesizer_S-D.V2-973b99{\u0153dataType\u0153:\u0153HistologySynthesizer S-D.V2\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-973b99\u0153,\u0153name\u0153:\u0153synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-9f0241{\u0153fieldName\u0153:\u0153histology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__HistologySynthesizer_S-D.V2-ea9765{\u0153dataType\u0153:\u0153HistologySynthesizer S-D.V2\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-ea9765\u0153,\u0153name\u0153:\u0153synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-f9c649{\u0153fieldName\u0153:\u0153histology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "WHOClassifier_S-D.V2-9f0241",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153name\u0153:\u0153classification\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "QAReviewer_S-D.V2-b51d64",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153classification_data\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b51d64\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "WHOClassifier_S-D.V2-f9c649",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153name\u0153:\u0153classification\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "QAReviewer_S-D.V2-ae7bf3",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153classification_data\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-ae7bf3\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "WHOClassifier S-D.V2",
-            "id": "WHOClassifier_S-D.V2-9f0241",
+            "id": "WHOClassifier_S-D.V2-f9c649",
             "name": "classification",
             "output_types": [
               "Data"
@@ -2268,27 +2341,27 @@
           },
           "targetHandle": {
             "fieldName": "classification_data",
-            "id": "QAReviewer_S-D.V2-b51d64",
+            "id": "QAReviewer_S-D.V2-ae7bf3",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__WHOClassifier_S-D.V2-9f0241{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153name\u0153:\u0153classification\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-QAReviewer_S-D.V2-b51d64{\u0153fieldName\u0153:\u0153classification_data\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b51d64\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__WHOClassifier_S-D.V2-f9c649{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153name\u0153:\u0153classification\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-QAReviewer_S-D.V2-ae7bf3{\u0153fieldName\u0153:\u0153classification_data\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-ae7bf3\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "QAReviewer_S-D.V2-b51d64",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b51d64\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "ReportFormatter_S-D.V2-c9d088",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-c9d088\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "QAReviewer_S-D.V2-ae7bf3",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-ae7bf3\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "ReportFormatter_S-D.V2-cb2055",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-cb2055\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "QAReviewer S-D.V2",
-            "id": "QAReviewer_S-D.V2-b51d64",
+            "id": "QAReviewer_S-D.V2-ae7bf3",
             "name": "reviewed",
             "output_types": [
               "Data"
@@ -2296,27 +2369,27 @@
           },
           "targetHandle": {
             "fieldName": "reviewed",
-            "id": "ReportFormatter_S-D.V2-c9d088",
+            "id": "ReportFormatter_S-D.V2-cb2055",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__QAReviewer_S-D.V2-b51d64{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b51d64\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-ReportFormatter_S-D.V2-c9d088{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-c9d088\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__QAReviewer_S-D.V2-ae7bf3{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-ae7bf3\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-ReportFormatter_S-D.V2-cb2055{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-cb2055\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "ReportFormatter_S-D.V2-c9d088",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-c9d088\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "ChatOutput-3516d2",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3516d2\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "ReportFormatter_S-D.V2-cb2055",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-cb2055\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "ChatOutput-3de978",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3de978\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ReportFormatter S-D.V2",
-            "id": "ReportFormatter_S-D.V2-c9d088",
+            "id": "ReportFormatter_S-D.V2-cb2055",
             "name": "report",
             "output_types": [
               "Message"
@@ -2324,14 +2397,14 @@
           },
           "targetHandle": {
             "fieldName": "input_value",
-            "id": "ChatOutput-3516d2",
+            "id": "ChatOutput-3de978",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__ReportFormatter_S-D.V2-c9d088{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-c9d088\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-3516d2{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3516d2\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__ReportFormatter_S-D.V2-cb2055{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-cb2055\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-3de978{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3de978\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false

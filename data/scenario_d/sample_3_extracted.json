@@ -2,19 +2,22 @@
   "sample_id": "sample_3",
   "tumor_family": "breast",
   "source_pdf": "sample_3.pdf",
-  "institution": "Regional Breast Pathology Service",
-  "accession": "RBPS-2026-004115",
+  "style": "hybrid_breast",
+  "institution": "Westhaven Cancer Institute",
+  "accession": "WCI-26-004115",
   "report_date": "2026-04-29",
+  "addendum_date": "2026-05-06",
   "demographics": {
-    "patient_id": "PID-29103",
+    "patient_id": "MRN 29103",
+    "name_redacted": "[REDACTED, A.]",
     "age": 52,
     "sex": "F",
-    "indication": "Screening-detected 2.1 cm left breast mass; BIRADS 5"
+    "indication": "Screening-detected 2.1 cm L breast mass, BIRADS 5"
   },
-  "clinical_history": "52-year-old postmenopausal woman with a screening-detected 2.1 cm spiculated mass in the upper outer quadrant of the left breast. Core needle biopsy showed invasive carcinoma. Underwent partial mastectomy with sentinel lymph node biopsy. No personal history of breast cancer. Mother diagnosed with breast cancer at age 68; otherwise no significant family history.",
-  "specimen": "Left breast partial mastectomy with sentinel lymph node biopsy (3 nodes).",
-  "macroscopic": "Fibrofatty tissue 7.5 x 6.0 x 3.1 cm containing a firm, spiculated, gray-white tumor measuring 2.1 x 1.9 x 1.6 cm. Closest margin: 4 mm (anterior). Three sentinel lymph nodes, largest 1.4 cm.",
-  "histology_text": "Sections demonstrate invasive carcinoma of no special type composed of nests and cords of moderately atypical epithelial cells infiltrating fibrous stroma. Nottingham grade is 2 (tubule formation 3, nuclear pleomorphism 2, mitoses 2; total score 7/9). No lymphovascular invasion is identified. Margins are negative; the closest margin is 4 mm anteriorly. Associated DCIS, intermediate grade, solid pattern, is present and accounts for approximately 10% of the tumor. All three sentinel lymph nodes are negative for metastatic carcinoma (0/3).",
+  "clinical_history": "52 y.o. postmenopausal F. Screening mammography: 2.1 cm spiculated mass, upper outer quadrant, left breast. Core needle bx: invasive carcinoma. Underwent partial mastectomy + SLNB on 2026-04-22. No personal hx of breast cancer. Mother dx'd breast cancer at age 68. No other significant FHx.",
+  "specimen": "A. Left breast, partial mastectomy, 7.5 x 6.0 x 3.1 cm.\nB. Sentinel lymph nodes, 3 (level I, level II, internal mammary).",
+  "macroscopic": "A. Fibrofatty breast tissue 7.5 x 6.0 x 3.1 cm. A firm, spiculated, gray-white tumor measuring 2.1 x 1.9 x 1.6 cm in the upper outer aspect. Closest margin 4 mm anteriorly. B. Three sentinel lymph nodes; largest 1.4 cm.",
+  "histology_text": "A. Invasive carcinoma of no special type, composed of nests and cords of moderately atypical epithelial cells infiltrating fibrous stroma. Nottingham grade 2 (tubule formation 3 + nuclear pleomorphism 2 + mitoses 2 = 7/9). No lymphovascular invasion identified. Margins negative; closest margin 4 mm anteriorly. Associated DCIS, intermediate grade, solid pattern, involving ~10% of the tumor. B. All three sentinel lymph nodes negative for metastatic carcinoma (0/3) by H&E and pankeratin IHC.",
   "ihc_profile": [
     {
       "marker": "Estrogen receptor (ER)",
@@ -30,15 +33,15 @@
     },
     {
       "marker": "Ki-67 (MIB-1)",
-      "result": "Approximately 18%"
+      "result": "~18%"
     },
     {
       "marker": "E-cadherin",
-      "result": "Positive (retained membranous)"
+      "result": "Retained (membranous)"
     },
     {
       "marker": "AE1/AE3",
-      "result": "Positive"
+      "result": "Positive in tumor and sentinel-node H&E re-section"
     }
   ],
   "molecular_findings": {
@@ -48,7 +51,7 @@
         "hgvsc": "c.3140A>G",
         "hgvsp": "p.H1047R",
         "vaf": 0.32,
-        "classification": "Pathogenic / Actionable"
+        "classification": "Pathogenic \u2014 Actionable per NCCN BRST-V (2026)"
       }
     ],
     "structural_variants": [],
@@ -56,25 +59,41 @@
       {
         "gene": "ERBB2",
         "copy_number": 2,
-        "kind": "no amplification"
+        "kind": "no amplification (consistent with HER2 IHC 1+)"
       }
     ],
     "msi_status": "MSS",
     "tmb_mutations_per_mb": 3.6,
     "methylation": [],
-    "germline": "BRCA1 / BRCA2 / PALB2: no pathogenic variants identified"
+    "germline": "BRCA1 / BRCA2 / PALB2 / TP53 (germline panel): no pathogenic or likely pathogenic variants",
+    "expression_panel": {
+      "name": "70-gene risk profile (in-house surrogate; not MammaPrint(TM))",
+      "result": "Low Risk (continuous index 0.18; binary cutoff 0.31)"
+    }
   },
-  "pathologist_comments": "Invasive carcinoma of no special type, Nottingham grade 2 (3+2+2=7/9), 2.1 cm, ER+/PR+/HER2-. PIK3CA H1047R detected (somatic, VAF ~32%) \u2014 actionable for alpelisib + endocrine therapy consideration in advanced/metastatic settings per current NCCN. Margins negative (closest 4 mm anterior). 0/3 sentinel nodes positive. Recommend multidisciplinary discussion of adjuvant endocrine therapy +/- chemotherapy based on recurrence-risk assays.",
+  "pathologist_comments": "Invasive ductal carcinoma NST, Nottingham grade 2, 2.1 cm, ER+/PR+/HER2-negative. PIK3CA H1047R is somatic and may inform alpelisib + endocrine combinations in advanced/metastatic settings per current NCCN. 70-gene risk profile is Low Risk. Margins negative; 0/3 sentinel nodes positive. Adjuvant endocrine therapy is appropriate; chemotherapy decision per tumor board, informed by Low-Risk genomic result.",
+  "addendum_text": "Outside germline panel result received: NEGATIVE for pathogenic variants in BRCA1, BRCA2, PALB2, CHEK2, ATM, TP53. Result added to Molecular Profiling section.",
   "images": [
     {
-      "label": "H&E \u00d720 \u2014 invasive ductal carcinoma",
+      "label": "H&E \u00d720 \u2014 invasive ductal carcinoma NST",
       "kind": "he",
       "file": "images/sample_3_image_1.png"
     },
     {
-      "label": "ER IHC \u00d720",
+      "label": "ER IHC \u00d720 \u2014 Allred 8/8",
       "kind": "ihc",
       "file": "images/sample_3_image_2.png"
     }
-  ]
+  ],
+  "ground_truth": {
+    "integrated_diagnosis": "Invasive breast carcinoma of no special type, Nottingham grade 2, ER+/PR+/HER2-negative, PIK3CA-mutant",
+    "histologic_diagnosis": "Invasive carcinoma, no special type",
+    "who_grade": 2,
+    "guideline_source": "WHO Breast Tumours 5e (2019)",
+    "required_molecular_features": [
+      "PIK3CA",
+      "ER",
+      "HER2"
+    ]
+  }
 }

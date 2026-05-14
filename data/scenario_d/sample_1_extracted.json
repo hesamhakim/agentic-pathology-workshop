@@ -2,39 +2,42 @@
   "sample_id": "sample_1",
   "tumor_family": "glioma",
   "source_pdf": "sample_1.pdf",
-  "institution": "Memorial Pathology Associates",
-  "accession": "MPA-2026-018472",
+  "style": "academic_amc",
+  "institution": "Northshore University Hospital \u2014 Department of Pathology",
+  "accession": "S26-018472",
   "report_date": "2026-04-08",
+  "addendum_date": "2026-04-13",
   "demographics": {
-    "patient_id": "PID-87432",
+    "patient_id": "MRN 87432",
+    "name_redacted": "[REDACTED, M.]",
     "age": 47,
     "sex": "F",
-    "indication": "Right frontal mass on MRI; new-onset focal seizures"
+    "indication": "Right frontal mass with new-onset focal seizures"
   },
-  "clinical_history": "47-year-old woman presenting with new-onset focal motor seizures over six weeks. MRI brain demonstrated a 3.8 cm right frontal lobe mass with patchy enhancement and moderate surrounding edema. No prior cancer history. No family history of CNS tumors. Underwent gross total resection.",
-  "specimen": "Right frontal lobe mass, gross total resection (4.1 x 3.2 x 2.6 cm aggregate).",
-  "macroscopic": "Multiple soft, gray-tan tissue fragments with focal hemorrhage. No grossly necrotic or cystic areas identified.",
-  "histology_text": "Sections demonstrate a moderately to markedly hypercellular astrocytic proliferation infiltrating cerebral cortex and white matter. Tumor cells show moderate nuclear pleomorphism with elongated, irregular nuclei and visible nucleoli. Mitotic figures are identified at up to 4 per 10 high-power fields. Microvascular proliferation and tumor necrosis are NOT identified. No oligodendroglial component is appreciated.",
+  "clinical_history": "47-year-old woman with 6-week history of new-onset focal motor seizures. MRI brain: 3.8 cm right frontal lobe mass, patchy enhancement, moderate vasogenic edema. No prior cancer hx. No family hx of CNS tumors. Underwent gross total resection on 2026-04-04.",
+  "specimen": "Right frontal lobe mass, gross total resection.",
+  "macroscopic": "Multiple fragments of soft gray-tan tissue, aggregate 4.1 x 3.2 x 2.6 cm, with focal hemorrhage. No grossly necrotic or cystic areas. Entirely submitted in cassettes A1-A12.",
+  "histology_text": "Sections demonstrate a moderately to markedly hypercellular astrocytic proliferation infiltrating cerebral cortex and subcortical white matter. The tumor cells exhibit moderate nuclear pleomorphism with elongated, irregular nuclei and visible nucleoli; cytoplasm is scant to moderate, eosinophilic. Mitotic figures are readily identified at up to 4 per 10 HPF in the most cellular areas. Microvascular proliferation and tumor necrosis are NOT identified. No oligodendroglial morphology is appreciated. The infiltration pattern is consistent with a diffuse glioma rather than a circumscribed entity. Reactive astrocytosis and scattered macrophages are present at the tumor-brain interface.",
   "ihc_profile": [
     {
       "marker": "GFAP",
-      "result": "Positive (diffuse, strong)"
+      "result": "Diffuse, strong positivity in tumor cells"
     },
     {
       "marker": "IDH1 R132H",
-      "result": "Positive (strong cytoplasmic)"
+      "result": "Strong cytoplasmic positivity"
     },
     {
       "marker": "ATRX",
-      "result": "Loss of nuclear expression in tumor cells"
+      "result": "Loss of nuclear expression in tumor cells (retained in vessels \u2014 internal control)"
     },
     {
       "marker": "p53",
-      "result": "Strong nuclear positivity in >75% of tumor cells"
+      "result": "Strong nuclear positivity in >75% of tumor cells (mutant pattern)"
     },
     {
       "marker": "Ki-67 (MIB-1)",
-      "result": "Approximately 15% in hotspots"
+      "result": "~15% in hotspots; ~5% overall"
     },
     {
       "marker": "Olig2",
@@ -43,6 +46,10 @@
     {
       "marker": "EMA",
       "result": "Negative"
+    },
+    {
+      "marker": "Synaptophysin",
+      "result": "Negative in tumor cells"
     }
   ],
   "molecular_findings": {
@@ -72,23 +79,30 @@
     "structural_variants": [
       {
         "kind": "chromosomal",
-        "description": "1p/19q non-codeleted (intact)"
+        "description": "1p/19q non-codeleted (intact) \u2014 by FISH on cassette A6"
       }
     ],
-    "copy_number": [],
-    "msi_status": "MSS",
+    "copy_number": [
+      {
+        "gene": "CDKN2A/B",
+        "copy_number": 2,
+        "kind": "no homozygous deletion"
+      }
+    ],
+    "msi_status": "MSS (stable)",
     "tmb_mutations_per_mb": 2.4,
     "methylation": [
       {
-        "locus": "MGMT promoter",
-        "status": "Unmethylated"
+        "locus": "MGMT promoter (pyrosequencing, 4 CpGs averaged)",
+        "status": "Unmethylated (mean 4.1% \u2014 cutoff <10%)"
       }
     ]
   },
-  "pathologist_comments": "Findings \u2014 diffuse astrocytic glioma with IDH1 R132H mutation, ATRX loss, and p53 overexpression. Histologic features (mitotic activity present, no MVP or necrosis) place this at the upper end of grade 3 territory. 1p/19q intact argues against oligodendroglioma. MGMT promoter unmethylated has therapeutic implications (less anticipated benefit from temozolomide). No EGFR amp / no +7/-10 / no TERT promoter mutation detected; not consistent with IDH-wt GBM.",
+  "pathologist_comments": "Findings are diagnostic of a diffuse astrocytic glioma with IDH1 R132H mutation, ATRX loss, and TP53 alteration. The histologic features (mitotic activity present, no MVP and no necrosis) place this at the upper end of CNS WHO grade 3 per current criteria. The molecular profile (IDH-mutant, 1p/19q intact, ATRX loss) excludes oligodendroglioma. MGMT promoter is unmethylated, which has therapeutic implications. No EGFR amplification, +7/-10 signature, or TERT promoter mutation was detected; the case is NOT consistent with IDH-wildtype glioblastoma. Multidisciplinary tumor board discussion is recommended.",
+  "addendum_text": "MGMT promoter methylation by pyrosequencing returned 4.1% (unmethylated, cutoff <10%). Result added to molecular section. No change to integrated diagnosis.",
   "images": [
     {
-      "label": "H&E \u00d720 \u2014 frontal lobe tumor",
+      "label": "H&E \u00d720 \u2014 frontal lobe infiltrative astrocytic tumor",
       "kind": "he",
       "file": "images/sample_1_image_1.png"
     },
@@ -97,5 +111,16 @@
       "kind": "ihc",
       "file": "images/sample_1_image_2.png"
     }
-  ]
+  ],
+  "ground_truth": {
+    "integrated_diagnosis": "Astrocytoma, IDH-mutant, CNS WHO grade 3",
+    "histologic_diagnosis": "Diffuse astrocytic glioma",
+    "who_grade": 3,
+    "guideline_source": "WHO CNS5 (2021)",
+    "required_molecular_features": [
+      "IDH1",
+      "ATRX",
+      "MGMT"
+    ]
+  }
 }

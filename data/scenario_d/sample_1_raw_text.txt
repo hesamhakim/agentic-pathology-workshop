@@ -1,0 +1,82 @@
+
+=== PAGE 1 ===
+
+Northshore University Hospital — Department of Pathology · Accession S26-018472 · MRN 87432
+Northshore University Hospital — Department of Pathology
+Neuropathology / Molecular Diagnostics
+Patient: [REDACTED, M.] (MRN 87432)
+Age / Sex: 47 / F
+Accession: S26-018472
+Specimen received: 2026-04-08
+Reported: 2026-04-08
+Clinician: Dr. K. Holst, Neurology
+FINAL DIAGNOSIS
+Astrocytoma, IDH-mutant, CNS WHO grade 3
+Per WHO CNS5 (2021).
+CLINICAL HISTORY
+47-year-old woman with 6-week history of new-onset focal motor seizures. MRI brain: 3.8 cm right frontal lobe mass,
+patchy enhancement, moderate vasogenic edema. No prior cancer hx. No family hx of CNS tumors. Underwent gross
+total resection on 2026-04-04.
+SPECIMEN
+Right frontal lobe mass, gross total resection.
+GROSS DESCRIPTION
+Multiple fragments of soft gray-tan tissue, aggregate 4.1 x 3.2 x 2.6 cm, with focal hemorrhage. No grossly necrotic or
+cystic areas. Entirely submitted in cassettes A1-A12.
+Report date: 2026-04-08 · CONFIDENTIAL — for medical professionals only Page 1
+
+=== PAGE 2 ===
+
+Northshore University Hospital — Department of Pathology · Accession S26-018472 · MRN 87432
+MICROSCOPIC DESCRIPTION
+Sections demonstrate a moderately to markedly hypercellular astrocytic proliferation infiltrating cerebral cortex and
+subcortical white matter. The tumor cells exhibit moderate nuclear pleomorphism with elongated, irregular nuclei and
+visible nucleoli; cytoplasm is scant to moderate, eosinophilic. Mitotic figures are readily identified at up to 4 per 10 HPF in
+the most cellular areas.
+Microvascular proliferation and tumor necrosis are NOT identified. No oligodendroglial morphology is appreciated. The
+infiltration pattern is consistent with a diffuse glioma rather than a circumscribed entity. Reactive astrocytosis and
+scattered macrophages are present at the tumor-brain interface.
+IMMUNOHISTOCHEMICAL STAINS
+GFAP: Diffuse, strong positivity in tumor cells. IDH1 R132H: Strong cytoplasmic positivity. ATRX: Loss of nuclear
+expression in tumor cells (retained in vessels — internal control). p53: Strong nuclear positivity in >75% of tumor cells
+(mutant pattern).
+Ki-67 (MIB-1): ~15% in hotspots; ~5% overall. Olig2: Positive. EMA: Negative. Synaptophysin: Negative in tumor cells.
+REPRESENTATIVE PHOTOMICROGRAPHS
+H&E; ×20 — frontal lobe infiltrative astrocytic IDH1 R132H IHC ×20
+tumor
+Report date: 2026-04-08 · CONFIDENTIAL — for medical professionals only Page 2
+
+=== PAGE 3 ===
+
+Northshore University Hospital — Department of Pathology · Accession S26-018472 · MRN 87432
+MOLECULAR FINDINGS
+Targeted NGS panel (in-house): 523 cancer-associated genes; SNV/indel/CNV. Variants tiered per AMP/ASCO/CAP 2017. See assay
+methodology, appendix A.
+Sequence variants (SNV/indel):
+Gene HGVSc HGVSp VAF Classification
+IDH1 c.395G>A p.R132H 0.42 Pathogenic
+TP53 c.524G>A p.R175H 0.38 Pathogenic
+ATRX c.6018del p.K2007Nfs*4 0.41 Pathogenic
+Chromosomal / structural:
+(cid:127) 1p/19q non-codeleted (intact) — by FISH on cassette A6 (chromosomal)
+Copy-number alterations of interest:
+(cid:127) CDKN2A/B — copy number 2 (no homozygous deletion)
+MSI status: MSS (stable)
+TMB (mut/Mb): 2.4
+MGMT promoter (pyrosequencing, 4 CpGsU anvmereathgyeldat)e:d (mean 4.1% — cutoff <10%)
+INTERPRETATION / COMMENT
+Findings are diagnostic of a diffuse astrocytic glioma with IDH1 R132H mutation, ATRX loss, and TP53 alteration. The
+histologic features (mitotic activity present, no MVP and no necrosis) place this at the upper end of CNS WHO grade 3
+per current criteria. The molecular profile (IDH-mutant, 1p/19q intact, ATRX loss) excludes oligodendroglioma. MGMT
+promoter is unmethylated, which has therapeutic implications. No EGFR amplification, +7/-10 signature, or TERT
+promoter mutation was detected; the case is NOT consistent with IDH-wildtype glioblastoma. Multidisciplinary tumor
+board discussion is recommended.
+Electronically signed by Dr. M. Reyes, MD, PhD, Neuropathologist (2026-04-08)
+Reviewed with: Dr. S. Ono, MD (Molecular Pathology)
+Trainee: Dr. P. Iyer (PGY-3, neuropathology rotation)
+ADDENDUM (2026-04-13)
+MGMT promoter methylation by pyrosequencing returned 4.1% (unmethylated, cutoff <10%). Result added to molecular
+section. No change to integrated diagnosis.
+Electronically signed by Dr. M. Reyes, MD, PhD — addendum
+* This report reflects the state of laboratory science at the date of sign-out. Variants are tiered per AMP/ASCO/CAP 2017. Methylation by
+pyrosequencing; cutoff <10% considered unmethylated. See institutional policy LAB-SOP-NGS-002 for performance characteristics.
+Report date: 2026-04-08 · CONFIDENTIAL — for medical professionals only Page 3

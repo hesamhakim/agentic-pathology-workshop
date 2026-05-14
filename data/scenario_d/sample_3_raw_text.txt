@@ -1,0 +1,89 @@
+
+=== PAGE 1 ===
+
+Westhaven Cancer Institute · Accession WCI-26-004115 · MRN 29103
+Westhaven Cancer Institute
+Breast Pathology and Molecular Diagnostics
+Patient: [REDACTED, A.] (MRN 29103)
+Age / Sex: 52 / F
+Accession: WCI-26-004115
+Procedure date: 2026-04-22
+Reported: 2026-04-29
+FINAL SURGICAL PATHOLOGY DIAGNOSIS
+A. Left breast, partial mastectomy: Invasive breast carcinoma of no special type, Nottingham grade 2,
+ER+/PR+/HER2-negative, PIK3CA-mutant; 2.1 cm; closest margin 4 mm (anterior); no LVI; associated
+intermediate-grade DCIS (~10%).
+B. Sentinel lymph nodes (3): negative for metastatic carcinoma (0/3).
+SYNOPTIC SUMMARY (CAP-style)
+Element Result
+Procedure Partial mastectomy with sentinel lymph node biopsy
+Tumor site Left breast, upper outer quadrant
+Tumor size 2.1 cm (largest invasive focus)
+Histologic type Invasive carcinoma, no special type (ductal)
+Nottingham score 3 + 2 + 2 = 7/9 fi Grade 2
+Lymphovascular invasion Not identified
+DCIS component Present, intermediate grade, solid pattern, ~10%
+Margin status Negative; closest 4 mm anteriorly
+Lymph node status 0 / 3 sentinel nodes positive
+Pathologic stage pT2 N0 (AJCC 8th)
+CLINICAL HISTORY
+52 y.o. postmenopausal F. Screening mammography: 2.1 cm spiculated mass, upper outer quadrant, left breast. Core
+needle bx: invasive carcinoma. Underwent partial mastectomy + SLNB on 2026-04-22. No personal hx of breast cancer.
+Mother dx'd breast cancer at age 68. No other significant FHx.
+GROSS DESCRIPTION
+A. Fibrofatty breast tissue 7.5 x 6.0 x 3.1 cm. A firm, spiculated, gray-white tumor measuring 2.1 x 1.9 x 1.6 cm in the
+upper outer aspect. Closest margin 4 mm anteriorly. B. Three sentinel lymph nodes; largest 1.4 cm.
+Sign-out: 2026-04-29 · Confidential Page 1
+
+=== PAGE 2 ===
+
+Westhaven Cancer Institute · Accession WCI-26-004115 · MRN 29103
+MICROSCOPIC DESCRIPTION
+A. Invasive carcinoma of no special type, composed of nests and cords of moderately atypical epithelial cells infiltrating
+fibrous stroma. Nottingham grade 2 (tubule formation 3 + nuclear pleomorphism 2 + mitoses 2 = 7/9). No lymphovascular
+invasion identified. Margins negative; closest margin 4 mm anteriorly. Associated DCIS, intermediate grade, solid
+pattern, involving ~10% of the tumor. B. All three sentinel lymph nodes negative for metastatic carcinoma (0/3) by H&E;
+and pankeratin IHC.
+BIOMARKER STUDIES
+Marker Result Score / Notes
+ER Positive (95% strong nuclear) Allred 8/8
+PR Positive (40% strong nuclear) Allred 7/8
+HER2 (4B5) 1+ Negative; no FISH indicated
+Ki-67 (MIB-1) Approximately 18% Intermediate proliferation index
+Ancillary IHC:
+(cid:127) E-cadherin: Retained (membranous)
+(cid:127) AE1/AE3: Positive in tumor and sentinel-node H&E; re-section
+REPRESENTATIVE PHOTOMICROGRAPHS
+H&E; ×20 — invasive ductal carcinoma NST ER IHC ×20 — Allred 8/8
+Sign-out: 2026-04-29 · Confidential Page 2
+
+=== PAGE 3 ===
+
+Westhaven Cancer Institute · Accession WCI-26-004115 · MRN 29103
+MOLECULAR PROFILING (companion diagnostics)
+Somatic sequence variants
+Gene HGVSc HGVSp VAF Interpretation
+PIK3CA c.3140A>G p.H1047R 0.32 Pathogenic — Actionable per NCCN BRST-V (2026)
+Copy-number alterations of interest:
+(cid:127) ERBB2 — copy number 2 (no amplification (consistent with HER2 IHC 1+))
+Microsatellite Instability: MSS
+TMB: 3.6 mut/Mb
+Germline screen: BRCA1 / BRCA2 / PALB2 / TP53 (germline panel): no pathogenic or likely pathogenic variants
+RECURRENCE-RISK GENOMIC ASSAY
+Assay: 70-gene risk profile (in-house surrogate; not MammaPrint(TM))
+Result: Low Risk (continuous index 0.18; binary cutoff 0.31)
+Risk index below cutoff indicates lower 10-year distant-recurrence risk; in combination with classical clinicopathologic
+features, this may influence adjuvant chemotherapy decision-making per institutional guidelines.
+INTERPRETATION / COMMENT
+Invasive ductal carcinoma NST, Nottingham grade 2, 2.1 cm, ER+/PR+/HER2-negative. PIK3CA H1047R is somatic and
+may inform alpelisib + endocrine combinations in advanced/metastatic settings per current NCCN. 70-gene risk profile is
+Low Risk. Margins negative; 0/3 sentinel nodes positive. Adjuvant endocrine therapy is appropriate; chemotherapy
+decision per tumor board, informed by Low-Risk genomic result.
+Electronically signed by Dr. T. Okafor, MD, Breast Pathology (2026-04-29)
+Co-reviewed: Dr. H. Liu, MD (Molecular Pathology Director)
+ADDENDUM (2026-05-06)
+Outside germline panel result received: NEGATIVE for pathogenic variants in BRCA1, BRCA2, PALB2, CHEK2, ATM,
+TP53. Result added to Molecular Profiling section.
+Footnotes: Allred score combines proportion + intensity (0-8). HER2 IHC scoring per ASCO/CAP 2018; 0/1+ negative, 2+ requires FISH, 3+ positive.
+70-gene risk profile is a high-complexity in-house surrogate; results should be interpreted in clinical context.
+Sign-out: 2026-04-29 · Confidential Page 3

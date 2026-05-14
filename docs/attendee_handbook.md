@@ -15,7 +15,7 @@ The workflows are:
 1. **Scenario A — Variant Tournament** — picking the most clinically actionable variants from a sequencing report.
 2. **Scenario B — Longitudinal Ghost** — reconciling a current pathology request against years of patient chart notes to spot contradictions.
 3. **Scenario C — Digital Thread** — routing the morning case load to pathologists, balancing subspecialty, instrument capacity, and reader fatigue.
-4. **Scenario D — Integrated Report → WHO** — parsing a multi-page integrated pathology PDF (text, IHC tables, molecular findings, embedded H&E and IHC images) and emitting a WHO-classification-compliant layered diagnosis.
+4. **Scenario D — Integrated Report → WHO** — parsing three integrated pathology PDFs that arrive in three different real-world reporting formats (academic-medical-center prose, reference-lab molecular dashboard, hybrid surgical-pathology + companion-diagnostics) and emitting a WHO-classification-compliant layered diagnosis from each.
 
 Each takes ~20 minutes of hands-on time.
 
@@ -68,11 +68,11 @@ Your account is private. Other attendees cannot see your edits, and your edits c
 
 ### Scenario D — Integrated Report → WHO
 
-**The clinical problem.** Modern integrated pathology reports come back from reference labs as multi-page PDFs that combine narrative text, immunohistochemistry tables, genomic findings, structural variants, embedded H&E and IHC photomicrographs, and a free-text pathologist comment block. The information is rich but it is not structured the way downstream institutional reporting systems need it. A pathologist who receives one of these still has to read it carefully and translate the relevant pieces into the standardized layered diagnosis their own institution issues — typically following the current World Health Organization classification (CNS5 for brain tumors, Breast 5th edition for breast carcinomas, and so on). No new clinical reasoning is added in that step; it is mostly structured re-encoding.
+**The clinical problem.** Modern integrated pathology reports come back from reference labs as multi-page PDFs that combine narrative text, immunohistochemistry tables, genomic findings, structural variants, embedded H&E and IHC photomicrographs, and a free-text pathologist comment block. They arrive in wildly different formats — an academic medical center's integrated diagnostic report is prose-heavy with sections in ALL CAPS; a reference lab's molecular profiling report is table-heavy with Tier I/II/III classifications and methylation-classifier dashboards; a hybrid surgical-pathology-plus-companion-diagnostics report uses synoptic CAP-style checklists alongside Allred-score panels and recurrence-risk genomic blocks. The information is clinically rich but it is not structured the way downstream institutional reporting systems need it. A pathologist who receives one of these still has to read it carefully and translate the relevant pieces into the standardized layered diagnosis their own institution issues — typically following the current World Health Organization classification (CNS5 for brain tumors, Breast 5th edition for breast carcinomas, and so on). No new clinical reasoning is added in that step; it is mostly structured re-encoding from an unstructured artifact.
 
-**What the workflow does.** Loads one of three fabricated integrated reports (an adult diffuse glioma, a pediatric medulloblastoma, and a breast invasive carcinoma). A **PDF Intake** agent reads the report and, optionally, runs a vision model over the embedded H&E and IHC images to produce short visual descriptions. A **Molecular Parser** normalizes the messy molecular section into a clean structured list of variants, copy-number alterations, fusions, biomarkers, and methylation. A **Histology Synthesizer** combines the H&E narrative, the IHC profile, and the image descriptions into a short morphologic synthesis paragraph. A **WHO Classifier** — the heart of the demo — applies the appropriate WHO 5th-edition rules to produce a layered integrated diagnosis (integrated, histologic, grade, molecular). A **QA Reviewer** checks the result against a catalog of required findings for the relevant tumor family and flags anything missing. A **Report Formatter** renders the final report in WHO-layered Markdown, narrative, JSON, or HTML.
+**What the workflow does.** The three fabricated samples deliberately use three different reporting styles so you can see the workflow generalize across formats. A **PDF Intake** agent reads a raw text dump of the chosen report — produced by a generic PDF text extractor, so it includes all the realistic noise: repeating page headers and footers, tables flattened into space-separated rows, addenda appended after sign-out, abbreviations without expansion. The agent uses an editable system prompt to extract a clean structured object: demographics, specimen, histology text, IHC profile, molecular findings, pathologist comments, addendum. Optionally, the same node runs a vision model over the embedded H&E and IHC images to produce short visual descriptions. A **Molecular Parser** normalizes the molecular section into a flat list of records. A **Histology Synthesizer** combines the H&E narrative, the IHC profile, and the image descriptions into a short morphologic synthesis paragraph. A **WHO Classifier** applies the appropriate WHO 5th-edition rules to produce a layered integrated diagnosis (integrated, histologic, grade, molecular). A **QA Reviewer** checks the result against a catalog of required findings for the relevant tumor family and flags anything missing. A **Report Formatter** renders the final report in WHO-layered Markdown, narrative, JSON, or HTML.
 
-**Why this matters.** It demonstrates two capabilities the first three scenarios do not exercise: structured extraction from a heterogeneous document, and the use of a multimodal vision model on embedded images. It also gives you a concrete experience of guideline-driven reporting — the WHO classifier's system prompt is the editable lever, and tightening or loosening one rule in that prompt visibly changes the layered diagnosis at the bottom of the report.
+**Why this matters.** Scenario D demonstrates two capabilities the first three scenarios do not exercise: **structured extraction from a heterogeneous document** (the same workflow has to handle a prose-heavy academic report, a table-heavy reference-lab report, and a synoptic-checklist breast report) and the use of a **multimodal vision model** on embedded images. It has two editable levers — the PDF Intake extraction prompt (how the document AI maps messy text to structured fields) and the WHO Classifier prompt (which guideline rules apply) — and you can see them ripple through to the final report independently.
 
 ---
 
@@ -149,12 +149,14 @@ For each scenario, there are also **chat-input directives** — short English ph
 | Node | Field | What it does |
 |---|---|---|
 | Pipeline Config | System Prompt | Controls which user directives are accepted. |
-| PDF Intake | Sample ID | Which fabricated report to load. One of `sample_1` (glioma), `sample_2` (medulloblastoma), `sample_3` (breast). |
+| PDF Intake | Sample ID | Which fabricated report to load. One of `sample_1` (academic-medical-center glioma report), `sample_2` (reference-lab medulloblastoma molecular profile), `sample_3` (hybrid breast surgical-pathology + companion-diagnostics). |
+| PDF Intake | Extraction System Prompt | **The first editable lever.** The instructions the document-AI extractor uses to map the messy raw PDF text into structured fields. Edit this to change what the extractor pulls out, how it handles addenda, or how it resolves tables that flattened into single-line strings. |
 | PDF Intake | Run Vision Call On Embedded Images | When on, the embedded H&E and IHC placeholders are sent to a vision model for description. Off by default to keep runs fast. |
 | PDF Intake | Vision System Prompt | What the vision model is asked to describe in each image. |
+| PDF Intake | Extraction Model / Vision Model | Per-task model selection. Default `openai/gpt-4o-mini` for the text extraction, `openai/gpt-4o` for the vision pass. Different tasks can use different models — that flexibility is the lesson. |
 | Molecular Parser | System Prompt | The schema and taxonomy for the normalized molecular records. |
 | Histology Synthesizer | System Prompt | How the morphology paragraph is composed from H&E + IHC + images. |
-| WHO Classifier | System Prompt | **The editable lever.** The WHO 5th-edition rules the classifier applies. Add a new tumor family here, tighten a grade threshold, or change the layered-diagnosis output shape. |
+| WHO Classifier | System Prompt | **The second editable lever.** The WHO 5th-edition rules the classifier applies. Add a new tumor family here, tighten a grade threshold, or change the layered-diagnosis output shape. |
 | QA Reviewer | Min Severity to Surface | low, medium, or high. |
 | QA Reviewer | System Prompt | What completeness checks the reviewer runs against the WHO criteria catalog. |
 | Report Formatter | Format | who_layered, narrative, json, or html. |
@@ -251,6 +253,10 @@ Sample one with vision off, json output. I want the structured machine-readable 
 
 ```
 Sample three again. Same layered format. But this time I'll edit the WHO Classifier's system prompt before running — I want to see what happens to the grade call if I tighten the Nottingham cutoff for grade 3 from eight to seven. Compare the layer-3 output before and after.
+```
+
+```
+Run sample two. Layered format. Before running, edit the PDF Intake's Extraction System Prompt — add a rule telling the extractor to record the methylation classifier's calibrated score as a separate field (not just lumped in with "status"). Re-run and watch how the downstream WHO Classifier picks up the cleaner signal in its rationale.
 ```
 
 ---
