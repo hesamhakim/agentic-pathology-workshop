@@ -35,6 +35,7 @@ BUILD_SCRIPTS = [
     REPO / "scripts" / "build_scenario_a_v2_flow.py",
     REPO / "scripts" / "build_scenario_b_v2_flow.py",
     REPO / "scripts" / "build_scenario_c_v2_flow.py",
+    REPO / "scripts" / "build_scenario_d_v2_flow.py",
 ]
 
 
@@ -91,17 +92,19 @@ def delete_user(client: httpx.Client, user_id: str) -> bool:
     return True
 
 
-def import_flows_for_user(host: str, username: str, password: str) -> int:
-    """Run the three build scripts under this user's credentials.
+def import_flows_for_user(host: str, username: str, password: str,
+                          scripts: list[Path] | None = None) -> int:
+    """Run the configured build scripts under this user's credentials.
 
     The build scripts hardcode 'langflow:langflow' for login; we override via
-    the WORKSHOP_LF_USER / WORKSHOP_LF_PASSWORD env vars they pick up."""
+    the WORKSHOP_LF_USER / WORKSHOP_LF_PASSWORD env vars they pick up. Pass
+    `scripts` to override the default BUILD_SCRIPTS list (used by --only)."""
     env = os.environ.copy()
     env["WORKSHOP_LF_USER"] = username
     env["WORKSHOP_LF_PASSWORD"] = password
     env["WORKSHOP_LF_HOST"] = host
     n_ok = 0
-    for script in BUILD_SCRIPTS:
+    for script in (scripts if scripts is not None else BUILD_SCRIPTS):
         try:
             subprocess.run(
                 [sys.executable, str(script), "--host", host],
@@ -132,7 +135,11 @@ def main() -> int:
                     help="Before provisioning, delete every existing user whose "
                          "username starts with this prefix (e.g. 'attendee').")
     ap.add_argument("--skip-flow-import", action="store_true",
-                    help="Just create the user accounts; don't pre-load the three workshop flows.")
+                    help="Just create the user accounts; don't pre-load the workshop flows.")
+    ap.add_argument("--only", default=None,
+                    help="Comma-separated build-script basenames to run (e.g. "
+                         "'build_scenario_d_v2_flow.py'). Use to add a new "
+                         "scenario to existing users without rebuilding the others.")
     args = ap.parse_args()
 
     superuser = os.environ.get("LANGFLOW_SUPERUSER", "facilitator")
@@ -180,11 +187,20 @@ def main() -> int:
         print("=> --skip-flow-import set; not pre-loading workshop flows.")
         return 0
 
+    if args.only:
+        wanted = {name.strip() for name in args.only.split(",") if name.strip()}
+        scripts = [s for s in BUILD_SCRIPTS if s.name in wanted]
+        missing = wanted - {s.name for s in BUILD_SCRIPTS}
+        if missing:
+            raise SystemExit(f"--only names unknown to BUILD_SCRIPTS: {sorted(missing)}")
+    else:
+        scripts = BUILD_SCRIPTS
+
     print()
-    print(f"=> import workshop flows for each of {len(rows)} attendees")
+    print(f"=> import workshop flows ({len(scripts)} scripts) for each of {len(rows)} attendees")
     for r in rows:
-        n = import_flows_for_user(args.host, r["username"], r["password"])
-        print(f"   {r['username']}: imported {n}/3 flows")
+        n = import_flows_for_user(args.host, r["username"], r["password"], scripts=scripts)
+        print(f"   {r['username']}: imported {n}/{len(scripts)} flows")
     return 0
 
 

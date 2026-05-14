@@ -1,0 +1,101 @@
+{
+  "sample_id": "sample_1",
+  "tumor_family": "glioma",
+  "source_pdf": "sample_1.pdf",
+  "institution": "Memorial Pathology Associates",
+  "accession": "MPA-2026-018472",
+  "report_date": "2026-04-08",
+  "demographics": {
+    "patient_id": "PID-87432",
+    "age": 47,
+    "sex": "F",
+    "indication": "Right frontal mass on MRI; new-onset focal seizures"
+  },
+  "clinical_history": "47-year-old woman presenting with new-onset focal motor seizures over six weeks. MRI brain demonstrated a 3.8 cm right frontal lobe mass with patchy enhancement and moderate surrounding edema. No prior cancer history. No family history of CNS tumors. Underwent gross total resection.",
+  "specimen": "Right frontal lobe mass, gross total resection (4.1 x 3.2 x 2.6 cm aggregate).",
+  "macroscopic": "Multiple soft, gray-tan tissue fragments with focal hemorrhage. No grossly necrotic or cystic areas identified.",
+  "histology_text": "Sections demonstrate a moderately to markedly hypercellular astrocytic proliferation infiltrating cerebral cortex and white matter. Tumor cells show moderate nuclear pleomorphism with elongated, irregular nuclei and visible nucleoli. Mitotic figures are identified at up to 4 per 10 high-power fields. Microvascular proliferation and tumor necrosis are NOT identified. No oligodendroglial component is appreciated.",
+  "ihc_profile": [
+    {
+      "marker": "GFAP",
+      "result": "Positive (diffuse, strong)"
+    },
+    {
+      "marker": "IDH1 R132H",
+      "result": "Positive (strong cytoplasmic)"
+    },
+    {
+      "marker": "ATRX",
+      "result": "Loss of nuclear expression in tumor cells"
+    },
+    {
+      "marker": "p53",
+      "result": "Strong nuclear positivity in >75% of tumor cells"
+    },
+    {
+      "marker": "Ki-67 (MIB-1)",
+      "result": "Approximately 15% in hotspots"
+    },
+    {
+      "marker": "Olig2",
+      "result": "Positive"
+    },
+    {
+      "marker": "EMA",
+      "result": "Negative"
+    }
+  ],
+  "molecular_findings": {
+    "snv_indel": [
+      {
+        "gene": "IDH1",
+        "hgvsc": "c.395G>A",
+        "hgvsp": "p.R132H",
+        "vaf": 0.42,
+        "classification": "Pathogenic"
+      },
+      {
+        "gene": "TP53",
+        "hgvsc": "c.524G>A",
+        "hgvsp": "p.R175H",
+        "vaf": 0.38,
+        "classification": "Pathogenic"
+      },
+      {
+        "gene": "ATRX",
+        "hgvsc": "c.6018del",
+        "hgvsp": "p.K2007Nfs*4",
+        "vaf": 0.41,
+        "classification": "Pathogenic"
+      }
+    ],
+    "structural_variants": [
+      {
+        "kind": "chromosomal",
+        "description": "1p/19q non-codeleted (intact)"
+      }
+    ],
+    "copy_number": [],
+    "msi_status": "MSS",
+    "tmb_mutations_per_mb": 2.4,
+    "methylation": [
+      {
+        "locus": "MGMT promoter",
+        "status": "Unmethylated"
+      }
+    ]
+  },
+  "pathologist_comments": "Findings \u2014 diffuse astrocytic glioma with IDH1 R132H mutation, ATRX loss, and p53 overexpression. Histologic features (mitotic activity present, no MVP or necrosis) place this at the upper end of grade 3 territory. 1p/19q intact argues against oligodendroglioma. MGMT promoter unmethylated has therapeutic implications (less anticipated benefit from temozolomide). No EGFR amp / no +7/-10 / no TERT promoter mutation detected; not consistent with IDH-wt GBM.",
+  "images": [
+    {
+      "label": "H&E \u00d720 \u2014 frontal lobe tumor",
+      "kind": "he",
+      "file": "images/sample_1_image_1.png"
+    },
+    {
+      "label": "IDH1 R132H IHC \u00d720",
+      "kind": "ihc",
+      "file": "images/sample_1_image_2.png"
+    }
+  ]
+}

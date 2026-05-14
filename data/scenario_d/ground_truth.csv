@@ -1,0 +1,4 @@
+sample_id,tumor_family,expected_integrated,expected_grade,guideline_source,required_molecular_features
+sample_1,glioma,"Astrocytoma, IDH-mutant, CNS WHO grade 3",3,WHO CNS5 (2021),IDH1;ATRX;MGMT
+sample_2,medulloblastoma,"Medulloblastoma, SHH-activated and TP53-wildtype, CNS WHO grade 4",4,WHO CNS5 (2021),PTCH1;TP53;SHH
+sample_3,breast,"Invasive breast carcinoma of no special type, Nottingham grade 2, ER+/PR+/HER2-negative, PIK3CA-mutant",2,WHO Breast Tumours 5e (2019),PIK3CA;ER;HER2

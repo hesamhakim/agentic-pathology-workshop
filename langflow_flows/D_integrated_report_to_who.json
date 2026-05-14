@@ -1,0 +1,2346 @@
+{
+  "name": "D_integrated_report_to_who",
+  "description": "Scenario D v2: integrated PDF report -> WHO-standardized layered diagnosis.",
+  "data": {
+    "nodes": [
+      {
+        "id": "ChatInput-df96b3",
+        "type": "genericNode",
+        "position": {
+          "x": 50,
+          "y": 400
+        },
+        "data": {
+          "id": "ChatInput-df96b3",
+          "type": "ChatInput",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Get chat inputs from the Playground.",
+            "display_name": "Chat Input",
+            "documentation": "https://docs.langflow.org/chat-input-and-output",
+            "edited": false,
+            "field_order": [
+              "input_value",
+              "should_store_message",
+              "sender",
+              "sender_name",
+              "session_id",
+              "context_id",
+              "files"
+            ],
+            "frozen": false,
+            "icon": "MessagesSquare",
+            "legacy": false,
+            "metadata": {
+              "code_hash": "7a26c54d89ed",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "lfx",
+                    "version": null
+                  }
+                ],
+                "total_dependencies": 1
+              },
+              "module": "lfx.components.input_output.chat.ChatInput"
+            },
+            "minimized": true,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Chat Message",
+                "group_outputs": false,
+                "method": "message_response",
+                "name": "message",
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_type": "Component",
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from lfx.base.data.utils import IMG_FILE_TYPES, TEXT_FILE_TYPES\nfrom lfx.base.io.chat import ChatComponent\nfrom lfx.inputs.inputs import BoolInput\nfrom lfx.io import (\n    DropdownInput,\n    FileInput,\n    MessageTextInput,\n    MultilineInput,\n    Output,\n)\nfrom lfx.schema.message import Message\nfrom lfx.utils.constants import (\n    MESSAGE_SENDER_AI,\n    MESSAGE_SENDER_NAME_USER,\n    MESSAGE_SENDER_USER,\n)\n\n\nclass ChatInput(ChatComponent):\n    display_name = \"Chat Input\"\n    description = \"Get chat inputs from the Playground.\"\n    documentation: str = \"https://docs.langflow.org/chat-input-and-output\"\n    icon = \"MessagesSquare\"\n    name = \"ChatInput\"\n    minimized = True\n\n    inputs = [\n        MultilineInput(\n            name=\"input_value\",\n            display_name=\"Input Text\",\n            value=\"\",\n            info=\"Message to be passed as input.\",\n            input_types=[],\n        ),\n        BoolInput(\n            name=\"should_store_message\",\n            display_name=\"Store Messages\",\n            info=\"Store the message in the history.\",\n            value=True,\n            advanced=True,\n        ),\n        DropdownInput(\n            name=\"sender\",\n            display_name=\"Sender Type\",\n            options=[MESSAGE_SENDER_AI, MESSAGE_SENDER_USER],\n            value=MESSAGE_SENDER_USER,\n            info=\"Type of sender.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"sender_name\",\n            display_name=\"Sender Name\",\n            info=\"Name of the sender.\",\n            value=MESSAGE_SENDER_NAME_USER,\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"session_id\",\n            display_name=\"Session ID\",\n            info=\"The session ID of the chat. If empty, the current session ID parameter will be used.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"context_id\",\n            display_name=\"Context ID\",\n            info=\"The context ID of the chat. Adds an extra layer to the local memory.\",\n            value=\"\",\n            advanced=True,\n        ),\n        FileInput(\n            name=\"files\",\n            display_name=\"Files\",\n            file_types=TEXT_FILE_TYPES + IMG_FILE_TYPES,\n            info=\"Files to be sent with the message.\",\n            advanced=True,\n            is_list=True,\n            temp_file=True,\n        ),\n    ]\n    outputs = [\n        Output(display_name=\"Chat Message\", name=\"message\", method=\"message_response\"),\n    ]\n\n    async def message_response(self) -> Message:\n        # Ensure files is a list and filter out empty/None values\n        files = self.files if self.files else []\n        if files and not isinstance(files, list):\n            files = [files]\n        # Filter out None/empty values\n        files = [f for f in files if f is not None and f != \"\"]\n\n        session_id = self.session_id or self.graph.session_id or \"\"\n        message = await Message.create(\n            text=self.input_value,\n            sender=self.sender,\n            sender_name=self.sender_name,\n            session_id=session_id,\n            context_id=self.context_id,\n            files=files,\n        )\n        if session_id and isinstance(message, Message) and self.should_store_message:\n            stored_message = await self.send_message(\n                message,\n            )\n            self.message.value = stored_message\n            message = stored_message\n\n        self.status = message\n        return message\n"
+              },
+              "context_id": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Context ID",
+                "dynamic": false,
+                "info": "The context ID of the chat. Adds an extra layer to the local memory.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "context_id",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "files": {
+                "_input_type": "FileInput",
+                "advanced": true,
+                "display_name": "Files",
+                "dynamic": false,
+                "fileTypes": [
+                  "csv",
+                  "json",
+                  "pdf",
+                  "txt",
+                  "md",
+                  "mdx",
+                  "yaml",
+                  "yml",
+                  "xml",
+                  "html",
+                  "htm",
+                  "docx",
+                  "py",
+                  "sh",
+                  "sql",
+                  "js",
+                  "ts",
+                  "tsx",
+                  "jpg",
+                  "jpeg",
+                  "png",
+                  "bmp",
+                  "image"
+                ],
+                "file_path": "",
+                "info": "Files to be sent with the message.",
+                "list": true,
+                "list_add_label": "Add More",
+                "name": "files",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "temp_file": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "file",
+                "value": ""
+              },
+              "input_value": {
+                "_input_type": "MultilineInput",
+                "advanced": false,
+                "ai_enabled": false,
+                "copy_field": false,
+                "display_name": "Input Text",
+                "dynamic": false,
+                "info": "Message to be passed as input.",
+                "input_types": [],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "multiline": true,
+                "name": "input_value",
+                "override_skip": false,
+                "password": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "sender": {
+                "_input_type": "DropdownInput",
+                "advanced": true,
+                "combobox": false,
+                "dialog_inputs": {},
+                "display_name": "Sender Type",
+                "dynamic": false,
+                "external_options": {},
+                "info": "Type of sender.",
+                "name": "sender",
+                "options": [
+                  "Machine",
+                  "User"
+                ],
+                "options_metadata": [],
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "toggle": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "str",
+                "value": "User"
+              },
+              "sender_name": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Sender Name",
+                "dynamic": false,
+                "info": "Name of the sender.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "sender_name",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "User"
+              },
+              "session_id": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Session ID",
+                "dynamic": false,
+                "info": "The session ID of the chat. If empty, the current session ID parameter will be used.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "session_id",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "should_store_message": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Store Messages",
+                "dynamic": false,
+                "info": "Store the message in the history.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "should_store_message",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": true
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "PipelineConfig_S-D.V2-ffb8d0",
+        "type": "genericNode",
+        "position": {
+          "x": 450,
+          "y": 400
+        },
+        "data": {
+          "id": "PipelineConfig_S-D.V2-ffb8d0",
+          "type": "PipelineConfig S-D.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "user_message": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "user_message",
+                "value": "",
+                "display_name": "User Message",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "Connect a Chat Input here.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario D v2 \u2014 PipelineConfig.\n\nParses chat-input directives into a strict run-config dict. The directive\nchooses which fabricated PDF to load, whether to run the vision pass on\nembedded images, and the output format.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You translate an informal directive into a strict\nJSON config for the integrated-report -> WHO pipeline. Only the keys\nlisted below are allowed; ignore everything else. If the user input is\nempty or doesn't mention a key, leave that key out (downstream nodes use\ntheir defaults).\n\nAllowed keys:\n  sample_id:      one of \"sample_1\" | \"sample_2\" | \"sample_3\"\n                  sample_1 = adult diffuse glioma\n                  sample_2 = pediatric medulloblastoma\n                  sample_3 = breast invasive carcinoma\n  use_vision:     boolean \u2014 when true, the PDF Intake node calls a vision\n                  model on the embedded H&E/IHC images\n  output_format:  one of \"who_layered\" | \"narrative\" | \"json\" | \"html\"\n  show_evidence:  boolean \u2014 include per-finding evidence in the report\n\nReturn ONLY the JSON object. Examples:\n\nUser: \"run sample 2 with vision off, output as narrative\"\nYou: {\"sample_id\": \"sample_2\", \"use_vision\": false, \"output_format\": \"narrative\"}\n\nUser: \"do the breast case with html output\"\nYou: {\"sample_id\": \"sample_3\", \"output_format\": \"html\"}\n\nUser: \"\" (empty)\nYou: {}\"\"\"\n\n\n_VALID_SAMPLES = {\"sample_1\", \"sample_2\", \"sample_3\"}\n_VALID_FORMATS = {\"who_layered\", \"narrative\", \"json\", \"html\"}\n\n\ndef _sanitize(parsed: dict) -> dict:\n    out: dict = {}\n    sid = parsed.get(\"sample_id\")\n    if isinstance(sid, str) and sid.strip().lower() in _VALID_SAMPLES:\n        out[\"sample_id\"] = sid.strip().lower()\n    if isinstance(parsed.get(\"use_vision\"), bool):\n        out[\"use_vision\"] = parsed[\"use_vision\"]\n    fmt = parsed.get(\"output_format\")\n    if isinstance(fmt, str) and fmt.strip().lower() in _VALID_FORMATS:\n        out[\"output_format\"] = fmt.strip().lower()\n    if isinstance(parsed.get(\"show_evidence\"), bool):\n        out[\"show_evidence\"] = parsed[\"show_evidence\"]\n    return out\n\n\n# Convenience: friendly aliases the LLM may emit instead of strict keys.\n_ALIAS = {\n    \"glioma\": \"sample_1\",\n    \"astrocytoma\": \"sample_1\",\n    \"medulloblastoma\": \"sample_2\",\n    \"pediatric\": \"sample_2\",\n    \"breast\": \"sample_3\",\n    \"breast cancer\": \"sample_3\",\n}\n\n\ndef _resolve_aliases(user_text: str, parsed: dict) -> dict:\n    \"\"\"If sample_id is still unset but the user hinted at a tumor family,\n    pick the matching sample. Keeps directives readable.\"\"\"\n    if parsed.get(\"sample_id\"):\n        return parsed\n    t = (user_text or \"\").lower()\n    for needle, sid in _ALIAS.items():\n        if needle in t:\n            parsed[\"sample_id\"] = sid\n            break\n    return parsed\n\n\nclass ScenarioD_v2_PipelineConfig(Component):\n    display_name = \"Pipeline Config\"\n    description = (\n        \"Parses chat-input directive into a structured config \"\n        \"(sample_id, use_vision, output_format, show_evidence).\"\n    )\n    icon = \"settings\"\n    name = \"PipelineConfig S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"user_message\",\n            display_name=\"User Message\",\n            input_types=[\"Message\"],\n            info=\"Connect a Chat Input here.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\", advanced=True),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0, advanced=True),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=200, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Reshape what directives the parser accepts.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Run Config\", name=\"run_config\", method=\"run_parse\")]\n\n    def run_parse(self) -> Data:\n        user_text = (self.user_message.text or \"\") if self.user_message else \"\"\n        user_text = user_text.strip()\n        if not user_text:\n            return Data(data={\"run_config\": {}, \"user_text\": \"\"})\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=user_text,\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n            span_name=\"scenario_d.pipeline_config\",\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError:\n            parsed = {}\n        parsed = parsed if isinstance(parsed, dict) else {}\n        parsed = _resolve_aliases(user_text, parsed)\n        config = _sanitize(parsed)\n        return Data(data={\"run_config\": config, \"user_text\": user_text, \"raw_llm\": raw})\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 200,
+                "display_name": "Max Tokens",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o-mini",
+                "display_name": "Model",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You translate an informal directive into a strict\nJSON config for the integrated-report -> WHO pipeline. Only the keys\nlisted below are allowed; ignore everything else. If the user input is\nempty or doesn't mention a key, leave that key out (downstream nodes use\ntheir defaults).\n\nAllowed keys:\n  sample_id:      one of \"sample_1\" | \"sample_2\" | \"sample_3\"\n                  sample_1 = adult diffuse glioma\n                  sample_2 = pediatric medulloblastoma\n                  sample_3 = breast invasive carcinoma\n  use_vision:     boolean \u2014 when true, the PDF Intake node calls a vision\n                  model on the embedded H&E/IHC images\n  output_format:  one of \"who_layered\" | \"narrative\" | \"json\" | \"html\"\n  show_evidence:  boolean \u2014 include per-finding evidence in the report\n\nReturn ONLY the JSON object. Examples:\n\nUser: \"run sample 2 with vision off, output as narrative\"\nYou: {\"sample_id\": \"sample_2\", \"use_vision\": false, \"output_format\": \"narrative\"}\n\nUser: \"do the breast case with html output\"\nYou: {\"sample_id\": \"sample_3\", \"output_format\": \"html\"}\n\nUser: \"\" (empty)\nYou: {}",
+                "display_name": "System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Reshape what directives the parser accepts.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.0,
+                "display_name": "Temperature",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              }
+            },
+            "description": "Parses chat-input directive into a structured config (sample_id, use_vision, output_format, show_evidence).",
+            "icon": "settings",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "Pipeline Config",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "run_config",
+                "display_name": "Run Config",
+                "method": "run_parse",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "user_message",
+              "model",
+              "temperature",
+              "max_tokens",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.pipeline_config",
+              "code_hash": "19a98167dc86",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "PDFIntake_S-D.V2-5eae3b",
+        "type": "genericNode",
+        "position": {
+          "x": 900,
+          "y": 400
+        },
+        "data": {
+          "id": "PDFIntake_S-D.V2-5eae3b",
+          "type": "PDFIntake S-D.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "run_config": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "run_config",
+                "value": "",
+                "display_name": "Run Config",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Optional. Connect Pipeline Config to override Sample ID / use_vision from the chat directive.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario D v2 \u2014 PDFIntake.\n\nLoads the pre-extracted JSON sidecar for the chosen fabricated report.\nWhen `use_vision` is on, makes a single multimodal call to the chosen\nvision model and asks for a one-paragraph description of each embedded\nimage (synthetic H&E and IHC placeholders).\n\nThe PDF itself is a viewable artifact for attendees; the workflow reads\nfrom the JSON sidecar so we don't need pdfplumber inside the langflow\ncontainer. To replace the sidecar with live PDF parsing, swap\n`pdf_io.load_extracted` for a function that runs pdfplumber + an LLM\nsection-classifier.\n\"\"\"\n\nfrom __future__ import annotations\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    BoolInput,\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import (\n    DEFAULT_DATA_DIR,\n    chat_completion_text,\n    make_image_message,\n    openai_client,\n    resolve_data_dir,\n)\n\n\nDEFAULT_VISION_PROMPT = \"\"\"You are a pathology image describer. For each\nimage you receive, write ONE concise paragraph (about 3 sentences)\ndescribing the dominant features a pathologist would note: cellularity,\nnuclear morphology, staining pattern, and whether the image is H&E or\nimmunohistochemical. Do NOT attempt diagnosis. Be specific about color\ndistribution. If an image clearly does not contain biological tissue,\nsay so plainly.\"\"\"\n\n\nclass ScenarioD_v2_PDFIntake(Component):\n    display_name = \"PDF Intake\"\n    description = (\n        \"Loads the pre-extracted JSON for the chosen sample. Optionally runs a vision \"\n        \"model on the embedded H&E / IHC images and folds those descriptions into the \"\n        \"Data object passed downstream.\"\n    )\n    icon = \"file-text\"\n    name = \"PDFIntake S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"run_config\",\n            display_name=\"Run Config\",\n            input_types=[\"Data\"],\n            required=False,\n            info=\"Optional. Connect Pipeline Config to override Sample ID / use_vision from the chat directive.\",\n        ),\n        StrInput(name=\"data_dir\", display_name=\"Data Directory\", value=DEFAULT_DATA_DIR, advanced=True),\n        StrInput(\n            name=\"sample_id\",\n            display_name=\"Sample ID\",\n            value=\"sample_1\",\n            info=\"One of sample_1 (glioma), sample_2 (medulloblastoma), sample_3 (breast).\",\n        ),\n        BoolInput(\n            name=\"use_vision\",\n            display_name=\"Run Vision Call On Embedded Images\",\n            value=False,\n            info=\"When true, a multimodal call describes the H&E/IHC placeholders.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Vision Model\", value=\"openai/gpt-4o\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=600, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"Vision System Prompt\",\n            value=DEFAULT_VISION_PROMPT,\n            info=\"EDIT ME. Reshape how the vision model describes images.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Intake\", name=\"intake\", method=\"run_intake\")]\n\n    def run_intake(self) -> Data:\n        from tools.scenario_d import pdf_io\n\n        run_config = (self.run_config.data.get(\"run_config\", {}) if self.run_config else {})\n        sample_id = run_config.get(\"sample_id\", self.sample_id)\n        use_vision = run_config.get(\"use_vision\", self.use_vision)\n\n        base = resolve_data_dir(self.data_dir)\n        extracted = pdf_io.load_extracted(base, sample_id)\n\n        image_descriptions: list[dict] = []\n        if use_vision and extracted.get(\"images\"):\n            client = openai_client()\n            images_payload = [\n                (img[\"label\"], pdf_io.load_image_bytes(base, img[\"file\"]))\n                for img in extracted[\"images\"]\n            ]\n            user_content = make_image_message(\n                text=(\n                    \"Describe each of the following images in one short paragraph each. \"\n                    \"Number your paragraphs to match the image order.\"\n                ),\n                images=images_payload,\n            )\n            try:\n                raw = chat_completion_text(\n                    client,\n                    model=self.model,\n                    system_prompt=self.system_prompt or DEFAULT_VISION_PROMPT,\n                    user_content=user_content,\n                    temperature=self.temperature,\n                    max_tokens=self.max_tokens,\n                    span_name=\"scenario_d.pdf_intake.vision\",\n                )\n                # Split into per-image paragraphs by blank-line or numbered prefix.\n                paragraphs = [p.strip() for p in raw.split(\"\\n\\n\") if p.strip()]\n                # Pad / trim to match image count\n                while len(paragraphs) < len(extracted[\"images\"]):\n                    paragraphs.append(\"\")\n                paragraphs = paragraphs[: len(extracted[\"images\"])]\n                for img, desc in zip(extracted[\"images\"], paragraphs):\n                    image_descriptions.append({\n                        \"label\": img[\"label\"],\n                        \"kind\": img[\"kind\"],\n                        \"description\": desc,\n                    })\n            except Exception as e:  # vision failure shouldn't kill the run\n                for img in extracted[\"images\"]:\n                    image_descriptions.append({\n                        \"label\": img[\"label\"],\n                        \"kind\": img[\"kind\"],\n                        \"description\": f\"(vision call failed: {type(e).__name__})\",\n                    })\n\n        return Data(data={\n            \"sample_id\": sample_id,\n            \"tumor_family\": extracted[\"tumor_family\"],\n            \"extracted\": extracted,\n            \"image_descriptions\": image_descriptions,\n            \"run_config\": run_config,\n        })\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "data_dir": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "data_dir",
+                "value": "/workshop/data/scenario_d",
+                "display_name": "Data Directory",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 600,
+                "display_name": "Max Tokens",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o",
+                "display_name": "Vision Model",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "sample_id": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "sample_id",
+                "value": "sample_1",
+                "display_name": "Sample ID",
+                "advanced": false,
+                "dynamic": false,
+                "info": "One of sample_1 (glioma), sample_2 (medulloblastoma), sample_3 (breast).",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You are a pathology image describer. For each\nimage you receive, write ONE concise paragraph (about 3 sentences)\ndescribing the dominant features a pathologist would note: cellularity,\nnuclear morphology, staining pattern, and whether the image is H&E or\nimmunohistochemical. Do NOT attempt diagnosis. Be specific about color\ndistribution. If an image clearly does not contain biological tissue,\nsay so plainly.",
+                "display_name": "Vision System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Reshape how the vision model describes images.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.0,
+                "display_name": "Temperature",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              },
+              "use_vision": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "use_vision",
+                "value": false,
+                "display_name": "Run Vision Call On Embedded Images",
+                "advanced": false,
+                "dynamic": false,
+                "info": "When true, a multimodal call describes the H&E/IHC placeholders.",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "_input_type": "BoolInput"
+              }
+            },
+            "description": "Loads the pre-extracted JSON for the chosen sample. Optionally runs a vision model on the embedded H&E / IHC images and folds those descriptions into the Data object passed downstream.",
+            "icon": "file-text",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "PDF Intake",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "intake",
+                "display_name": "Intake",
+                "method": "run_intake",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "run_config",
+              "data_dir",
+              "sample_id",
+              "use_vision",
+              "model",
+              "temperature",
+              "max_tokens",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.pdf_intake",
+              "code_hash": "e327d00d9153",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "MolecularParser_S-D.V2-cf33c4",
+        "type": "genericNode",
+        "position": {
+          "x": 1350,
+          "y": 200
+        },
+        "data": {
+          "id": "MolecularParser_S-D.V2-cf33c4",
+          "type": "MolecularParser S-D.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "intake": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "intake",
+                "value": "",
+                "display_name": "Intake",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Connect the PDF Intake's output.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario D v2 \u2014 MolecularParser (parallel branch).\n\nLLM agent that re-asserts a clean structured view of the molecular\nfindings, even though the seed-script pre-extracted JSON is already\nclean. The point is pedagogical: in a real workflow, this is where\nmessy molecular text becomes a structured list, and attendees can\ntighten the schema by editing the system prompt.\n\nReturns Data with `molecular_features` = list of normalized records and\npasses the intake payload through unchanged so downstream nodes can\nchain off the same Data object.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a molecular-findings normalizer. You\nreceive the molecular section of a pathology report as JSON (SNV/indel\nlist, structural variants, copy-number alterations, MSI, TMB,\nmethylation, optional germline screen).\n\nEmit a JSON object with a single key \"molecular_features\" whose value is\na flat list of normalized records. Each record:\n  {\n    \"gene\": \"IDH1\",\n    \"kind\": \"snv\" | \"indel\" | \"fusion\" | \"cnv\" | \"methylation\" | \"signature\" | \"biomarker\",\n    \"evidence\": \"short string lifted from the source\",\n    \"classification\": \"Pathogenic\" | \"Likely Pathogenic\" | \"VUS\" | \"Wild-type\" | \"Actionable\" | \"\"\n  }\n\nInclude MSI status and TMB as \"biomarker\" records (gene field \"MSI\",\n\"TMB\"). Include methylation entries as their own \"methylation\" records.\nDo NOT invent findings. If a section is empty, omit those records.\nReturn ONLY the JSON object. Use the word json in your reasoning if needed.\"\"\"\n\n\nclass ScenarioD_v2_MolecularParser(Component):\n    display_name = \"Molecular Parser\"\n    description = (\n        \"LLM agent. Normalizes the molecular section into a flat list of structured \"\n        \"records (gene, kind, evidence, classification).\"\n    )\n    icon = \"git-branch\"\n    name = \"MolecularParser S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"intake\",\n            display_name=\"Intake\",\n            input_types=[\"Data\"],\n            info=\"Connect the PDF Intake's output.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=1200, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Tighten the normalized schema or change `kind` taxonomy.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Molecular Features\", name=\"molecular\", method=\"run_parse\")]\n\n    def run_parse(self) -> Data:\n        d = self.intake.data\n        extracted = d.get(\"extracted\", {})\n        mol = extracted.get(\"molecular_findings\", {})\n\n        payload = {\n            \"sample_id\": d.get(\"sample_id\"),\n            \"tumor_family\": d.get(\"tumor_family\"),\n            \"molecular_findings\": mol,\n        }\n\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n            span_name=\"scenario_d.molecular_parser\",\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError as e:\n            raise ValueError(f\"MolecularParser did not return valid JSON: {raw!r}\") from e\n\n        features = parsed.get(\"molecular_features\", [])\n        if not isinstance(features, list):\n            features = []\n\n        return Data(data={\n            **d,\n            \"molecular_features\": features,\n            \"molecular_raw_llm\": raw,\n        })\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 1200,
+                "display_name": "Max Tokens",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o-mini",
+                "display_name": "Model",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You are a molecular-findings normalizer. You\nreceive the molecular section of a pathology report as JSON (SNV/indel\nlist, structural variants, copy-number alterations, MSI, TMB,\nmethylation, optional germline screen).\n\nEmit a JSON object with a single key \"molecular_features\" whose value is\na flat list of normalized records. Each record:\n  {\n    \"gene\": \"IDH1\",\n    \"kind\": \"snv\" | \"indel\" | \"fusion\" | \"cnv\" | \"methylation\" | \"signature\" | \"biomarker\",\n    \"evidence\": \"short string lifted from the source\",\n    \"classification\": \"Pathogenic\" | \"Likely Pathogenic\" | \"VUS\" | \"Wild-type\" | \"Actionable\" | \"\"\n  }\n\nInclude MSI status and TMB as \"biomarker\" records (gene field \"MSI\",\n\"TMB\"). Include methylation entries as their own \"methylation\" records.\nDo NOT invent findings. If a section is empty, omit those records.\nReturn ONLY the JSON object. Use the word json in your reasoning if needed.",
+                "display_name": "System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Tighten the normalized schema or change `kind` taxonomy.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.0,
+                "display_name": "Temperature",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              }
+            },
+            "description": "LLM agent. Normalizes the molecular section into a flat list of structured records (gene, kind, evidence, classification).",
+            "icon": "git-branch",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "Molecular Parser",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "molecular",
+                "display_name": "Molecular Features",
+                "method": "run_parse",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "intake",
+              "model",
+              "temperature",
+              "max_tokens",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.molecular_parser",
+              "code_hash": "83e0e3a21668",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "HistologySynthesizer_S-D.V2-973b99",
+        "type": "genericNode",
+        "position": {
+          "x": 1350,
+          "y": 700
+        },
+        "data": {
+          "id": "HistologySynthesizer_S-D.V2-973b99",
+          "type": "HistologySynthesizer S-D.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "intake": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "intake",
+                "value": "",
+                "display_name": "Intake",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Connect the PDF Intake's output.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario D v2 \u2014 HistologySynthesizer (parallel branch).\n\nLLM agent that combines the H&E narrative, IHC profile, and (if\navailable) the image descriptions into a single short morphologic\nsynthesis paragraph. Output is a Message so it flows into the WHO\nClassifier the same way Scenario A's EvidenceAdvisor flows into the\nTournament Judge.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.message import Message\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a pathology morphology synthesizer.\nGiven a free-text H&E description, an IHC profile (marker -> result), and\noptional vision-derived image descriptions, write ONE paragraph (4-6\nsentences) summarizing the key morphologic and immunohistochemical\nfeatures in a form a WHO classifier downstream will use.\n\nCover, in order:\n  1. Cell type and architecture (e.g. \"diffuse astrocytic proliferation\").\n  2. Cytologic atypia and mitotic activity (use HPF counts when given).\n  3. Presence or absence of grade-defining features (necrosis, MVP,\n     vascular proliferation, anaplasia).\n  4. Key IHC findings most relevant to the suspected entity.\n  5. Any image-level cue that reinforces (or undercuts) the call.\n\nBe concrete. Use the report's own numerics. No hedging.\"\"\"\n\n\nclass ScenarioD_v2_HistologySynthesizer(Component):\n    display_name = \"Histology Synthesizer\"\n    description = (\n        \"LLM agent. Combines H&E narrative, IHC profile, and image descriptions into a \"\n        \"single 4-6 sentence morphologic synthesis paragraph for the WHO classifier.\"\n    )\n    icon = \"microscope\"\n    name = \"HistologySynthesizer S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"intake\",\n            display_name=\"Intake\",\n            input_types=[\"Data\"],\n            info=\"Connect the PDF Intake's output.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.2),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=400, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Change what the classifier downstream gets to see.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Morphologic Synthesis\", name=\"synthesis\", method=\"run_synth\")]\n\n    def run_synth(self) -> Message:\n        d = self.intake.data\n        extracted = d.get(\"extracted\", {})\n        payload = {\n            \"tumor_family\": d.get(\"tumor_family\"),\n            \"histology_text\": extracted.get(\"histology_text\", \"\"),\n            \"ihc_profile\": extracted.get(\"ihc_profile\", []),\n            \"image_descriptions\": d.get(\"image_descriptions\", []),\n        }\n\n        client = openai_client()\n        text = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            span_name=\"scenario_d.histology_synthesizer\",\n        )\n        return Message(text=text.strip())\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 400,
+                "display_name": "Max Tokens",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o-mini",
+                "display_name": "Model",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You are a pathology morphology synthesizer.\nGiven a free-text H&E description, an IHC profile (marker -> result), and\noptional vision-derived image descriptions, write ONE paragraph (4-6\nsentences) summarizing the key morphologic and immunohistochemical\nfeatures in a form a WHO classifier downstream will use.\n\nCover, in order:\n  1. Cell type and architecture (e.g. \"diffuse astrocytic proliferation\").\n  2. Cytologic atypia and mitotic activity (use HPF counts when given).\n  3. Presence or absence of grade-defining features (necrosis, MVP,\n     vascular proliferation, anaplasia).\n  4. Key IHC findings most relevant to the suspected entity.\n  5. Any image-level cue that reinforces (or undercuts) the call.\n\nBe concrete. Use the report's own numerics. No hedging.",
+                "display_name": "System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Change what the classifier downstream gets to see.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.2,
+                "display_name": "Temperature",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              }
+            },
+            "description": "LLM agent. Combines H&E narrative, IHC profile, and image descriptions into a single 4-6 sentence morphologic synthesis paragraph for the WHO classifier.",
+            "icon": "microscope",
+            "base_classes": [
+              "Message"
+            ],
+            "display_name": "Histology Synthesizer",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "Message"
+                ],
+                "selected": "Message",
+                "name": "synthesis",
+                "display_name": "Morphologic Synthesis",
+                "method": "run_synth",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "intake",
+              "model",
+              "temperature",
+              "max_tokens",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.histology_synthesizer",
+              "code_hash": "519efe63516c",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "WHOClassifier_S-D.V2-9f0241",
+        "type": "genericNode",
+        "position": {
+          "x": 1900,
+          "y": 400
+        },
+        "data": {
+          "id": "WHOClassifier_S-D.V2-9f0241",
+          "type": "WHOClassifier S-D.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "histology_synthesis": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "histology_synthesis",
+                "value": "",
+                "display_name": "Morphologic Synthesis",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "Connect Histology Synthesizer.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "molecular": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "molecular",
+                "value": "",
+                "display_name": "Molecular Features",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Connect Molecular Parser. Carries through intake/clinical context.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario D v2 \u2014 WHOClassifier.\n\nTHE main reasoner. Receives:\n  - molecular features (Data, from MolecularParser; also carries the\n    intake / clinical context through `extracted`)\n  - morphologic synthesis (Message, from HistologySynthesizer)\n\nEmits the layered WHO diagnosis as a JSON Data payload. The system\nprompt below encodes WHO CNS5 + WHO Breast 5e rules \u2014 this is the\n\"edit me\" lever participants change to demonstrate how a guideline\nchange ripples through to the report.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are the WHO integrated-diagnosis classifier\nfor an agentic pathology workflow. Apply the current WHO 5th-edition rules\nappropriate to the tumor family and produce a layered diagnosis.\n\nTumor families this prompt currently encodes:\n\n[glioma]  \u2014 WHO CNS5 (2021).\n  - Astrocytoma, IDH-mutant: grade 2-4. Grade 3 requires mitotic activity.\n    Grade 4 requires microvascular proliferation OR necrosis OR CDKN2A/B\n    homozygous deletion.\n  - Oligodendroglioma, IDH-mutant and 1p/19q-codeleted: grade 2 or 3.\n  - Glioblastoma, IDH-wildtype: requires EGFR amp, +7/-10, OR TERT\n    promoter mutation in an IDH-wildtype diffuse astrocytic glioma.\n  - MGMT promoter methylation status MUST appear in molecular_features\n    for the report to be complete.\n\n[medulloblastoma]  \u2014 WHO CNS5 (2021).\n  - All medulloblastomas are CNS WHO grade 4.\n  - Required: histologic pattern + molecular subgroup\n    (WNT-activated / SHH-activated TP53-wt / SHH-activated TP53-mut /\n     non-WNT-non-SHH Group 3 / non-WNT-non-SHH Group 4).\n  - TP53 status MUST be reported for SHH-activated cases.\n  - MYC / MYCN amplification flags high-risk biology.\n\n[breast]  \u2014 WHO Breast Tumours 5e (2019).\n  - Invasive carcinoma of no special type uses Nottingham grading\n    (tubule formation + nuclear pleomorphism + mitoses, each 1-3, sum\n     3-9). Grade 1 = 3-5, grade 2 = 6-7, grade 3 = 8-9.\n  - ER, PR, HER2 status MUST be reported.\n  - HER2 IHC 0 or 1+ negative; 2+ requires FISH; 3+ positive.\n\nReturn ONLY a JSON object:\n{\n  \"integrated_diagnosis\": \"...\",\n  \"histologic_diagnosis\": \"...\",\n  \"who_grade\": <integer or null>,\n  \"molecular_features\": [\"IDH1 R132H\", ...],   <-- short labels only\n  \"guideline_source\": \"WHO CNS5 (2021)\",\n  \"rationale\": \"2-3 sentence justification tying morphology + molecular to grade\",\n  \"evidence\": [\n    {\"feature\": \"IDH1 R132H\", \"source\": \"snv_indel\"},\n    ...\n  ]\n}\n\nIf the tumor family isn't in the list above, return your best WHO call\nbut set \"guideline_source\" to \"Out-of-catalog \u2014 manual review required\"\nand explain in rationale.\n\nNo commentary, no markdown. Use the word json in your reasoning if needed.\"\"\"\n\n\nclass ScenarioD_v2_WHOClassifier(Component):\n    display_name = \"WHO Classifier\"\n    description = (\n        \"LLM agent. Applies WHO 5th-edition rules from the system prompt to produce \"\n        \"a layered integrated diagnosis. THIS IS THE EDITABLE LEVER.\"\n    )\n    icon = \"book-open\"\n    name = \"WHOClassifier S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"molecular\",\n            display_name=\"Molecular Features\",\n            input_types=[\"Data\"],\n            info=\"Connect Molecular Parser. Carries through intake/clinical context.\",\n        ),\n        HandleInput(\n            name=\"histology_synthesis\",\n            display_name=\"Morphologic Synthesis\",\n            input_types=[\"Message\"],\n            info=\"Connect Histology Synthesizer.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=1500, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=(\n                \"EDIT ME. Add a new tumor family, tighten grade thresholds, or change \"\n                \"the layered-diagnosis output shape. This is the centerpiece of the demo.\"\n            ),\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Classification\", name=\"classification\", method=\"run_classify\")]\n\n    def run_classify(self) -> Data:\n        d = self.molecular.data\n        extracted = d.get(\"extracted\", {})\n        synthesis = self.histology_synthesis.text if self.histology_synthesis else \"\"\n\n        payload = {\n            \"tumor_family\": d.get(\"tumor_family\"),\n            \"clinical_history\": extracted.get(\"clinical_history\", \"\"),\n            \"specimen\": extracted.get(\"specimen\", \"\"),\n            \"morphologic_synthesis\": synthesis,\n            \"molecular_features\": d.get(\"molecular_features\", []),\n            \"pathologist_comments\": extracted.get(\"pathologist_comments\", \"\"),\n        }\n\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n            span_name=\"scenario_d.who_classifier\",\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError as e:\n            raise ValueError(f\"WHOClassifier did not return valid JSON: {raw!r}\") from e\n\n        return Data(data={\n            **d,\n            \"classification\": parsed,\n            \"morphologic_synthesis\": synthesis,\n            \"classifier_raw_llm\": raw,\n        })\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 1500,
+                "display_name": "Max Tokens",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o",
+                "display_name": "Model",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You are the WHO integrated-diagnosis classifier\nfor an agentic pathology workflow. Apply the current WHO 5th-edition rules\nappropriate to the tumor family and produce a layered diagnosis.\n\nTumor families this prompt currently encodes:\n\n[glioma]  \u2014 WHO CNS5 (2021).\n  - Astrocytoma, IDH-mutant: grade 2-4. Grade 3 requires mitotic activity.\n    Grade 4 requires microvascular proliferation OR necrosis OR CDKN2A/B\n    homozygous deletion.\n  - Oligodendroglioma, IDH-mutant and 1p/19q-codeleted: grade 2 or 3.\n  - Glioblastoma, IDH-wildtype: requires EGFR amp, +7/-10, OR TERT\n    promoter mutation in an IDH-wildtype diffuse astrocytic glioma.\n  - MGMT promoter methylation status MUST appear in molecular_features\n    for the report to be complete.\n\n[medulloblastoma]  \u2014 WHO CNS5 (2021).\n  - All medulloblastomas are CNS WHO grade 4.\n  - Required: histologic pattern + molecular subgroup\n    (WNT-activated / SHH-activated TP53-wt / SHH-activated TP53-mut /\n     non-WNT-non-SHH Group 3 / non-WNT-non-SHH Group 4).\n  - TP53 status MUST be reported for SHH-activated cases.\n  - MYC / MYCN amplification flags high-risk biology.\n\n[breast]  \u2014 WHO Breast Tumours 5e (2019).\n  - Invasive carcinoma of no special type uses Nottingham grading\n    (tubule formation + nuclear pleomorphism + mitoses, each 1-3, sum\n     3-9). Grade 1 = 3-5, grade 2 = 6-7, grade 3 = 8-9.\n  - ER, PR, HER2 status MUST be reported.\n  - HER2 IHC 0 or 1+ negative; 2+ requires FISH; 3+ positive.\n\nReturn ONLY a JSON object:\n{\n  \"integrated_diagnosis\": \"...\",\n  \"histologic_diagnosis\": \"...\",\n  \"who_grade\": <integer or null>,\n  \"molecular_features\": [\"IDH1 R132H\", ...],   <-- short labels only\n  \"guideline_source\": \"WHO CNS5 (2021)\",\n  \"rationale\": \"2-3 sentence justification tying morphology + molecular to grade\",\n  \"evidence\": [\n    {\"feature\": \"IDH1 R132H\", \"source\": \"snv_indel\"},\n    ...\n  ]\n}\n\nIf the tumor family isn't in the list above, return your best WHO call\nbut set \"guideline_source\" to \"Out-of-catalog \u2014 manual review required\"\nand explain in rationale.\n\nNo commentary, no markdown. Use the word json in your reasoning if needed.",
+                "display_name": "System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Add a new tumor family, tighten grade thresholds, or change the layered-diagnosis output shape. This is the centerpiece of the demo.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.0,
+                "display_name": "Temperature",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              }
+            },
+            "description": "LLM agent. Applies WHO 5th-edition rules from the system prompt to produce a layered integrated diagnosis. THIS IS THE EDITABLE LEVER.",
+            "icon": "book-open",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "WHO Classifier",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "classification",
+                "display_name": "Classification",
+                "method": "run_classify",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "molecular",
+              "histology_synthesis",
+              "model",
+              "temperature",
+              "max_tokens",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.who_classifier",
+              "code_hash": "50cc9e314644",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "QAReviewer_S-D.V2-b51d64",
+        "type": "genericNode",
+        "position": {
+          "x": 2400,
+          "y": 400
+        },
+        "data": {
+          "id": "QAReviewer_S-D.V2-b51d64",
+          "type": "QAReviewer S-D.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "classification_data": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "classification_data",
+                "value": "",
+                "display_name": "Classification",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Connect the WHO Classifier's output.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario D v2 \u2014 QAReviewer.\n\nReviews the WHO classification for completeness against the static\nWHO-criteria catalog. Flags missing required findings (e.g. a glioma\nreport missing MGMT methylation status), grade calls that conflict with\nthe cited rationale, and molecular features referenced by the classifier\nbut not present in the parsed list.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a WHO-compliance QA reviewer. You\nreceive (a) the layered classification produced by another agent, (b)\nthe list of parsed molecular features, and (c) the WHO required-findings\ncatalog for the relevant tumor family. Spot-check, do not override.\n\nLook for:\n  - Missing required findings (severity high if a grade-defining marker\n    is absent \u2014 e.g. IDH status absent for a glioma report).\n  - Grade call inconsistent with the cited rationale (severity high if\n    the rationale describes grade-4 features but the call is grade 3,\n    or vice versa).\n  - Molecular features cited in the classification's \"evidence\" array\n    that are not present in molecular_features (severity medium \u2014\n    possible hallucination).\n  - Missing methylation status (e.g. MGMT for gliomas) \u2014 severity low.\n\nReturn ONLY a JSON object listing flags:\n{\n  \"flags\": [\n    {\"finding\": \"IDH_status\", \"severity\": \"low|medium|high\",\n     \"concern\": \"one sentence\"},\n    ...\n  ]\n}\n\nIf nothing is concerning, return JSON: {\"flags\": []}. Use the word json\nin your reasoning if needed.\"\"\"\n\n\nclass ScenarioD_v2_QAReviewer(Component):\n    display_name = \"QA Reviewer\"\n    description = (\n        \"LLM agent. Reviews the WHO classification for missing required findings, \"\n        \"grade inconsistencies, and unsupported evidence. Emits flags.\"\n    )\n    icon = \"shield\"\n    name = \"QAReviewer S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"classification_data\",\n            display_name=\"Classification\",\n            input_types=[\"Data\"],\n            info=\"Connect the WHO Classifier's output.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=700, advanced=True),\n        StrInput(\n            name=\"severity_threshold\",\n            display_name=\"Min Severity To Surface\",\n            value=\"low\",\n            info=\"One of: low, medium, high.\",\n        ),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Make the reviewer stricter or shift its attention.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Reviewed\", name=\"reviewed\", method=\"run_review\")]\n\n    def run_review(self) -> Data:\n        from tools.scenario_d import who_criteria\n\n        d = self.classification_data.data\n        classification = d.get(\"classification\", {})\n        molecular_features = d.get(\"molecular_features\", [])\n        tumor_family = d.get(\"tumor_family\", \"\")\n\n        try:\n            who_entry = who_criteria.for_family(tumor_family)\n        except KeyError:\n            who_entry = {\n                \"blue_book\": \"Out-of-catalog\",\n                \"required_findings\": [],\n                \"grade_rules\": [],\n            }\n\n        payload = {\n            \"tumor_family\": tumor_family,\n            \"who_required_findings\": who_entry[\"required_findings\"],\n            \"who_grade_rules\": who_entry[\"grade_rules\"],\n            \"classification\": classification,\n            \"parsed_molecular_features\": molecular_features,\n        }\n\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n            span_name=\"scenario_d.qa_reviewer\",\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError as e:\n            raise ValueError(f\"QAReviewer did not return valid JSON: {raw!r}\") from e\n\n        flags = parsed.get(\"flags\", [])\n        if not isinstance(flags, list):\n            flags = []\n        order = {\"low\": 0, \"medium\": 1, \"high\": 2}\n        min_rank = order.get((self.severity_threshold or \"low\").lower(), 0)\n        flags = [f for f in flags if order.get(str(f.get(\"severity\", \"low\")).lower(), 0) >= min_rank]\n\n        return Data(data={\n            **d,\n            \"flags\": flags,\n            \"who_required_findings\": who_entry[\"required_findings\"],\n            \"guideline_blue_book\": who_entry[\"blue_book\"],\n        })\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "max_tokens": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "max_tokens",
+                "value": 700,
+                "display_name": "Max Tokens",
+                "advanced": true,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "int",
+                "_input_type": "IntInput"
+              },
+              "model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "model",
+                "value": "openai/gpt-4o-mini",
+                "display_name": "Model",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "severity_threshold": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "severity_threshold",
+                "value": "low",
+                "display_name": "Min Severity To Surface",
+                "advanced": false,
+                "dynamic": false,
+                "info": "One of: low, medium, high.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "system_prompt": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "system_prompt",
+                "value": "You are a WHO-compliance QA reviewer. You\nreceive (a) the layered classification produced by another agent, (b)\nthe list of parsed molecular features, and (c) the WHO required-findings\ncatalog for the relevant tumor family. Spot-check, do not override.\n\nLook for:\n  - Missing required findings (severity high if a grade-defining marker\n    is absent \u2014 e.g. IDH status absent for a glioma report).\n  - Grade call inconsistent with the cited rationale (severity high if\n    the rationale describes grade-4 features but the call is grade 3,\n    or vice versa).\n  - Molecular features cited in the classification's \"evidence\" array\n    that are not present in molecular_features (severity medium \u2014\n    possible hallucination).\n  - Missing methylation status (e.g. MGMT for gliomas) \u2014 severity low.\n\nReturn ONLY a JSON object listing flags:\n{\n  \"flags\": [\n    {\"finding\": \"IDH_status\", \"severity\": \"low|medium|high\",\n     \"concern\": \"one sentence\"},\n    ...\n  ]\n}\n\nIf nothing is concerning, return JSON: {\"flags\": []}. Use the word json\nin your reasoning if needed.",
+                "display_name": "System Prompt",
+                "advanced": false,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "EDIT ME. Make the reviewer stricter or shift its attention.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              },
+              "temperature": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "temperature",
+                "value": 0.0,
+                "display_name": "Temperature",
+                "advanced": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "float",
+                "_input_type": "FloatInput"
+              }
+            },
+            "description": "LLM agent. Reviews the WHO classification for missing required findings, grade inconsistencies, and unsupported evidence. Emits flags.",
+            "icon": "shield",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "QA Reviewer",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "reviewed",
+                "display_name": "Reviewed",
+                "method": "run_review",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "classification_data",
+              "model",
+              "temperature",
+              "max_tokens",
+              "severity_threshold",
+              "system_prompt"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.qa_reviewer",
+              "code_hash": "b0f65c2fb053",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  },
+                  {
+                    "name": "tools",
+                    "version": null
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "ReportFormatter_S-D.V2-c9d088",
+        "type": "genericNode",
+        "position": {
+          "x": 2900,
+          "y": 400
+        },
+        "data": {
+          "id": "ReportFormatter_S-D.V2-c9d088",
+          "type": "ReportFormatter S-D.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "reviewed": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "reviewed",
+                "value": "",
+                "display_name": "Reviewed",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Connect the QA Reviewer's output.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario D v2 \u2014 ReportFormatter.\n\nPure-Python renderer. Four output formats. Reads format override from\nupstream run_config so the chat-input directive (\"output as html\")\nrewires output without touching the node.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\nfrom typing import Any\n\nfrom langflow.custom import Component\nfrom langflow.io import HandleInput, MultilineInput, Output, StrInput\nfrom langflow.schema.message import Message\n\n\nVALID_FORMATS = {\"who_layered\", \"narrative\", \"json\", \"html\"}\n\n\ndef _layered_md(d: dict[str, Any]) -> str:\n    c = d.get(\"classification\", {})\n    flags = d.get(\"flags\", [])\n    out = []\n    extracted = d.get(\"extracted\", {})\n    demo = extracted.get(\"demographics\", {})\n    sample_id = d.get(\"sample_id\", \"\")\n    out.append(f\"# Integrated Diagnostic Report \u2014 {sample_id}\")\n    out.append(\"\")\n    out.append(\n        f\"**Patient:** {demo.get('patient_id','?')} | \"\n        f\"{demo.get('age','?')} {demo.get('sex','?')} | \"\n        f\"{demo.get('indication','')}\"\n    )\n    out.append(f\"**Specimen:** {extracted.get('specimen','')}\")\n    out.append(\"\")\n    out.append(\"## Integrated diagnosis (WHO layered)\")\n    out.append(\"\")\n    out.append(f\"- **Layer 1 \u2014 Integrated diagnosis:** {c.get('integrated_diagnosis','')}\")\n    out.append(f\"- **Layer 2 \u2014 Histologic diagnosis:** {c.get('histologic_diagnosis','')}\")\n    grade = c.get(\"who_grade\")\n    out.append(f\"- **Layer 3 \u2014 WHO grade:** {grade if grade is not None else 'n/a'}\")\n    mfeat = c.get(\"molecular_features\", [])\n    out.append(\n        \"- **Layer 4 \u2014 Molecular features:** \"\n        + (\", \".join(mfeat) if mfeat else \"none reported\")\n    )\n    out.append(\"\")\n    out.append(f\"**Guideline source:** {c.get('guideline_source','')}\")\n    out.append(\"\")\n    if c.get(\"rationale\"):\n        out.append(\"## Rationale\")\n        out.append(\"\")\n        out.append(c[\"rationale\"])\n        out.append(\"\")\n    if c.get(\"evidence\"):\n        out.append(\"## Evidence\")\n        out.append(\"\")\n        out.append(\"| Feature | Source |\")\n        out.append(\"|---|---|\")\n        for e in c[\"evidence\"]:\n            out.append(f\"| {e.get('feature','')} | {e.get('source','')} |\")\n        out.append(\"\")\n    if flags:\n        out.append(\"## QA flags\")\n        out.append(\"\")\n        for f in flags:\n            out.append(f\"- **{f.get('severity','low').upper()}** \u2014 {f.get('finding','')}: {f.get('concern','')}\")\n        out.append(\"\")\n    return \"\\n\".join(out)\n\n\ndef _narrative(d: dict[str, Any]) -> str:\n    c = d.get(\"classification\", {})\n    flags = d.get(\"flags\", [])\n    parts = []\n    parts.append(f\"Integrated diagnosis: {c.get('integrated_diagnosis','')}.\")\n    if c.get(\"rationale\"):\n        parts.append(c[\"rationale\"])\n    mfeat = c.get(\"molecular_features\", [])\n    if mfeat:\n        parts.append(\"Key molecular features: \" + \", \".join(mfeat) + \".\")\n    grade = c.get(\"who_grade\")\n    if grade is not None:\n        parts.append(f\"WHO grade: {grade}.\")\n    if c.get(\"guideline_source\"):\n        parts.append(f\"Per {c['guideline_source']}.\")\n    if flags:\n        parts.append(\n            \"QA notes: \"\n            + \"; \".join(\n                f\"[{f.get('severity','low')}] {f.get('finding','')}: {f.get('concern','')}\"\n                for f in flags\n            )\n        )\n    return \" \".join(parts)\n\n\ndef _json(d: dict[str, Any]) -> str:\n    extracted = d.get(\"extracted\", {})\n    return json.dumps({\n        \"sample_id\": d.get(\"sample_id\"),\n        \"tumor_family\": d.get(\"tumor_family\"),\n        \"patient\": extracted.get(\"demographics\", {}),\n        \"classification\": d.get(\"classification\", {}),\n        \"qa_flags\": d.get(\"flags\", []),\n        \"guideline_blue_book\": d.get(\"guideline_blue_book\", \"\"),\n    }, indent=2, default=str)\n\n\ndef _html(d: dict[str, Any]) -> str:\n    c = d.get(\"classification\", {})\n    extracted = d.get(\"extracted\", {})\n    demo = extracted.get(\"demographics\", {})\n    sample_id = d.get(\"sample_id\", \"\")\n    flags = d.get(\"flags\", [])\n\n    body = [\n        \"<!doctype html>\",\n        \"<html><head><meta charset='utf-8'><title>WHO Integrated Diagnosis</title>\",\n        \"<style>\"\n        \"body{font-family:system-ui,sans-serif;max-width:960px;margin:24px auto;padding:0 16px;color:#111}\"\n        \"h1{margin-bottom:0;color:#1a1a1a}h2{color:#444;margin-top:24px}\"\n        \".meta{color:#666;font-size:13px;margin-top:4px}\"\n        \".layer{margin:6px 0;padding:6px 12px;border-left:4px solid #4a90e2;background:#f6fafd}\"\n        \".layer b{color:#1a1a1a}\"\n        \".flag-low{background:#fffbe6;border-left-color:#e0a700}\"\n        \".flag-medium{background:#ffe9d1;border-left-color:#d97000}\"\n        \".flag-high{background:#ffd5d1;border-left-color:#c0392b}\"\n        \".flag{padding:6px 12px;margin:4px 0;border-left:4px solid #999}\"\n        \"table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}\"\n        \"th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}\"\n        \"th{background:#f4f4f4}\"\n        \"</style></head><body>\",\n        f\"<h1>Integrated Diagnostic Report</h1>\",\n        f\"<p class='meta'>Sample: <b>{sample_id}</b> &middot; Patient {demo.get('patient_id','?')} \"\n        f\"({demo.get('age','?')} {demo.get('sex','?')}) &middot; {demo.get('indication','')}</p>\",\n        f\"<p class='meta'>Specimen: {extracted.get('specimen','')}</p>\",\n        \"<h2>Integrated diagnosis (WHO layered)</h2>\",\n        f\"<div class='layer'><b>Layer 1 \u2014 Integrated diagnosis:</b> {c.get('integrated_diagnosis','')}</div>\",\n        f\"<div class='layer'><b>Layer 2 \u2014 Histologic diagnosis:</b> {c.get('histologic_diagnosis','')}</div>\",\n        f\"<div class='layer'><b>Layer 3 \u2014 WHO grade:</b> \"\n        f\"{c.get('who_grade') if c.get('who_grade') is not None else 'n/a'}</div>\",\n        \"<div class='layer'><b>Layer 4 \u2014 Molecular features:</b> \"\n        + (\", \".join(c.get(\"molecular_features\", [])) or \"none reported\") + \"</div>\",\n        f\"<p class='meta'>Guideline source: {c.get('guideline_source','')}</p>\",\n    ]\n    if c.get(\"rationale\"):\n        body.append(\"<h2>Rationale</h2>\")\n        body.append(f\"<p>{c['rationale']}</p>\")\n    if c.get(\"evidence\"):\n        body.append(\"<h2>Evidence</h2><table><tr><th>Feature</th><th>Source</th></tr>\")\n        for e in c[\"evidence\"]:\n            body.append(f\"<tr><td>{e.get('feature','')}</td><td>{e.get('source','')}</td></tr>\")\n        body.append(\"</table>\")\n    if flags:\n        body.append(\"<h2>QA flags</h2>\")\n        for f in flags:\n            sev = (f.get(\"severity\") or \"low\").lower()\n            body.append(\n                f\"<div class='flag flag-{sev}'><b>{sev.upper()}</b> \u2014 \"\n                f\"{f.get('finding','')}: {f.get('concern','')}</div>\"\n            )\n    body.append(\"</body></html>\")\n    return \"\\n\".join(body)\n\n\nclass ScenarioD_v2_ReportFormatter(Component):\n    display_name = \"Report Formatter\"\n    description = (\n        \"Pure-Python renderer. Outputs WHO-layered Markdown, narrative paragraph, \"\n        \"JSON, or HTML. Picks up `output_format` override from the chat directive \"\n        \"when Pipeline Config is connected upstream.\"\n    )\n    icon = \"file-text\"\n    name = \"ReportFormatter S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"reviewed\",\n            display_name=\"Reviewed\",\n            input_types=[\"Data\"],\n            info=\"Connect the QA Reviewer's output.\",\n        ),\n        StrInput(\n            name=\"format\",\n            display_name=\"Format\",\n            value=\"who_layered\",\n            info=\"One of: who_layered, narrative, json, html.\",\n        ),\n        MultilineInput(\n            name=\"header_note\",\n            display_name=\"Header Note (optional)\",\n            value=\"\",\n            advanced=True,\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Report\", name=\"report\", method=\"run_format\")]\n\n    def run_format(self) -> Message:\n        d = self.reviewed.data\n        run_config = d.get(\"run_config\", {})\n        fmt = (run_config.get(\"output_format\") or self.format or \"who_layered\").strip().lower()\n        if fmt not in VALID_FORMATS:\n            raise ValueError(f\"Format must be one of {sorted(VALID_FORMATS)}, got {fmt!r}\")\n\n        if fmt == \"who_layered\":\n            text = _layered_md(d)\n        elif fmt == \"narrative\":\n            text = _narrative(d)\n        elif fmt == \"json\":\n            text = _json(d)\n        else:\n            text = _html(d)\n\n        if self.header_note and fmt in {\"who_layered\", \"narrative\"}:\n            text = self.header_note.strip() + \"\\n\\n\" + text\n        elif self.header_note and fmt == \"html\":\n            text = text.replace(\"<body>\", f\"<body><p><em>{self.header_note}</em></p>\")\n\n        return Message(text=text)\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              },
+              "format": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "format",
+                "value": "who_layered",
+                "display_name": "Format",
+                "advanced": false,
+                "dynamic": false,
+                "info": "One of: who_layered, narrative, json, html.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "header_note": {
+                "tool_mode": false,
+                "trace_as_input": true,
+                "multiline": true,
+                "ai_enabled": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "header_note",
+                "value": "",
+                "display_name": "Header Note (optional)",
+                "advanced": true,
+                "input_types": [
+                  "Message"
+                ],
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "copy_field": false,
+                "password": false,
+                "type": "str",
+                "_input_type": "MultilineInput"
+              }
+            },
+            "description": "Pure-Python renderer. Outputs WHO-layered Markdown, narrative paragraph, JSON, or HTML. Picks up `output_format` override from the chat directive when Pipeline Config is connected upstream.",
+            "icon": "file-text",
+            "base_classes": [
+              "Message"
+            ],
+            "display_name": "Report Formatter",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "Message"
+                ],
+                "selected": "Message",
+                "name": "report",
+                "display_name": "Report",
+                "method": "run_format",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "reviewed",
+              "format",
+              "header_note"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.report_formatter",
+              "code_hash": "a5cff67d9ced",
+              "dependencies": {
+                "total_dependencies": 1,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "ChatOutput-3516d2",
+        "type": "genericNode",
+        "position": {
+          "x": 3400,
+          "y": 400
+        },
+        "data": {
+          "id": "ChatOutput-3516d2",
+          "type": "ChatOutput",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Display a chat message in the Playground.",
+            "display_name": "Chat Output",
+            "documentation": "https://docs.langflow.org/chat-input-and-output",
+            "edited": false,
+            "field_order": [
+              "input_value",
+              "should_store_message",
+              "sender",
+              "sender_name",
+              "session_id",
+              "context_id",
+              "data_template",
+              "clean_data"
+            ],
+            "frozen": false,
+            "icon": "MessagesSquare",
+            "legacy": false,
+            "metadata": {
+              "code_hash": "84009527d08c",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "orjson",
+                    "version": "3.11.8"
+                  },
+                  {
+                    "name": "fastapi",
+                    "version": "0.136.1"
+                  },
+                  {
+                    "name": "lfx",
+                    "version": null
+                  }
+                ],
+                "total_dependencies": 3
+              },
+              "module": "lfx.components.input_output.chat_output.ChatOutput"
+            },
+            "minimized": true,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Output Message",
+                "group_outputs": false,
+                "method": "message_response",
+                "name": "message",
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_type": "Component",
+              "clean_data": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Basic Clean Data",
+                "dynamic": false,
+                "info": "Whether to clean data before converting to string.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "clean_data",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": true
+              },
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from collections.abc import Generator\nfrom typing import Any\n\nimport orjson\nfrom fastapi.encoders import jsonable_encoder\n\nfrom lfx.base.io.chat import ChatComponent\nfrom lfx.helpers.data import safe_convert\nfrom lfx.inputs.inputs import BoolInput, DropdownInput, HandleInput, MessageTextInput\nfrom lfx.schema.data import Data\nfrom lfx.schema.dataframe import DataFrame\nfrom lfx.schema.message import Message\nfrom lfx.schema.properties import Source\nfrom lfx.template.field.base import Output\nfrom lfx.utils.constants import (\n    MESSAGE_SENDER_AI,\n    MESSAGE_SENDER_NAME_AI,\n    MESSAGE_SENDER_USER,\n)\n\n\nclass ChatOutput(ChatComponent):\n    display_name = \"Chat Output\"\n    description = \"Display a chat message in the Playground.\"\n    documentation: str = \"https://docs.langflow.org/chat-input-and-output\"\n    icon = \"MessagesSquare\"\n    name = \"ChatOutput\"\n    minimized = True\n\n    inputs = [\n        HandleInput(\n            name=\"input_value\",\n            display_name=\"Inputs\",\n            info=\"Message to be passed as output.\",\n            input_types=[\"Data\", \"JSON\", \"DataFrame\", \"Table\", \"Message\"],\n            required=True,\n        ),\n        BoolInput(\n            name=\"should_store_message\",\n            display_name=\"Store Messages\",\n            info=\"Store the message in the history.\",\n            value=True,\n            advanced=True,\n        ),\n        DropdownInput(\n            name=\"sender\",\n            display_name=\"Sender Type\",\n            options=[MESSAGE_SENDER_AI, MESSAGE_SENDER_USER],\n            value=MESSAGE_SENDER_AI,\n            advanced=True,\n            info=\"Type of sender.\",\n        ),\n        MessageTextInput(\n            name=\"sender_name\",\n            display_name=\"Sender Name\",\n            info=\"Name of the sender.\",\n            value=MESSAGE_SENDER_NAME_AI,\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"session_id\",\n            display_name=\"Session ID\",\n            info=\"The session ID of the chat. If empty, the current session ID parameter will be used.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"context_id\",\n            display_name=\"Context ID\",\n            info=\"The context ID of the chat. Adds an extra layer to the local memory.\",\n            value=\"\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"data_template\",\n            display_name=\"Data Template\",\n            value=\"{text}\",\n            advanced=True,\n            info=\"Template to convert Data to Text. If left empty, it will be dynamically set to the Data's text key.\",\n        ),\n        BoolInput(\n            name=\"clean_data\",\n            display_name=\"Basic Clean Data\",\n            value=True,\n            advanced=True,\n            info=\"Whether to clean data before converting to string.\",\n        ),\n    ]\n    outputs = [\n        Output(\n            display_name=\"Output Message\",\n            name=\"message\",\n            method=\"message_response\",\n        ),\n    ]\n\n    def _build_source(self, id_: str | None, display_name: str | None, source: str | None) -> Source:\n        source_dict = {}\n        if id_:\n            source_dict[\"id\"] = id_\n        if display_name:\n            source_dict[\"display_name\"] = display_name\n        if source:\n            # Handle case where source is a ChatOpenAI object\n            if hasattr(source, \"model_name\"):\n                source_dict[\"source\"] = source.model_name\n            elif hasattr(source, \"model\"):\n                source_dict[\"source\"] = str(source.model)\n            else:\n                source_dict[\"source\"] = str(source)\n        return Source(**source_dict)\n\n    async def message_response(self) -> Message:\n        # First convert the input to string if needed\n        text = self.convert_to_string()\n\n        # Get source properties\n        source, _, display_name, source_id = self.get_properties_from_source_component()\n\n        # Create or use existing Message object\n        if isinstance(self.input_value, Message) and not self.is_connected_to_chat_input():\n            message = self.input_value\n            # Update message properties\n            message.text = text\n            # Preserve existing session_id from the incoming message if it exists\n            existing_session_id = message.session_id\n        else:\n            message = Message(text=text)\n            existing_session_id = None\n\n        # Set message properties\n        message.sender = self.sender\n        message.sender_name = self.sender_name\n        # Preserve session_id from incoming message, or use component/graph session_id\n        message.session_id = (\n            self.session_id or existing_session_id or (self.graph.session_id if hasattr(self, \"graph\") else None) or \"\"\n        )\n        message.context_id = self.context_id\n        message.flow_id = self.graph.flow_id if hasattr(self, \"graph\") else None\n        message.properties.source = self._build_source(source_id, display_name, source)\n\n        # Store message if needed\n        if message.session_id and self.should_store_message:\n            stored_message = await self.send_message(message)\n            self.message.value = stored_message\n            message = stored_message\n\n        # Set accumulated token usage from all upstream LLM vertices.\n        # This must happen AFTER send_message() because streaming captures\n        # usage from chunks and would overwrite accumulated totals.\n        if hasattr(self, \"_vertex\") and self._vertex is not None:\n            accumulated_usage = self._vertex._accumulate_upstream_token_usage()  # noqa: SLF001\n            if accumulated_usage:\n                message.properties.usage = accumulated_usage\n                if self.should_store_message and message.get_id():\n                    message = await self._update_stored_message(message)\n                    await self._send_message_event(message, id_=message.get_id())\n\n        self.status = message\n        return message\n\n    def _serialize_data(self, data: Data) -> str:\n        \"\"\"Serialize Data object to JSON string.\"\"\"\n        # Convert data.data to JSON-serializable format\n        serializable_data = jsonable_encoder(data.data)\n        # Serialize with orjson, enabling pretty printing with indentation\n        json_bytes = orjson.dumps(serializable_data, option=orjson.OPT_INDENT_2)\n        # Convert bytes to string and wrap in Markdown code blocks\n        return \"```json\\n\" + json_bytes.decode(\"utf-8\") + \"\\n```\"\n\n    def _validate_input(self) -> None:\n        \"\"\"Validate the input data and raise ValueError if invalid.\"\"\"\n        if self.input_value is None:\n            msg = \"Input data cannot be None\"\n            raise ValueError(msg)\n        if isinstance(self.input_value, list) and not all(\n            isinstance(item, Message | Data | DataFrame | str) for item in self.input_value\n        ):\n            invalid_types = [\n                type(item).__name__\n                for item in self.input_value\n                if not isinstance(item, Message | Data | DataFrame | str)\n            ]\n            msg = f\"Expected Data or DataFrame or Message or str, got {invalid_types}\"\n            raise TypeError(msg)\n        if not isinstance(\n            self.input_value,\n            Message | Data | DataFrame | str | list | Generator | type(None),\n        ):\n            type_name = type(self.input_value).__name__\n            msg = f\"Expected Data or DataFrame or Message or str, Generator or None, got {type_name}\"\n            raise TypeError(msg)\n\n    def convert_to_string(self) -> str | Generator[Any, None, None]:\n        \"\"\"Convert input data to string with proper error handling.\"\"\"\n        self._validate_input()\n        if isinstance(self.input_value, list):\n            clean_data: bool = getattr(self, \"clean_data\", False)\n            return \"\\n\".join([safe_convert(item, clean_data=clean_data) for item in self.input_value])\n        if isinstance(self.input_value, Generator):\n            return self.input_value\n        return safe_convert(self.input_value)\n"
+              },
+              "context_id": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Context ID",
+                "dynamic": false,
+                "info": "The context ID of the chat. Adds an extra layer to the local memory.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "context_id",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "data_template": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Data Template",
+                "dynamic": false,
+                "info": "Template to convert Data to Text. If left empty, it will be dynamically set to the Data's text key.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "data_template",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "{text}"
+              },
+              "input_value": {
+                "_input_type": "HandleInput",
+                "advanced": false,
+                "display_name": "Inputs",
+                "dynamic": false,
+                "info": "Message to be passed as output.",
+                "input_types": [
+                  "Data",
+                  "JSON",
+                  "DataFrame",
+                  "Table",
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "input_value",
+                "override_skip": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "other",
+                "value": ""
+              },
+              "sender": {
+                "_input_type": "DropdownInput",
+                "advanced": true,
+                "combobox": false,
+                "dialog_inputs": {},
+                "display_name": "Sender Type",
+                "dynamic": false,
+                "external_options": {},
+                "info": "Type of sender.",
+                "name": "sender",
+                "options": [
+                  "Machine",
+                  "User"
+                ],
+                "options_metadata": [],
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "toggle": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "str",
+                "value": "Machine"
+              },
+              "sender_name": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Sender Name",
+                "dynamic": false,
+                "info": "Name of the sender.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "sender_name",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "AI"
+              },
+              "session_id": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Session ID",
+                "dynamic": false,
+                "info": "The session ID of the chat. If empty, the current session ID parameter will be used.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "session_id",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "should_store_message": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Store Messages",
+                "dynamic": false,
+                "info": "Store the message in the history.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "should_store_message",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": true
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "source": "ChatInput-df96b3",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-df96b3\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "PipelineConfig_S-D.V2-ffb8d0",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-ffb8d0\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "ChatInput",
+            "id": "ChatInput-df96b3",
+            "name": "message",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "user_message",
+            "id": "PipelineConfig_S-D.V2-ffb8d0",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__ChatInput-df96b3{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-df96b3\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-PipelineConfig_S-D.V2-ffb8d0{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-ffb8d0\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "PipelineConfig_S-D.V2-ffb8d0",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-ffb8d0\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "PDFIntake_S-D.V2-5eae3b",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "PipelineConfig S-D.V2",
+            "id": "PipelineConfig_S-D.V2-ffb8d0",
+            "name": "run_config",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "run_config",
+            "id": "PDFIntake_S-D.V2-5eae3b",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__PipelineConfig_S-D.V2-ffb8d0{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-ffb8d0\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-PDFIntake_S-D.V2-5eae3b{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "PDFIntake_S-D.V2-5eae3b",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "MolecularParser_S-D.V2-cf33c4",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-cf33c4\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "PDFIntake S-D.V2",
+            "id": "PDFIntake_S-D.V2-5eae3b",
+            "name": "intake",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "intake",
+            "id": "MolecularParser_S-D.V2-cf33c4",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__PDFIntake_S-D.V2-5eae3b{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-MolecularParser_S-D.V2-cf33c4{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-cf33c4\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "PDFIntake_S-D.V2-5eae3b",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "HistologySynthesizer_S-D.V2-973b99",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-973b99\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "PDFIntake S-D.V2",
+            "id": "PDFIntake_S-D.V2-5eae3b",
+            "name": "intake",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "intake",
+            "id": "HistologySynthesizer_S-D.V2-973b99",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__PDFIntake_S-D.V2-5eae3b{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-5eae3b\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-HistologySynthesizer_S-D.V2-973b99{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-973b99\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "MolecularParser_S-D.V2-cf33c4",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-cf33c4\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "WHOClassifier_S-D.V2-9f0241",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "MolecularParser S-D.V2",
+            "id": "MolecularParser_S-D.V2-cf33c4",
+            "name": "molecular",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "molecular",
+            "id": "WHOClassifier_S-D.V2-9f0241",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__MolecularParser_S-D.V2-cf33c4{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-cf33c4\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-WHOClassifier_S-D.V2-9f0241{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "HistologySynthesizer_S-D.V2-973b99",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153HistologySynthesizer S-D.V2\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-973b99\u0153,\u0153name\u0153:\u0153synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "WHOClassifier_S-D.V2-9f0241",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153histology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "HistologySynthesizer S-D.V2",
+            "id": "HistologySynthesizer_S-D.V2-973b99",
+            "name": "synthesis",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "histology_synthesis",
+            "id": "WHOClassifier_S-D.V2-9f0241",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__HistologySynthesizer_S-D.V2-973b99{\u0153dataType\u0153:\u0153HistologySynthesizer S-D.V2\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-973b99\u0153,\u0153name\u0153:\u0153synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-9f0241{\u0153fieldName\u0153:\u0153histology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "WHOClassifier_S-D.V2-9f0241",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153name\u0153:\u0153classification\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "QAReviewer_S-D.V2-b51d64",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153classification_data\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b51d64\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "WHOClassifier S-D.V2",
+            "id": "WHOClassifier_S-D.V2-9f0241",
+            "name": "classification",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "classification_data",
+            "id": "QAReviewer_S-D.V2-b51d64",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__WHOClassifier_S-D.V2-9f0241{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-9f0241\u0153,\u0153name\u0153:\u0153classification\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-QAReviewer_S-D.V2-b51d64{\u0153fieldName\u0153:\u0153classification_data\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b51d64\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "QAReviewer_S-D.V2-b51d64",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b51d64\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "ReportFormatter_S-D.V2-c9d088",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-c9d088\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "QAReviewer S-D.V2",
+            "id": "QAReviewer_S-D.V2-b51d64",
+            "name": "reviewed",
+            "output_types": [
+              "Data"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "reviewed",
+            "id": "ReportFormatter_S-D.V2-c9d088",
+            "inputTypes": [
+              "Data"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__QAReviewer_S-D.V2-b51d64{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b51d64\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-ReportFormatter_S-D.V2-c9d088{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-c9d088\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      },
+      {
+        "source": "ReportFormatter_S-D.V2-c9d088",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-c9d088\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "ChatOutput-3516d2",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3516d2\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "data": {
+          "sourceHandle": {
+            "dataType": "ReportFormatter S-D.V2",
+            "id": "ReportFormatter_S-D.V2-c9d088",
+            "name": "report",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "input_value",
+            "id": "ChatOutput-3516d2",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__ReportFormatter_S-D.V2-c9d088{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-c9d088\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-3516d2{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3516d2\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "animated": false,
+        "className": "",
+        "selected": false
+      }
+    ],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 0.45
+    }
+  }
+}

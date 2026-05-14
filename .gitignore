@@ -53,6 +53,7 @@ proxy/.env
 
 # Provisioning output (per-attendee credentials — never commit)
 users.csv
+users.*.csv
 
 # Build artifacts
 *.log

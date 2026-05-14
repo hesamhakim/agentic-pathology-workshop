@@ -8,13 +8,14 @@ Welcome. This handbook walks you through the three agentic AI workflows you'll w
 
 ## What you'll be doing
 
-Three real-feeling pathology workflows, each a small team of cooperating AI agents that you can rewire on a visual canvas. You'll edit instructions in plain English, change a few numbers, and watch the output shift. By the end you'll have a working mental model of how an agentic workflow is assembled — and why the same problem can be solved with very different agent arrangements.
+Four real-feeling pathology workflows, each a small team of cooperating AI agents that you can rewire on a visual canvas. You'll edit instructions in plain English, change a few numbers, and watch the output shift. By the end you'll have a working mental model of how an agentic workflow is assembled — and why the same problem can be solved with very different agent arrangements.
 
 The workflows are:
 
 1. **Scenario A — Variant Tournament** — picking the most clinically actionable variants from a sequencing report.
 2. **Scenario B — Longitudinal Ghost** — reconciling a current pathology request against years of patient chart notes to spot contradictions.
 3. **Scenario C — Digital Thread** — routing the morning case load to pathologists, balancing subspecialty, instrument capacity, and reader fatigue.
+4. **Scenario D — Integrated Report → WHO** — parsing a multi-page integrated pathology PDF (text, IHC tables, molecular findings, embedded H&E and IHC images) and emitting a WHO-classification-compliant layered diagnosis.
 
 Each takes ~20 minutes of hands-on time.
 
@@ -28,17 +29,18 @@ You will receive a personal username at the door (printed on your badge or sent 
 
 1. Open the URL in any modern browser (Chrome, Edge, Firefox, Safari).
 2. Sign in with your `pi-user-NNN` username from your badge and the shared password.
-3. You will land on a page titled **My Projects** showing three flows:
+3. You will land on a page titled **My Projects** showing four flows:
    - `A_variant_tournament`
    - `B_longitudinal_ghost`
    - `C_digital_thread_v2`
-4. Click any of the three to open its visual canvas.
+   - `D_integrated_report_to_who`
+4. Click any of the four to open its visual canvas.
 
 Your account is private. Other attendees cannot see your edits, and your edits cannot be seen by them. If you accidentally break a workflow beyond recognition, wave to a facilitator — they can reset your flows in about ten seconds.
 
 ---
 
-## 2. The three scenarios — what each solves
+## 2. The four scenarios — what each solves
 
 ### Scenario A — Variant Tournament
 
@@ -63,6 +65,14 @@ Your account is private. Other attendees cannot see your edits, and your edits c
 **What the workflow does.** Loads thirty incoming cases, eight pathologists across six subspecialties, nine instruments (stainers and scanners), and seven days of workload history. A **Triage Agent** scores each case for urgency. A **Capacity Advisor** reads the instrument fleet and writes a brief operational advisory (which subspecialties might be bottlenecked today). An **Eligibility Filter** narrows each case's pathologist pool by subspecialty match, IHC capability, and a participant-editable fatigue cap. A **Routing Agent** picks one pathologist per case with rationale. A **QA Reviewer** flags any obvious problems.
 
 **Why this matters.** It demonstrates how cooperating agents can express what was previously a single person's tacit decision process as something inspectable, tunable, and reproducible across shifts. It also shows how a single editable parameter — the fatigue threshold — can ripple through the whole pipeline.
+
+### Scenario D — Integrated Report → WHO
+
+**The clinical problem.** Modern integrated pathology reports come back from reference labs as multi-page PDFs that combine narrative text, immunohistochemistry tables, genomic findings, structural variants, embedded H&E and IHC photomicrographs, and a free-text pathologist comment block. The information is rich but it is not structured the way downstream institutional reporting systems need it. A pathologist who receives one of these still has to read it carefully and translate the relevant pieces into the standardized layered diagnosis their own institution issues — typically following the current World Health Organization classification (CNS5 for brain tumors, Breast 5th edition for breast carcinomas, and so on). No new clinical reasoning is added in that step; it is mostly structured re-encoding.
+
+**What the workflow does.** Loads one of three fabricated integrated reports (an adult diffuse glioma, a pediatric medulloblastoma, and a breast invasive carcinoma). A **PDF Intake** agent reads the report and, optionally, runs a vision model over the embedded H&E and IHC images to produce short visual descriptions. A **Molecular Parser** normalizes the messy molecular section into a clean structured list of variants, copy-number alterations, fusions, biomarkers, and methylation. A **Histology Synthesizer** combines the H&E narrative, the IHC profile, and the image descriptions into a short morphologic synthesis paragraph. A **WHO Classifier** — the heart of the demo — applies the appropriate WHO 5th-edition rules to produce a layered integrated diagnosis (integrated, histologic, grade, molecular). A **QA Reviewer** checks the result against a catalog of required findings for the relevant tumor family and flags anything missing. A **Report Formatter** renders the final report in WHO-layered Markdown, narrative, JSON, or HTML.
+
+**Why this matters.** It demonstrates two capabilities the first three scenarios do not exercise: structured extraction from a heterogeneous document, and the use of a multimodal vision model on embedded images. It also gives you a concrete experience of guideline-driven reporting — the WHO classifier's system prompt is the editable lever, and tightening or loosening one rule in that prompt visibly changes the layered diagnosis at the bottom of the report.
 
 ---
 
@@ -133,6 +143,21 @@ For each scenario, there are also **chat-input directives** — short English ph
 | Routing Agent | System Prompt | The decision criteria and tie-breakers. |
 | QA Reviewer | Min Severity to Surface | low, medium, or high. |
 | Report Formatter | Format | markdown, csv, json, narrative, or html. |
+
+### Scenario D — Integrated Report → WHO parameters
+
+| Node | Field | What it does |
+|---|---|---|
+| Pipeline Config | System Prompt | Controls which user directives are accepted. |
+| PDF Intake | Sample ID | Which fabricated report to load. One of `sample_1` (glioma), `sample_2` (medulloblastoma), `sample_3` (breast). |
+| PDF Intake | Run Vision Call On Embedded Images | When on, the embedded H&E and IHC placeholders are sent to a vision model for description. Off by default to keep runs fast. |
+| PDF Intake | Vision System Prompt | What the vision model is asked to describe in each image. |
+| Molecular Parser | System Prompt | The schema and taxonomy for the normalized molecular records. |
+| Histology Synthesizer | System Prompt | How the morphology paragraph is composed from H&E + IHC + images. |
+| WHO Classifier | System Prompt | **The editable lever.** The WHO 5th-edition rules the classifier applies. Add a new tumor family here, tighten a grade threshold, or change the layered-diagnosis output shape. |
+| QA Reviewer | Min Severity to Surface | low, medium, or high. |
+| QA Reviewer | System Prompt | What completeness checks the reviewer runs against the WHO criteria catalog. |
+| Report Formatter | Format | who_layered, narrative, json, or html. |
 
 ---
 
@@ -206,6 +231,28 @@ Generate today's routing as html. I'm projecting it on the conference room TV. L
 For our Heme service line review — pull only Hematopathology cases, fatigue threshold fifteen, top five by stat-then-urgent ordering. Output as json so I can feed it straight into the LIS dashboard prototype.
 ```
 
+### Scenario D prompts
+
+```
+Run sample one. Layered output. I want to see how the WHO Classifier composes the integrated diagnosis when the morphology shows mitoses but no microvascular proliferation or necrosis — does it land at grade 3 or grade 4 for an IDH-mutant astrocytoma?
+```
+
+```
+Sample two with vision on. Render as html. I want to see the embedded H&E and IHC placeholders described by the vision model alongside the layered diagnosis, because the SHH activation is the call we need to defend.
+```
+
+```
+The breast case, sample three, narrative format. Write the diagnosis as a clinical paragraph a referring oncologist could read aloud at tumor board — name the entity, the Nottingham grade, the receptor status, and the PIK3CA finding as an actionable footnote.
+```
+
+```
+Sample one with vision off, json output. I want the structured machine-readable form so I can show how this output drops into a structured-reporting pipeline downstream — no markdown, no prose.
+```
+
+```
+Sample three again. Same layered format. But this time I'll edit the WHO Classifier's system prompt before running — I want to see what happens to the grade call if I tighten the Nottingham cutoff for grade 3 from eight to seven. Compare the layer-3 output before and after.
+```
+
 ---
 
 ## 6. Things to leave alone
@@ -215,7 +262,7 @@ The workshop runs better when everyone respects a few "do not touch" rules. You 
 - **Do not** drag nodes off the canvas or use the delete key on a node.
 - **Do not** disconnect the wires between nodes. Each connection carries data the next agent needs.
 - **Do not** edit fields labeled **Base URL**, **API Key**, or **Data Directory** — these point to the workshop's shared services and shared sample data.
-- **Do not** change the **Model** field on any node. Leave it on `openai/gpt-4o-mini`. Other model names will not be accepted by the workshop's proxy.
+- **Model fields** carry sensible defaults — `openai/gpt-4o-mini` on most agent nodes, and `openai/gpt-4o` on the two nodes in Scenario D that need vision or harder reasoning (the PDF Intake's vision call and the WHO Classifier). You can swap to another OpenRouter-routed model if you want to experiment, but anything outside the workshop's allow-list will be rejected by the proxy.
 - **Do not** drag new components from the left sidebar onto the canvas. The workflow assumes only the components already wired.
 - **Do not** click **Share**, **Export**, or any of the icons in the top-right corner. Your flow is auto-saved on the server; you do not need to back it up.
 - **Do not** click **+ New Flow**. Use the three flows already in your project.
@@ -225,13 +272,14 @@ The workshop runs better when everyone respects a few "do not touch" rules. You 
 
 ## 7. Pacing suggestion
 
-You will have around two hours of room time. A useful pacing is:
+You will have around two and a half hours of room time. A useful pacing is:
 
 - Minutes 0–10: get logged in, open Scenario C, run it once with no edits.
 - Minutes 10–40: Scenario C hands-on. Try the fatigue threshold change and at least two of the chat-input prompts. Watch how the routing shifts.
 - Minutes 40–75: Scenario A. Try the BRCA1-only and phenopacket-output variants. Notice how the Judge's rationale changes when you edit its system prompt.
 - Minutes 75–105: Scenario B. Find the tamoxifen ghost. Then disable the SDoH branch and run again to see what falls away.
-- Minutes 105–120: Discussion and questions. Bring the rough edges you noticed.
+- Minutes 105–135: Scenario D. Run all three samples once each. Then edit the WHO Classifier's system prompt — add a new tumor family or tighten a grade rule — and re-run to see the layered diagnosis shift. Optionally turn on the vision pass to see the embedded H&E and IHC images described.
+- Minutes 135–150: Discussion and questions. Bring the rough edges you noticed.
 
 ---
 

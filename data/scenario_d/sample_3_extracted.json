@@ -1,0 +1,80 @@
+{
+  "sample_id": "sample_3",
+  "tumor_family": "breast",
+  "source_pdf": "sample_3.pdf",
+  "institution": "Regional Breast Pathology Service",
+  "accession": "RBPS-2026-004115",
+  "report_date": "2026-04-29",
+  "demographics": {
+    "patient_id": "PID-29103",
+    "age": 52,
+    "sex": "F",
+    "indication": "Screening-detected 2.1 cm left breast mass; BIRADS 5"
+  },
+  "clinical_history": "52-year-old postmenopausal woman with a screening-detected 2.1 cm spiculated mass in the upper outer quadrant of the left breast. Core needle biopsy showed invasive carcinoma. Underwent partial mastectomy with sentinel lymph node biopsy. No personal history of breast cancer. Mother diagnosed with breast cancer at age 68; otherwise no significant family history.",
+  "specimen": "Left breast partial mastectomy with sentinel lymph node biopsy (3 nodes).",
+  "macroscopic": "Fibrofatty tissue 7.5 x 6.0 x 3.1 cm containing a firm, spiculated, gray-white tumor measuring 2.1 x 1.9 x 1.6 cm. Closest margin: 4 mm (anterior). Three sentinel lymph nodes, largest 1.4 cm.",
+  "histology_text": "Sections demonstrate invasive carcinoma of no special type composed of nests and cords of moderately atypical epithelial cells infiltrating fibrous stroma. Nottingham grade is 2 (tubule formation 3, nuclear pleomorphism 2, mitoses 2; total score 7/9). No lymphovascular invasion is identified. Margins are negative; the closest margin is 4 mm anteriorly. Associated DCIS, intermediate grade, solid pattern, is present and accounts for approximately 10% of the tumor. All three sentinel lymph nodes are negative for metastatic carcinoma (0/3).",
+  "ihc_profile": [
+    {
+      "marker": "Estrogen receptor (ER)",
+      "result": "Positive, 95% strong nuclear (Allred 8/8)"
+    },
+    {
+      "marker": "Progesterone receptor (PR)",
+      "result": "Positive, 40% strong nuclear (Allred 7/8)"
+    },
+    {
+      "marker": "HER2 (4B5)",
+      "result": "1+ (negative); no further FISH testing indicated"
+    },
+    {
+      "marker": "Ki-67 (MIB-1)",
+      "result": "Approximately 18%"
+    },
+    {
+      "marker": "E-cadherin",
+      "result": "Positive (retained membranous)"
+    },
+    {
+      "marker": "AE1/AE3",
+      "result": "Positive"
+    }
+  ],
+  "molecular_findings": {
+    "snv_indel": [
+      {
+        "gene": "PIK3CA",
+        "hgvsc": "c.3140A>G",
+        "hgvsp": "p.H1047R",
+        "vaf": 0.32,
+        "classification": "Pathogenic / Actionable"
+      }
+    ],
+    "structural_variants": [],
+    "copy_number": [
+      {
+        "gene": "ERBB2",
+        "copy_number": 2,
+        "kind": "no amplification"
+      }
+    ],
+    "msi_status": "MSS",
+    "tmb_mutations_per_mb": 3.6,
+    "methylation": [],
+    "germline": "BRCA1 / BRCA2 / PALB2: no pathogenic variants identified"
+  },
+  "pathologist_comments": "Invasive carcinoma of no special type, Nottingham grade 2 (3+2+2=7/9), 2.1 cm, ER+/PR+/HER2-. PIK3CA H1047R detected (somatic, VAF ~32%) \u2014 actionable for alpelisib + endocrine therapy consideration in advanced/metastatic settings per current NCCN. Margins negative (closest 4 mm anterior). 0/3 sentinel nodes positive. Recommend multidisciplinary discussion of adjuvant endocrine therapy +/- chemotherapy based on recurrence-risk assays.",
+  "images": [
+    {
+      "label": "H&E \u00d720 \u2014 invasive ductal carcinoma",
+      "kind": "he",
+      "file": "images/sample_3_image_1.png"
+    },
+    {
+      "label": "ER IHC \u00d720",
+      "kind": "ihc",
+      "file": "images/sample_3_image_2.png"
+    }
+  ]
+}

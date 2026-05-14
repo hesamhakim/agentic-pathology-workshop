@@ -1,0 +1,109 @@
+{
+  "sample_id": "sample_2",
+  "tumor_family": "medulloblastoma",
+  "source_pdf": "sample_2.pdf",
+  "institution": "Children's Diagnostic Center",
+  "accession": "CDC-2026-002910",
+  "report_date": "2026-03-19",
+  "demographics": {
+    "patient_id": "PID-44021",
+    "age": 8,
+    "sex": "M",
+    "indication": "Posterior fossa mass with obstructive hydrocephalus"
+  },
+  "clinical_history": "8-year-old male presenting with 3-week history of progressive morning headaches, ataxia, and one episode of emesis. Imaging revealed a 3.1 cm midline cerebellar vermis mass with obstructive hydrocephalus. Underwent posterior fossa craniotomy and subtotal resection. No history of Gorlin syndrome. No family history of childhood CNS neoplasm.",
+  "specimen": "Cerebellar vermis mass, subtotal resection (multiple fragments, aggregate 2.4 cm).",
+  "macroscopic": "Soft, friable, gray-pink tissue fragments. No grossly identifiable necrosis.",
+  "histology_text": "Sections demonstrate a densely cellular small round blue cell tumor with classic medulloblastoma morphology. Tumor cells exhibit hyperchromatic nuclei, scant cytoplasm, and brisk mitotic activity. Homer Wright rosettes are identified focally. No large cell or anaplastic features are appreciated. No nodularity is seen. Surrounding cerebellar parenchyma shows reactive gliosis.",
+  "ihc_profile": [
+    {
+      "marker": "Synaptophysin",
+      "result": "Positive (diffuse)"
+    },
+    {
+      "marker": "NeuN",
+      "result": "Focal positivity"
+    },
+    {
+      "marker": "INI1 (SMARCB1)",
+      "result": "Retained nuclear expression"
+    },
+    {
+      "marker": "\u03b2-catenin",
+      "result": "Cytoplasmic (no nuclear translocation)"
+    },
+    {
+      "marker": "GAB1",
+      "result": "Positive (cytoplasmic, diffuse)"
+    },
+    {
+      "marker": "YAP1",
+      "result": "Positive (nuclear and cytoplasmic)"
+    },
+    {
+      "marker": "p53",
+      "result": "Wild-type pattern (weak, patchy)"
+    },
+    {
+      "marker": "Ki-67 (MIB-1)",
+      "result": "Approximately 45% in hotspots"
+    }
+  ],
+  "molecular_findings": {
+    "snv_indel": [
+      {
+        "gene": "PTCH1",
+        "hgvsc": "c.2071C>T",
+        "hgvsp": "p.R691*",
+        "vaf": 0.49,
+        "classification": "Pathogenic"
+      },
+      {
+        "gene": "TP53",
+        "hgvsc": "wild-type",
+        "hgvsp": "wild-type",
+        "vaf": null,
+        "classification": "Wild-type"
+      }
+    ],
+    "structural_variants": [
+      {
+        "kind": "rna_signature",
+        "description": "SHH-pathway transcriptional signature (centroid match: SHH-activated)"
+      }
+    ],
+    "copy_number": [
+      {
+        "gene": "MYC",
+        "copy_number": 2,
+        "kind": "diploid (no amplification)"
+      },
+      {
+        "gene": "MYCN",
+        "copy_number": 2,
+        "kind": "diploid (no amplification)"
+      }
+    ],
+    "msi_status": "MSS",
+    "tmb_mutations_per_mb": 1.1,
+    "methylation": [
+      {
+        "locus": "Methylation class (DKFZ classifier)",
+        "status": "MB, SHH (subgroup 3)"
+      }
+    ]
+  },
+  "pathologist_comments": "Morphology consistent with classic medulloblastoma. IHC profile (GAB1+, YAP1+, \u03b2-catenin cytoplasmic) supports SHH activation; methylation classifier confirms MB, SHH subgroup. TP53 wild-type and no MYC/MYCN amplification \u2014 favorable molecular risk relative to TP53-mutant SHH subtype. INI1 retained excludes AT/RT. Recommend craniospinal staging and integrated risk stratification per current pediatric MB protocols.",
+  "images": [
+    {
+      "label": "H&E \u00d720 \u2014 small round blue cell tumor",
+      "kind": "he",
+      "file": "images/sample_2_image_1.png"
+    },
+    {
+      "label": "GAB1 IHC \u00d720",
+      "kind": "ihc",
+      "file": "images/sample_2_image_2.png"
+    }
+  ]
+}
