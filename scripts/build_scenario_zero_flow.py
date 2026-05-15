@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
-"""Build the 0_naive_integrated_chatbot flow programmatically.
+"""Build the 0_general_chatbot flow programmatically.
 
-This is the "before" baseline for the workshop's pedagogical contrast.
-Layout:
+A deliberately generic chatbot — the warm-up baseline for the workshop's
+pedagogical contrast. Layout:
 
-  File1 (PDF morphology) ─────┐
-  File2 (PDF flow) ───────────┤
-  File3 (PDF cytogenetics) ───┼─→ NaiveIntegratorChatbot ──→ ChatOutput
-  File4 (PDF molecular) ──────┤
-  ChatInput ──────────────────┘
+  File1 (optional) ─┐
+  File2 (optional) ─┤
+  File3 (optional) ─┼─→ GeneralChatbot ──→ ChatOutput
+  File4 (optional) ─┤
+  ChatInput ────────┘
 
-Attendees upload one Omar AML PDF onto each File node, type a directive
-("produce an integrated diagnostic report") into the chat panel, and see
-what a single-LLM-call chatbot does with the same input that Scenario D's
-seven-component workflow handles in a multi-stage agentic fashion. The
-side-by-side comparison is the workshop's first lesson.
+The chatbot has no domain specialization. Attendees upload whatever
+files they want, type whatever question they want, and get one
+LLM-generated answer back. The suggested workshop exercise — upload
+Omar's four AML PDFs and ask for an integrated diagnostic report —
+then sets up the side-by-side comparison with Scenario D's
+seven-component agentic workflow on the same input.
 
 Mirrors scripts/build_scenario_d_v2_flow.py — same edge encoding,
 upload-and-save pattern.
@@ -125,11 +126,11 @@ def make_edge(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="http://localhost:7860")
-    parser.add_argument("--name", default="0_naive_integrated_chatbot")
+    parser.add_argument("--name", default="0_general_chatbot")
     parser.add_argument("--no-upload", action="store_true")
     args = parser.parse_args()
 
-    out_path = Path(__file__).resolve().parents[1] / "langflow_flows" / "0_naive_integrated_chatbot.json"
+    out_path = Path(__file__).resolve().parents[1] / "langflow_flows" / "0_general_chatbot.json"
 
     with httpx.Client(base_url=args.host, timeout=60.0) as client:
         print("=> login")
@@ -145,7 +146,7 @@ def main() -> int:
 
         chat_in = get_component(all_components, cat_io, "ChatInput")
         file_tpl = get_component(all_components, cat_files, "File")
-        chatbot = get_component(all_components, cat_zero, "NaiveIntegratorChatbot")
+        chatbot = get_component(all_components, cat_zero, "GeneralChatbot")
         chat_out = get_component(all_components, cat_io, "ChatOutput")
 
         # Four file nodes stacked vertically on the left, chat input below,
@@ -155,7 +156,7 @@ def main() -> int:
         n_file2  = make_node(file_tpl,   "File",        (50, 320))
         n_file3  = make_node(file_tpl,   "File",        (50, 540))
         n_file4  = make_node(file_tpl,   "File",        (50, 760))
-        n_chatbot = make_node(chatbot,   "NaiveIntegratorChatbot", (700, 500))
+        n_chatbot = make_node(chatbot,   "GeneralChatbot",         (700, 500))
         n_chatout = make_node(chat_out,  "ChatOutput",  (1300, 500))
 
         nodes = [n_file1, n_file2, n_file3, n_file4, n_chatin, n_chatbot, n_chatout]
@@ -175,12 +176,14 @@ def main() -> int:
         flow_payload = {
             "name": args.name,
             "description": (
-                "Naive integrator chatbot — the 'before' baseline for the "
-                "workshop's pedagogical contrast. Upload one Omar AML PDF onto "
-                "each File node, then ask the chatbot in Playground to produce "
-                "an integrated diagnostic report. Compare the output side-by-"
-                "side with what Scenario D's seven-component agentic workflow "
-                "produces from the same four PDFs."
+                "General chatbot — a generic single-LLM-call assistant that "
+                "accepts up to four file attachments and a chat message. The "
+                "workshop's warm-up exercise: upload the four Omar AML PDFs, "
+                "ask in Playground for an integrated diagnostic report, then "
+                "compare what this chatbot produces against the seven-"
+                "component agentic workflow in Scenario D running on the "
+                "same input. The chatbot itself has no specialization — "
+                "everything happens in one prompt."
             ),
             "data": {
                 "nodes": nodes,

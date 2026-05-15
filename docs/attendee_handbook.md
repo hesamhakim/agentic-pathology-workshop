@@ -12,7 +12,7 @@ The session starts with a **warm-up exercise** designed to show you, plainly, wh
 
 The path is:
 
-0. **Scenario 0 — Naive Integrator Chatbot (warm-up)** — upload the four AML component reports for one patient (bone marrow morphology, flow cytometry, cytogenetics, molecular NGS) onto a chatbot that makes a single LLM call. Note what it produces, and especially what it does *not* produce (no per-sentence evidence trace back to the source PDFs, no explicit handling of cross-report discordances, no QA pass, no enforced "lane discipline" keeping prognostic variants out of the diagnostic line, no structured output for downstream systems).
+0. **Scenario 0 — General Chatbot (warm-up)** — a generic single-LLM-call chatbot. You can attach files, type any question, get one answer. Nothing specialized to pathology. The suggested exercise is to attach the four Omar AML component reports (bone marrow morphology, flow cytometry, cytogenetics, molecular NGS) and ask, in plain English, for an integrated diagnostic report — but you can also just chat with it about anything else in those files. The point is to feel what a general-purpose chat tool can do, and what it visibly does *not* do (no per-sentence evidence trace back to the source PDFs, no enforced handling of cross-report discordances, no QA pass, no automatic lane discipline keeping prognostic variants out of the diagnostic line, no structured machine-readable output for downstream systems, and meaningful variability between runs).
 1. **Scenario A — Variant Tournament** — picking the most clinically actionable variants from a sequencing report.
 2. **Scenario B — Longitudinal Ghost** — reconciling a current pathology request against years of patient chart notes to spot contradictions.
 3. **Scenario C — Digital Thread** — routing the morning case load to pathologists, balancing subspecialty, instrument capacity, and reader fatigue.
@@ -31,7 +31,7 @@ You will receive a personal username at the door (printed on your badge or sent 
 1. Open the URL in any modern browser (Chrome, Edge, Firefox, Safari).
 2. Sign in with your `pi-user-NNN` username from your badge and the shared password.
 3. You will land on a page titled **My Projects** showing five flows:
-   - `0_naive_integrated_chatbot` (the warm-up — run this first)
+   - `0_general_chatbot` (the warm-up — run this first)
    - `A_variant_tournament`
    - `B_longitudinal_ghost`
    - `C_digital_thread_v2`
@@ -44,15 +44,25 @@ Your account is private. Other attendees cannot see your edits, and your edits c
 
 ## 2. The scenarios — what each solves
 
-### Scenario 0 — Naive Integrator Chatbot (warm-up)
+### Scenario 0 — General Chatbot (warm-up)
 
-**The point.** Scenario 0 is not a workflow you'll edit at length. It's a deliberately bare-bones chatbot that lets you see, in your own session, what a single large-language-model call does when handed four separate pathology PDFs and asked for an integrated diagnostic report. The whole exercise takes about ten minutes and exists to set up the contrast for the rest of the day.
+**The point.** Scenario 0 is a plain general-purpose chatbot — the same shape as any "upload a few documents, ask questions" assistant you've used. Nothing in its design is specialized for pathology, for integrated reporting, or for any particular task. The whole exercise takes about ten or fifteen minutes and exists to give you a baseline feel for what a single LLM call can and cannot do, before you spend the rest of the day looking at workflows that are purpose-built around specific problems.
 
-**Where the PDFs come from.** The four AML component PDFs are in the workshop GitHub repo at [`data/scenario_d/case_aml/`](https://github.com/hesamhakim/agentic-pathology-workshop/tree/main/data/scenario_d/case_aml). Download the four files (`01_bone_marrow_morphology.pdf`, `02_flow_cytometry.pdf`, `03_cytogenetics_fish.pdf`, `04_molecular_ngs.pdf`) to your laptop before the workshop, or click the raw-file download links from the GitHub UI live during the session. The facilitator will also have them on a USB drive.
+**Where the PDFs come from.** The four Omar AML component PDFs are in the workshop GitHub repo at [`data/scenario_d/case_aml/`](https://github.com/hesamhakim/agentic-pathology-workshop/tree/main/data/scenario_d/case_aml). Download the four files (`01_bone_marrow_morphology.pdf`, `02_flow_cytometry.pdf`, `03_cytogenetics_fish.pdf`, `04_molecular_ngs.pdf`) to your laptop before the workshop, or click the raw-file download links from the GitHub UI live during the session. The facilitator will also have them on a USB drive.
 
-**What you do.** Open the `0_naive_integrated_chatbot` flow. The canvas shows four File nodes on the left (one per component PDF), one Chat Input node, one **Naive Integrator Chatbot** node in the middle that does all the work, and a Chat Output on the right. Drag each of the four Omar AML component PDFs onto its respective File node (`01_bone_marrow_morphology.pdf` onto the first slot, `02_flow_cytometry.pdf` onto the second, and so on). Click **Playground**. Type "produce an integrated diagnostic report for this patient" into the chat panel. Press send. Wait fifteen to thirty seconds. Read the output. You can also test what the chatbot does if you simply paste a slightly different instruction in plain English ("write me a short summary", "give me the molecular findings only", etc.) — it's a chatbot, it answers in plain prose.
+**What you do.** Open the `0_general_chatbot` flow. The canvas shows four File nodes on the left (each optional), one Chat Input node, one **General Chatbot** node in the middle that holds a generic helpful-assistant prompt, and a Chat Output on the right. Drag the four Omar AML PDFs onto the four File nodes (one PDF per slot, in any order — the chatbot doesn't know what each modality is supposed to be). Click **Playground**. Now you can chat with the bot the way you would chat with any general-purpose LLM that has your documents in context.
 
-**What you're looking for.** The output will almost certainly read fine on first glance. The model is gpt-4o (the same model Scenario D uses for its integrator). It will probably name acute myeloid leukemia, probably mention NPM1 and FLT3, probably handle the morphology-vs-flow blast-count discordance in some plausible way. The point is what it does *not* produce. Specifically, ask yourself, with the output in front of you, the questions a pathologist sitting next to you would ask: How do I know which source supports each sentence? Was the DNMT3A R882H finding correctly kept out of the diagnosis line, or did it drift into the WHO entity name? If the model is wrong about something, where in the output would I see it? If a downstream LIS wanted to ingest this report as structured data, what would I parse? Run the chatbot a second time with the exact same input and watch how much the structure of the answer changes between runs — that is the well-known "variability" of a single-LLM call. Scenario D, which you'll work through later in the day, was built to address exactly these gaps.
+A good suggested first question is the one the rest of the workshop is built around: *"Produce an integrated diagnostic report for this patient using all four reports."* But you can also try anything else — *"What's the patient's age and presenting symptoms?"*, *"Are there any conflicting findings between the morphology and flow reports?"*, *"List every gene named in the molecular report."* It's a chatbot. It will answer.
+
+**What you're looking for.** The output for the integrated-report request will almost certainly read fine on first glance. The model is gpt-4o (the same model Scenario D uses for its integrator). It will probably name acute myeloid leukemia, probably mention NPM1 and FLT3, probably handle the morphology-vs-flow blast-count discordance in some plausible way. The point is what is *not* there. Specifically, ask yourself, with the output in front of you, the questions a pathologist sitting next to you would ask:
+
+- How do I know which of the four source PDFs supports any given sentence? Is there any trace?
+- Did the chatbot place the DNMT3A R882H mutation in the final diagnosis line (it shouldn't — DNMT3A is prognostic, not classifying) or in the prognostic notes section? Did anything in the chatbot prevent the variant from drifting into the diagnosis line, or did the model just happen to do it right this time?
+- If the chatbot got something wrong, where in the output would I see the failure?
+- If a downstream lab information system wanted to ingest this report as structured data, what would I parse? Is there a JSON anywhere?
+- Run the same input a second time. How much does the structure of the answer change between runs?
+
+Those gaps — traceability, enforced lane discipline, QA flagging, structured output, run-to-run consistency — are what the multi-stage workflow in Scenario D was built to add on top of the same underlying model. You will compare the two outputs side by side later in the day when you reach Scenario D.
 
 ### Scenario A — Variant Tournament
 
@@ -112,15 +122,15 @@ Each agent node exposes inputs you can edit. Edit them directly on the canvas: c
 
 For each scenario, there are also **chat-input directives** — short English phrases you type in Playground that the Pipeline Config agent translates into structured overrides for the rest of the pipeline. These let you change five parameters at once just by typing.
 
-### Scenario 0 — Naive Integrator Chatbot parameters
+### Scenario 0 — General Chatbot parameters
 
 | Node | Field | What it does |
 |---|---|---|
-| File (×4) | _(upload)_ | Drag the four AML PDFs onto the four File nodes (top to bottom: morphology, flow, cytogenetics, molecular). LangFlow parses each PDF and outputs a Message containing the file text. The downloads are at `data/scenario_d/case_aml/01_…04_…` in the workshop repo. |
-| Naive Integrator Chatbot | System Prompt | The single instruction the LLM gets. This is the entire "workflow" — there's nothing else. Try tightening it (ask for an evidence trace, demand a structured JSON output, instruct it to keep non-classifying variants out of the diagnosis line) and see how much you can buy back with prompt engineering alone before you reach for a multi-stage workflow. |
-| Naive Integrator Chatbot | Model | Default `openai/gpt-4o` (same as Scenario D's integrator) so the comparison isolates workflow design, not the model. |
-| Naive Integrator Chatbot | Temperature | Default 0.2. Run with 0.7 to feel the variability between runs more directly. |
-| Naive Integrator Chatbot | Max Tokens | Default 2500. Raise it if the chatbot is truncating mid-report. |
+| File (×4) | _(attach)_ | Drag any documents (PDFs, txt, etc.) onto the four File nodes. They're all optional — the chatbot will use whichever are attached as context. For the suggested integrated-report exercise, attach the four Omar AML PDFs from `data/scenario_d/case_aml/` in the workshop repo. |
+| General Chatbot | System Prompt | The single instruction the LLM gets. Defaults to a generic helpful-assistant prompt with no domain specialization. The entire "workflow" is this one prompt — there's nothing else. Try tightening it for a specific task (ask for an evidence trace, demand a structured JSON output, instruct it to keep non-classifying variants out of the diagnosis line for the integrated-report exercise) and see how much you can buy back with prompt engineering alone before you reach for a multi-stage workflow. |
+| General Chatbot | Model | Default `openai/gpt-4o` (the same model the workshop's agentic workflows use for their main reasoner) so any difference you see later between this chatbot and Scenario D isolates workflow design, not the model. |
+| General Chatbot | Temperature | Default 0.2. Run with 0.7 to feel the variability between runs more directly. |
+| General Chatbot | Max Tokens | Default 2500. Raise it if the chatbot is truncating long answers. |
 
 ### Scenario A — Variant Tournament parameters
 
@@ -333,7 +343,7 @@ The workshop runs better when everyone respects a few "do not touch" rules. You 
 
 You will have around two and a half hours of room time. A useful pacing is:
 
-- Minutes 0–15: get logged in, open Scenario 0, run the naive chatbot on the four AML PDFs. Note what it produces and what it doesn't. Don't spend more than fifteen minutes here — the point is to set up the contrast, not to refine the chatbot.
+- Minutes 0–15: get logged in, open Scenario 0, attach the four AML PDFs and chat with the general chatbot — at minimum ask it to produce an integrated diagnostic report; try a few other questions if you have time. Note what it does and doesn't produce. Don't spend more than fifteen minutes here — the point is to set up the contrast, not to refine the chatbot.
 - Minutes 15–40: Scenario C hands-on. Try the fatigue threshold change and at least two of the chat-input prompts. Watch how the routing shifts.
 - Minutes 40–70: Scenario A. Try the BRCA1-only and phenopacket-output variants. Notice how the Judge's rationale changes when you edit its system prompt.
 - Minutes 70–100: Scenario B. Find the tamoxifen ghost. Then disable the SDoH branch and run again to see what falls away.
