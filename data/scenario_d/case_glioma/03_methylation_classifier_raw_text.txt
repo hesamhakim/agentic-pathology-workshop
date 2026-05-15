@@ -1,0 +1,52 @@
+
+=== PAGE 1 ===
+
+1450 Halsted, North Tower, Lakeshore, IL 60002
+Brain Tumor Methylation
+CLIA 14D9928844
+Reference Service Service Director: Hofmann, Kerstin H., PhD, Director (Neuropathology
+Bioinformatics)
+DNA METHYLATION-BASED CNS TUMOR CLASSIFIER (v12.5) — FINAL REPORT
+PATIENT SPECIMEN ORDERING
+MARTINEZ-LANG, ELENA J. Reference accession BTMRS-26-M-0907 Northshore University Hospital
+MRN MRN-3318477 Client SP-26-N-04412 Reyes, M., MD
+47 y / Female FFPE, ~24h fixation Received 2026-04-20
+DNA extracted 2026-04-23 Reported 2026-04-29
+CLASSIFIER RESULT
+Methylation family: Diffuse glioma, IDH-mutant
+Methylation class: Astrocytoma, IDH-mutant (high-grade)
+Calibrated score: 0.97 (threshold for classification: ‡ 0.90)
+MGMT promoter status (by array beta-value model): Unmethylated
+METHODOLOGY
+Genomic DNA was extracted from FFPE tumor tissue (cassette A4). DNA (500 ng) was bisulfite-converted and assayed on the
+Illumina Infinium MethylationEPIC v2.0 array (~935,000 CpGs). Raw IDAT files were processed by an in-house pipeline
+(preprocessNoob, BMIQ, batch-effect correction); the resulting beta-value matrix was submitted to the CNS Tumor Methylation
+Classifier (v12.5, publicly available reference cohort). A random-forest classifier assigns one of 184 methylation classes; calibrated
+scores derived via Platt scaling on an independent validation cohort.
+TOP CLASSIFICATION CANDIDATES (calibrated scores)
+Methylation class Family Score
+Astrocytoma, IDH-mutant (high-grade) Diffuse glioma, IDH-mutant 0.97
+Astrocytoma, IDH-mutant (low-grade) Diffuse glioma, IDH-mutant 0.02
+Oligodendroglioma, IDH-mutant + 1p/19q codeleted Diffuse glioma, IDH-mutant 0.00
+Glioblastoma, IDH-wildtype, methylation class mesenchymal Glioblastoma, IDH-wildtype 0.00
+Reactive tumor microenvironment / control tissue Control / normal 0.00
+The top class receives a calibrated score well above the 0.90 threshold for high-confidence classification. The second-ranked class is the low-grade variant of the
+same family; this does not alter the entity assignment but is consistent with grading by histology + molecular criteria as reported separately.
+COPY-NUMBER PROFILE (FROM ARRAY)
+Array-derived copy-number profile is largely balanced. No CDKN2A/B (9p21.3) homozygous deletion. No EGFR amplification. No
+chromosome 7 gain / chromosome 10 loss. No PDGFRA amplification. No focal MYC / MYCN amplification. The CDKN2A/B status is
+concordant with the panel NGS report (accession HX-NGS-CNS-018244).
+INTERPRETATION
+The methylation profile classifies as Astrocytoma, IDH-mutant (high-grade) with a calibrated score of 0.97 (high confidence). This is
+concordant with the histologic (diffuse astrocytic morphology) and molecular (IDH1 R132H, ATRX loss, TP53 R175H, 1p/19q intact,
+CDKN2A/B diploid, MGMT unmethylated) findings. Methylation grading nomenclature recognizes a high-grade vs low-grade split; final
+WHO grade assignment under CNS5 is derived from integration of histology (mitotic activity, microvascular proliferation, necrosis) and
+molecular criteria (CDKN2A/B homozygous deletion). The classifier result alone is consistent with grade 3 or 4 but does not establish
+the grade independently.
+LIMITATIONS
+The methylation classifier is intended for adjunctive use alongside histopathology and molecular testing. Calibrated scores below 0.90 should not be used for
+classification. Tumor purity, age effects on the FFPE block, and array-batch variation can influence performance. This report does not assign a WHO grade. The
+classifier reflects the v12.5 reference cohort and may differ from prior versions.
+Electronically signed: Hofmann, Kerstin H., PhD, Director (Neuropathology Bioinformatics), and Adebayo, Tunde O., PhD, Senior Bioinformatics Scientist —
+2026-04-29.
+Reference accession BTMRS-26-M-0907 | Client SP-26-N-04412 | MRN-3318477 | Page 1 of 1

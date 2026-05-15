@@ -1,0 +1,314 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AML Integrated Reporting - Extractor Output Schema",
+  "description": "Structured representation of the four component pathology reports for one diagnostic episode. The extractor reads all four source PDFs and emits ONE object conforming to this schema. Every extracted finding carries a source_id so the integrator can build a per-sentence evidence trace.",
+  "type": "object",
+  "required": ["case_id", "sources", "patient", "specimen", "components", "cross_report_observations"],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "Workshop case identifier, e.g. 'AML-WORKSHOP-CASE-01'."
+    },
+    "sources": {
+      "type": "array",
+      "description": "One entry per source PDF. source_id values are referenced throughout the rest of the document.",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "report_type", "accession", "performing_lab", "report_date"],
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "enum": ["MORPH", "FLOW", "CYTO", "MOLEC"],
+            "description": "Short stable handle for this report."
+          },
+          "report_type": {
+            "type": "string",
+            "enum": ["bone_marrow_morphology", "flow_cytometry", "cytogenetics_fish", "molecular_ngs"]
+          },
+          "accession": { "type": "string" },
+          "performing_lab": { "type": "string" },
+          "report_date": { "type": "string", "description": "ISO date the component was reported." },
+          "report_status": { "type": "string", "description": "e.g. FINAL, PRELIMINARY." }
+        }
+      }
+    },
+    "patient": {
+      "type": "object",
+      "required": ["name", "mrn", "age", "sex"],
+      "properties": {
+        "name": { "type": "string" },
+        "mrn": { "type": "string" },
+        "age": { "type": "integer" },
+        "sex": { "type": "string" },
+        "ordering_provider": { "type": "string" }
+      }
+    },
+    "specimen": {
+      "type": "object",
+      "required": ["site", "collection_date"],
+      "properties": {
+        "site": { "type": "string" },
+        "collection_date": { "type": "string" },
+        "types_received": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "e.g. aspirate smears, core biopsy, clot section."
+        }
+      }
+    },
+    "clinical_history": {
+      "type": "object",
+      "properties": {
+        "summary": { "type": "string" },
+        "cbc": {
+          "type": "object",
+          "properties": {
+            "wbc": { "type": "string" },
+            "hemoglobin": { "type": "string" },
+            "platelets": { "type": "string" },
+            "peripheral_blast_pct": { "type": "number" }
+          }
+        },
+        "source_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Which reports stated this history (it is repeated across reports)."
+        }
+      }
+    },
+    "components": {
+      "type": "object",
+      "description": "One block per modality. Each finding object carries its own source_id and a verbatim_support string copied from the source so the trace can be checked.",
+      "required": ["morphology", "flow_cytometry", "cytogenetics", "molecular"],
+      "properties": {
+        "morphology": {
+          "type": "object",
+          "properties": {
+            "source_id": { "type": "string", "const": "MORPH" },
+            "aspirate_blast_pct": { "type": "number" },
+            "blast_count_method": { "type": "string" },
+            "core_cellularity_pct": { "type": "string" },
+            "core_blast_assessment": { "type": "string" },
+            "lineage_assessment": {
+              "type": "string",
+              "description": "What morphology concluded about lineage, including any hedging."
+            },
+            "auer_rods": { "type": "string" },
+            "cytochemistry": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "stain": { "type": "string" },
+                  "result": { "type": "string" }
+                }
+              }
+            },
+            "dysplasia_notes": { "type": "string" },
+            "morphologic_diagnosis": { "type": "string" },
+            "stated_limitations": { "type": "string" },
+            "key_findings": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/finding" }
+            }
+          }
+        },
+        "flow_cytometry": {
+          "type": "object",
+          "properties": {
+            "source_id": { "type": "string", "const": "FLOW" },
+            "blast_pct_of_tnc": { "type": "number" },
+            "blast_immunophenotype": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "marker": { "type": "string" },
+                  "result": { "type": "string" }
+                }
+              }
+            },
+            "monocytic_population": {
+              "type": "object",
+              "properties": {
+                "present": { "type": "boolean" },
+                "approx_pct_of_tnc": { "type": "number" },
+                "immunophenotype_summary": { "type": "string" }
+              }
+            },
+            "aberrant_markers": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Markers flagged as aberrant, useful for MRD."
+            },
+            "lineage_conclusion": { "type": "string" },
+            "stated_limitations": { "type": "string" },
+            "key_findings": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/finding" }
+            }
+          }
+        },
+        "cytogenetics": {
+          "type": "object",
+          "properties": {
+            "source_id": { "type": "string", "const": "CYTO" },
+            "karyotype_iscn": { "type": "string" },
+            "karyotype_interpretation": { "type": "string" },
+            "fish_panel": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "probe": { "type": "string" },
+                  "target": { "type": "string" },
+                  "result": { "type": "string" }
+                }
+              }
+            },
+            "cytogenetic_risk_category": { "type": "string" },
+            "stated_limitations": { "type": "string" },
+            "key_findings": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/finding" }
+            }
+          }
+        },
+        "molecular": {
+          "type": "object",
+          "properties": {
+            "source_id": { "type": "string", "const": "MOLEC" },
+            "panel_description": { "type": "string" },
+            "variants_detected": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["gene", "tier", "classifying"],
+                "properties": {
+                  "gene": { "type": "string" },
+                  "hgvs": { "type": "string" },
+                  "consequence": { "type": "string" },
+                  "vaf": { "type": "string" },
+                  "tier": { "type": "string" },
+                  "classifying": {
+                    "type": "boolean",
+                    "description": "Whether this variant by itself defines or changes the WHO/ICC disease category. NPM1 = true; DNMT3A = false."
+                  },
+                  "prognostic_note": { "type": "string" }
+                }
+              }
+            },
+            "genes_no_variant": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "molecular_interpretation": { "type": "string" },
+            "stated_limitations": { "type": "string" },
+            "key_findings": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/finding" }
+            }
+          }
+        }
+      }
+    },
+    "cross_report_observations": {
+      "type": "object",
+      "description": "Findings that only emerge when reports are compared. This is where the discordances and the integration logic live.",
+      "required": ["concordances", "discordances", "single_source_findings"],
+      "properties": {
+        "concordances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "statement": { "type": "string" },
+              "supporting_source_ids": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        "discordances": {
+          "type": "array",
+          "description": "Apparent conflicts between reports. Each must carry a resolution and the reasoning.",
+          "items": {
+            "type": "object",
+            "required": ["topic", "positions", "resolution", "resolution_basis"],
+            "properties": {
+              "topic": { "type": "string" },
+              "positions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "source_id": { "type": "string" },
+                    "position": { "type": "string" }
+                  }
+                }
+              },
+              "resolution": { "type": "string" },
+              "resolution_basis": {
+                "type": "string",
+                "description": "Why the resolution holds (classification rule, expected method variance, etc.)."
+              },
+              "changes_diagnosis": { "type": "boolean" }
+            }
+          }
+        },
+        "single_source_findings": {
+          "type": "array",
+          "description": "Decisive findings present in exactly one report. The core argument for integrated reporting.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "finding": { "type": "string" },
+              "only_source_id": { "type": "string" },
+              "invisible_to": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "diagnostic_impact": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "extraction_metadata": {
+      "type": "object",
+      "properties": {
+        "model": { "type": "string" },
+        "uncertain_extractions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Fields the extractor was not confident about. Better surfaced than hidden."
+        }
+      }
+    }
+  },
+  "definitions": {
+    "finding": {
+      "type": "object",
+      "required": ["text", "source_id"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "The finding stated in normalized form, e.g. 'NPM1 type A insertion detected, VAF 39%'."
+        },
+        "source_id": {
+          "type": "string",
+          "description": "Which report this came from."
+        },
+        "verbatim_support": {
+          "type": "string",
+          "description": "A short verbatim phrase copied from the source PDF that supports this finding. Used to verify the trace and catch hallucination."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["lineage", "blast_burden", "genetics", "dysplasia", "prognosis", "limitation", "other"]
+        }
+      }
+    }
+  }
+}

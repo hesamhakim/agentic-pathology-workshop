@@ -1,0 +1,63 @@
+
+=== PAGE 1 ===
+
+FLOW CYTOMETRY LABORATORY
+Riverbend Regional Medical Center 1200 Halsted Avenue, Lakeshore, IL 60000
+CLIA 14D9999999
+CLINICAL FLOW CYTOMETRY — LEUKEMIA / LYMPHOMA IMMUNOPHENOTYPING
+PATIENT SPECIMEN REPORTING
+DOE, JONATHAN R. FC-26-003942 Resulted 2026-04-23
+MRN MRN-4471902 Bone marrow aspirate Ordering: A. Patel, MD
+DOB 1967-09-14 58 y / Male Collected 2026-04-22 Status: FINAL
+Received 2026-04-22 17:40 Priority: STAT
+CLINICAL HISTORY / INDICATION
+58-year-old man with three weeks of progressive fatigue, dyspnea on exertion, gingival bleeding, and scattered lower-extremity
+ecchymoses. CBC on admission: WBC 38.4 x10^9/L, hemoglobin 7.9 g/dL, platelets 31 x10^9/L. Peripheral smear with 41% circulating
+blasts, some with folded nuclei and abundant cytoplasm. No prior hematologic history, no prior chemotherapy or radiation. Bone marrow
+performed to evaluate for acute leukemia.
+SPECIMEN ADEQUACY & METHOD
+Viable nucleated cells isolated from bone marrow aspirate; viability 94% by 7-AAD. Eight-color panel acquired on a 3-laser cytometer
+(‡100,000 events per tube). Lysis/no-wash technique. Analysis by sequential gating (CD45 vs side scatter) with blast gate defined by
+CD45-dim/intermediate, low side scatter events.
+POPULATION SUMMARY (% of total nucleated cells)
+Population % TNC Gating notes
+Myeloid blasts (CD45-dim, low SSC, CD34+/CD117+) 22% Discrete abnormal population
+Maturing monocytes (CD14+/CD64+/CD11b+) 19% Expanded; left-shifted
+Promonocytes / immature monocytic (CD64+, CD14-dim/var, HLA-DR+) 11% Counted with monocytic series
+Maturing granulocytes 28% Decreased, left-shifted
+Erythroid precursors (CD71+/CD235a+) 9% Decreased
+Mature lymphocytes (T/B/NK) 8% Polytypic, no aberrancy
+Other / unclassified 3% --
+BLAST GATE IMMUNOPHENOTYPE
+Marker Result Marker Result
+CD34 Positive (subset, ~60%) CD64 Positive
+CD117 Positive CD4 Positive (dim)
+HLA-DR Positive (bright) CD11b Partial / variable
+CD13 Positive CD14 Negative on blasts
+CD33 Positive (bright) CD56 Positive (partial, aberrant)
+CD38 Positive CD7 Positive (aberrant, subset)
+MPO (cyto) Positive, dim subset CD2 / CD19 / cyCD3 Negative
+MONOCYTIC POPULATION IMMUNOPHENOTYPE
+Marker Result Marker Result
+CD14 Positive (maturing fraction) HLA-DR Positive
+CD64 Positive (bright, uniform) CD4 Positive (dim)
+CD11b Positive CD13 / CD33 Positive
+CD11c Positive CD34 Negative
+CD36 Positive CD56 Partial (subset)
+INTERPRETATION
+Flow cytometry demonstrates an abnormal myeloid blast population comprising approximately 22% of total nucleated cells, expressing
+CD34, CD117, HLA-DR, CD13, CD33, and dim cytoplasmic MPO, with aberrant CD56 and partial CD7. In addition, there is a markedly
+expanded and left-shifted monocytic compartment (maturing monocytes plus promonocytes together approximately 30% of total
+nucleated cells) with bright uniform CD64, CD14 on the maturing fraction, CD11b, CD11c, CD36, HLA-DR, and dim CD4.
+
+=== PAGE 2 ===
+
+The combined findings are diagnostic of acute myeloid leukemia with monocytic differentiation. The immunophenotype
+establishes the monocytic lineage that was only favored on morphology. Note that the flow blast estimate (22%) differs modestly from
+the manual aspirate differential; flow gating and manual counts are expected to differ and either value supports the diagnosis in this
+context. Aberrant CD56/CD7 expression is noted and may be useful for measurable residual disease tracking. Correlation with
+cytogenetic and molecular studies is required for final classification and is recommended.
+Electronically verified by Priya N. Raghavan, MD, Director of Flow Cytometry, 2026-04-23 14:08. Flow cytometry is a component study within a combined diagnostic
+workup; final lineage and classification require integration with morphology, cytogenetics, and molecular results. Method: laboratory-developed test, performance
+characteristics established by Riverbend Regional Medical Center.
+Accession FC-26-003942 | MRN-4471902 | Page 1 of 1

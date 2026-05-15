@@ -1,0 +1,70 @@
+{
+  "integrated_diagnosis": "Astrocytoma, IDH-mutant, CNS WHO grade 3",
+  "histologic_diagnosis": "Diffuse astrocytic glioma",
+  "who_grade": 3,
+  "guideline_source": "WHO CNS5 (2021)",
+  "required_molecular_features": [
+    "IDH1",
+    "ATRX",
+    "MGMT",
+    "CDKN2A_status",
+    "1p19q_status"
+  ],
+  "classifying_variants": [
+    "IDH1 R132H",
+    "ATRX loss"
+  ],
+  "non_classifying_variants_reported": [
+    "TP53 R175H"
+  ],
+  "expected_discordances": [],
+  "expected_concordances": [
+    {
+      "topic": "IDH1 R132H",
+      "supporting": [
+        "NEURO (IHC)",
+        "MOLEC (NGS)"
+      ]
+    },
+    {
+      "topic": "ATRX loss",
+      "supporting": [
+        "NEURO (IHC)",
+        "MOLEC (NGS truncating)"
+      ]
+    },
+    {
+      "topic": "CDKN2A/B diploid",
+      "supporting": [
+        "MOLEC (CN)",
+        "METH (array CN)"
+      ]
+    }
+  ],
+  "expected_single_source_findings": [
+    {
+      "finding": "1p/19q non-codeleted (intact)",
+      "only_source_id": "NEURO",
+      "invisible_to": [
+        "MOLEC",
+        "METH"
+      ]
+    },
+    {
+      "finding": "MGMT promoter unmethylated",
+      "only_source_id": "MOLEC",
+      "invisible_to": [
+        "NEURO",
+        "METH"
+      ]
+    },
+    {
+      "finding": "Methylation class: Astrocytoma IDH-mutant (high-grade)",
+      "only_source_id": "METH",
+      "invisible_to": [
+        "NEURO",
+        "MOLEC"
+      ]
+    }
+  ]
+}

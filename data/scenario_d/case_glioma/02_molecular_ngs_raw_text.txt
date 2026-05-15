@@ -1,0 +1,68 @@
+
+=== PAGE 1 ===
+
+Helix Genomic Reference CAP-accredited / CLIA-certified reference laboratory
+210 Innovation Way, Cambridge Park, MA 02142
+Laboratory
+CLIA 22D7733881 (cid:127) Lab Director: Ranganathan, Vimal S., MD, PhD
+CNS TUMOR PROFILE NGS PANEL (172-GENE) — FINAL REPORT
+PATIENT SPECIMEN REQUESTED BY
+MARTINEZ-LANG, ELENA J. Reference accession HX-NGS-CNS-018244 Northshore University Hospital
+MRN MRN-3318477 | DOB 1979-06-02 Client accession SP-26-N-04412 D. Sokolov, MD
+47 y / Female FFPE block A4 (tumor) Received 2026-04-11
+Collected 2026-04-04 Reported 2026-04-22
+CLINICAL HISTORY (PROVIDED BY ORDERING SITE)
+47-year-old woman with six-week history of new-onset focal motor seizures and progressive right-hand clumsiness. MRI brain
+demonstrated a 3.8 cm right frontal lobe mass with patchy enhancement and moderate vasogenic edema. No prior cancer history, no
+prior CNS irradiation. Family history negative for CNS tumors. Underwent right frontal craniotomy with gross total resection on
+2026-04-04.
+RESULT SUMMARY
+POSITIVE — IDH1 R132H (Tier I, classifying), ATRX truncating (Tier I), TP53 R175H (Tier II, non-classifying), MGMT promoter
+unmethylated, CDKN2A/B no homozygous deletion. See variant table and interpretation.
+DETECTED VARIANTS
+Gene Variant (HGVS) Consequence VAF Tier
+IDH1 NM_005896.4:c.395G>A Missense, R132 hotspot; 42% I
+p.(Arg132His) defining for IDH-mutant astrocytoma
+ATRX NM_000489.6:c.6018del Frameshift / truncating; 41% I
+p.(Lys2007AsnfsTer4) concordant with IHC loss
+TP53 NM_000546.6:c.524G>A Missense, R175 hotspot; 38% II
+p.(Arg175His) co-occurring; non-classifying
+Tier I = strong clinical / classifying significance. Tier II = potential clinical significance (prognostic / co-occurring). VAF = variant allele frequency.
+COPY-NUMBER ANALYSIS (FROM PANEL DATA)
+Locus Copy state Interpretation
+CDKN2A/B (9p21.3) Diploid (2 copies) NO homozygous deletion. Not a grade-4 driver in this case.
+EGFR (7p11.2) Diploid No amplification (would suggest IDH-wt GBM).
+Chromosome 7 Diploid No +7 (would suggest IDH-wt GBM).
+Chromosome 10 Diploid No -10 (would suggest IDH-wt GBM).
+MGMT PROMOTER METHYLATION
+Method Result
+Pyrosequencing (4 CpGs averaged) UNMETHYLATED (mean 4.1%; cutoff <10%)
+MGMT promoter methylation is a predictive biomarker for response to alkylating chemotherapy (temozolomide). An unmethylated result is associated with reduced
+anticipated benefit. This finding does not change the disease category.
+GENES WITHOUT REPORTABLE VARIANT
+No reportable variant detected in: H3F3A (H3 G34, H3 K27), HIST1H3B, TERT promoter, BRAF (V600 and fusions), FGFR1/2/3, NF1,
+NF2, PIK3CA, PIK3R1, PTEN, RB1, MYC, MYCN, MET, CIC, FUBP1, NOTCH1, SMARCB1, and the remaining 152 genes on panel.
+(Full coverage report retained by the laboratory.)
+INTERPRETATION
+This CNS tumor NGS panel identifies a canonical IDH1 R132H missense mutation and a truncating ATRX variant (concordant with
+the IHC loss reported on the morphology specimen), together with a TP53 R175H missense variant. The constellation of IDH mutation
++ ATRX loss + TP53 mutation in a diffuse astrocytic glioma supports an astrocytoma, IDH-mutant entity per WHO CNS5 (2021).
+1p/19q integrity (assessed by neuropathology FISH on the same specimen) excludes oligodendroglioma. Importantly, CDKN2A/B is
+diploid — there is no homozygous deletion. Under WHO CNS5 grading rules, this absent grade-4 molecular criterion supports a grade
+of 2 or 3 (final grading depends on histology, specifically the presence of mitotic activity, which is described on the morphology report).
+No EGFR amplification, no +7/-10 co-occurrence, and no TERT promoter mutation: not consistent with IDH-wildtype glioblastoma.
+MGMT promoter is unmethylated, informing therapy planning. TP53 R175H is a hotspot pathogenic variant and is reported here for
+prognostic completeness; it is not a classifying variant in WHO CNS5 and should not, by itself, change the entity name in the integrated
+
+=== PAGE 2 ===
+
+diagnosis.
+METHODOLOGY & LIMITATIONS
+Hybrid-capture targeted NGS of 172 CNS-tumor-associated genes performed on tumor DNA extracted from FFPE block (cassette A4). Mean target coverage 980x;
+minimum 250x. Analytical sensitivity approximately 5% VAF for SNVs and small indels. Copy-number analysis derived from per-gene normalized read depth; reportable
+for high-confidence gains/losses. The assay does not reliably detect structural rearrangements outside targeted breakpoints, balanced translocations, or epigenetic
+events apart from MGMT (reported by orthogonal pyrosequencing). A negative result does not exclude a low-level variant or a variant in a region of low coverage. Helix
+Genomic Reference Laboratory validated this laboratory-developed test; it has not been cleared or approved by the FDA.
+Electronically signed: Ranganathan, Vimal S., MD, PhD, Laboratory Director, and Park, R., PhD, Variant Scientist — 2026-04-22. Results released to ordering institution
+for integration into the combined diagnostic report.
+Reference accession HX-NGS-CNS-018244 | Client SP-26-N-04412 | MRN-3318477 | Page 1 of 1

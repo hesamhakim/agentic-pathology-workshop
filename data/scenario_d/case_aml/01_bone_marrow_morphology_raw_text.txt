@@ -1,0 +1,64 @@
+
+=== PAGE 1 ===
+
+Riverbend Regional Medical Center
+Department of Pathology & Laboratory Medicine
+1200 Halsted Avenue, Lakeshore, IL 60000 (cid:127) CLIA 14D9999999
+HEMATOPATHOLOGY — BONE MARROW EXAMINATION
+Patient: DOE, JONATHAN R. Accession: S26-BM-01187
+MRN: MRN-4471902 Collected: 2026-04-22
+DOB / Age / Sex: 1967-09-14 / 58 y / Male Reported: 2026-04-24
+Ordering provider: Patel, Anjali R., MD (Hematology/Oncology) Location: Inpatient — 6 West Hematology
+SPECIMEN
+Bone marrow, left posterior iliac crest (aspirate and core biopsy). Aspirate smears (Wright-Giemsa), clot section, and decalcified
+core biopsy (H&E) received. Aspirate also submitted for flow cytometry, cytogenetics, and molecular studies under separate
+accession.
+CLINICAL HISTORY
+58-year-old man with three weeks of progressive fatigue, dyspnea on exertion, gingival bleeding, and scattered lower-extremity
+ecchymoses. CBC on admission: WBC 38.4 x10^9/L, hemoglobin 7.9 g/dL, platelets 31 x10^9/L. Peripheral smear with 41%
+circulating blasts, some with folded nuclei and abundant cytoplasm. No prior hematologic history, no prior chemotherapy or
+radiation. Bone marrow performed to evaluate for acute leukemia.
+ASPIRATE DIFFERENTIAL (500-cell count)
+Cell type % Cell type %
+Blasts 18 Lymphocytes 9
+Promyelocytes 3 Plasma cells 1
+Myelocytes / metamyelocytes 8 Monocytes (mature) 6
+Neutrophils / bands 21 Promonocytes* 4
+Eosinophils 2 Erythroid precursors 14
+Basophils 1 M:E ratio ~4.4:1
+* Promonocytes were enumerated separately; their assignment is morphologically subjective and is discussed below.
+MICROSCOPIC DESCRIPTION
+Aspirate. Smears are adequately cellular and spicular. There is a population of medium-to-large blasts with high
+nuclear-to-cytoplasmic ratio, fine chromatin, and one to three nucleoli. A subset of blasts shows slightly folded or indented
+nuclei with moderate amounts of grayish cytoplasm and occasional fine azurophilic granulation; rare cells contain delicate
+cytoplasmic vacuoles. Occasional cells with monocytoid features are noted, but unequivocal promonocytes are difficult to
+distinguish from immature myeloid forms on morphology alone. No definite Auer rods are identified after review of multiple
+smears. Erythropoiesis is left-shifted with mild megaloblastoid change. Megakaryocytes are reduced.
+Core biopsy and clot. The core is markedly hypercellular (cellularity approximately 90-95%) with extensive replacement by
+immature mononuclear cells arranged in sheets. Interstitial and paratrabecular distribution is noted. Residual maturing
+granulopoiesis and erythropoiesis are present but markedly decreased. Megakaryocytes are markedly reduced. Reticulin stain
+shows no significant fibrosis (MF-1). Iron stain (aspirate): storage iron present; no ring sideroblasts.
+CYTOCHEMISTRY
+Myeloperoxidase (MPO): positive in a minor subset of blasts (approximately 5-10%). Non-specific esterase (NSE,
+alpha-naphthyl butyrate): positive in a subset of cells with partial fluoride inhibition, supporting a monocytic component. The
+combined pattern is consistent with a myeloid process with probable monocytic differentiation; correlation with flow cytometry
+is recommended.
+DIAGNOSIS
+BONE MARROW, ASPIRATE AND CORE BIOPSY (LEFT POSTERIOR ILIAC CREST):
+— HYPERCELLULAR MARROW WITH ACUTE MYELOID LEUKEMIA (see comment).
+— Aspirate blast count 18% by 500-cell manual differential; core biopsy with extensive blast-equivalent infiltration.
+
+=== PAGE 2 ===
+
+— Probable monocytic differentiation by morphology and cytochemistry; to be confirmed by flow cytometry.
+COMMENT
+The manual aspirate blast percentage (18%) is below the historical 20% threshold; however, the core biopsy demonstrates
+extensive infiltration by immature cells well in excess of that proportion, and the peripheral blood blast count is 41%. Aspirate
+enumeration is likely affected by hemodilution and by the difficulty of separating promonocytes from myeloid blasts on smears.
+Under current WHO and ICC classifications, a diagnosis of acute myeloid leukemia does not require a 20% blast count when a
+defining genetic abnormality is present; classification will therefore depend on integration with flow cytometry, cytogenetic, and
+molecular results, which are pending at the time of this report. A combined integrated interpretation will follow once all
+ancillary studies are available.
+Electronically signed: Marcus T. Whitfield, MD — Hematopathology. Resident/fellow review: K. Aboud, MD. Report status: FINAL (morphology
+component). This component report is part of a larger diagnostic episode and is not intended to stand alone.
+Page 1 of 1 (cid:127) Accession S26-BM-01187 (cid:127) MRN-4471902

@@ -1,0 +1,53 @@
+
+=== PAGE 1 ===
+
+Meridian Molecular CAP-accredited / CLIA-certified reference laboratory
+85 Industrial Parkway, Suite 300, Brentwood, IL 60000
+Diagnostics
+CLIA 14D8888888 (cid:127) Lab Director: Okafor, Daniel U., MD, PhD
+MYELOID NEOPLASM NEXT-GENERATION SEQUENCING PANEL (54-GENE) — FINAL REPORT
+PATIENT SPECIMEN REQUESTED BY
+DOE, JONATHAN R. Reference accession MMD-26-NGS-22150 Riverbend Regional Medical Center
+MRN MRN-4471902 | DOB 1967-09-14 Client accession S26-BM-01187 A. Patel, MD
+58 y / Male Bone marrow aspirate, EDTA Received 2026-04-25
+Collected 2026-04-22 Reported 2026-05-04
+CLINICAL HISTORY (PROVIDED BY ORDERING SITE)
+58-year-old man with three weeks of progressive fatigue, dyspnea on exertion, gingival bleeding, and scattered lower-extremity
+ecchymoses. CBC on admission: WBC 38.4 x10^9/L, hemoglobin 7.9 g/dL, platelets 31 x10^9/L. Peripheral smear with 41% circulating
+blasts, some with folded nuclei and abundant cytoplasm. No prior hematologic history, no prior chemotherapy or radiation. Bone marrow
+performed to evaluate for acute leukemia.
+RESULT SUMMARY
+POSITIVE — Clinically significant variants detected. NPM1 (Tier I), FLT3 internal tandem duplication (Tier I), and DNMT3A (Tier II)
+identified. See variant table and interpretation.
+DETECTED VARIANTS
+Gene Variant (HGVS) Consequence VAF Tier
+NPM1 NM_002520.7:c.860_863dup Frameshift insertion (type A, 39% I
+p.(Trp288CysfsTer12) 4-bp TCTG duplication)
+FLT3 Internal tandem duplication, In-frame ITD; 31% I
+exon 14 (~36 bp insertion) ITD/WT allelic ratio 0.62
+DNMT3A NM_022552.5:c.2645G>A Missense, R882 hotspot 44% II
+p.(Arg882His)
+Tier I: variants of strong clinical significance. Tier II: variants of potential clinical significance. VAF = variant allele frequency. FLT3-ITD allelic ratio estimated by fragment
+analysis run in parallel.
+SELECTED GENES WITH NO REPORTABLE VARIANT
+No reportable variant detected in: CEBPA, RUNX1, TP53, ASXL1, IDH1, IDH2, NRAS, KRAS, KIT, TET2, SRSF2, U2AF1, SF3B1,
+EZH2, BCOR, STAG2, PTPN11, WT1, PHF6, ZRSR2, JAK2, CALR, MPL, SETBP1, CSF3R, NF1, RAD21, GATA2, ETV6, CBL. (Full
+54-gene list and coverage metrics in appendix retained by the laboratory.)
+INTERPRETATION
+This myeloid NGS panel identifies a mutated NPM1 variant (type A frameshift insertion, VAF 39%) together with a FLT3 internal
+tandem duplication (VAF 31%, ITD/WT allelic ratio 0.62) and a DNMT3A R882H missense variant (VAF 44%). In the context of an
+acute myeloid leukemia established by the morphology and flow cytometry studies, mutated NPM1 is a World Health Organization and
+ICC disease-defining genetic abnormality; the diagnosis is therefore acute myeloid leukemia with mutated NPM1, and a blast
+threshold of 20% is not required for this entity. The concurrent FLT3-ITD is prognostically adverse and is a target for FLT3 inhibitor
+therapy; the allelic ratio is reported to support treatment decisions. The DNMT3A R882H variant is commonly co-mutated with NPM1
+and FLT3-ITD and is frequently a clonal hematopoiesis founder event; it does not by itself define or change the WHO/ICC disease
+category, and is reported here for completeness and potential prognostic relevance. Correlation with morphology, flow cytometry, and
+cytogenetics is recommended; this report is one component of the integrated diagnostic workup.
+METHODOLOGY & LIMITATIONS
+Hybrid-capture targeted NGS of 54 myeloid-associated genes performed on genomic DNA from bone marrow. Mean target coverage 1,150x; minimum 250x. Analytical
+sensitivity approximately 5% VAF for single-nucleotide variants and small indels; FLT3-ITD detection supplemented by capillary fragment analysis. The assay does not
+reliably detect large structural rearrangements, copy-number changes, or variants in regions of low coverage or high homology. A negative result does not exclude a
+mutation below the limit of detection. This laboratory-developed test was validated by Meridian Molecular Diagnostics; it has not been cleared or approved by the FDA.
+Electronically signed: Okafor, Daniel U., MD, PhD, Laboratory Director, and Lucia M. Fernandez, PhD, Variant Scientist — 2026-05-04. Results released to ordering
+institution for integration into the combined hematopathology report.
+Reference accession MMD-26-NGS-22150 | Client S26-BM-01187 | MRN-4471902 | Page 1 of 1

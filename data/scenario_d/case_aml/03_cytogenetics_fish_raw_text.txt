@@ -1,0 +1,49 @@
+
+=== PAGE 1 ===
+
+Riverbend Regional Medical Center
+CYTOGENETICS LABORATORY — Department of Pathology & Laboratory Medicine
+1200 Halsted Avenue, Lakeshore, IL 60000 | CLIA 14D9999999
+CHROMOSOME ANALYSIS & FISH — HEMATOLOGIC MALIGNANCY PANEL
+Patient: DOE, JONATHAN R. MRN: MRN-4471902 Accession: CG-26-00871
+DOB: 1967-09-14 (58 y / Male) Collected: 2026-04-22 Reported: 2026-04-29
+Specimen: Bone marrow aspirate Ordering: A. Patel, MD Status: FINAL
+CLINICAL INDICATION
+58-year-old man with three weeks of progressive fatigue, dyspnea on exertion, gingival bleeding, and scattered lower-extremity
+ecchymoses. CBC on admission: WBC 38.4 x10^9/L, hemoglobin 7.9 g/dL, platelets 31 x10^9/L. Peripheral smear with 41%
+circulating blasts, some with folded nuclei and abundant cytoplasm. No prior hematologic history, no prior chemotherapy or
+radiation. Bone marrow performed to evaluate for acute leukemia.
+CONVENTIONAL CHROMOSOME ANALYSIS (G-BANDED)
+Tissue cultured Bone marrow, unstimulated
+Cultures 24-hour and 48-hour, synchronized
+Cells counted 20
+Cells karyotyped 5
+Band resolution 400-425 bphs
+ISCN RESULT:
+46,XY[20]
+Twenty metaphase cells were analyzed and five were fully karyotyped. All cells showed an apparently normal male chromosome
+complement. No clonal numerical or structural abnormality was identified at the stated band resolution. A normal karyotype does
+not exclude a submicroscopic abnormality; correlation with FISH and molecular studies is advised.
+FLUORESCENCE IN SITU HYBRIDIZATION (FISH)
+Interphase FISH performed on cultured bone marrow using the acute myeloid leukemia panel. 200 interphase nuclei scored per
+probe.
+Probe / target Abnormality screened Result % nuclei
+RUNX1-RUNX1T1 t(8;21)(q22;q22) NEGATIVE 0.5%
+CBFB inv(16)/t(16;16)(p13;q22) NEGATIVE 1.0%
+PML-RARA t(15;17)(q24;q21) NEGATIVE 0.5%
+KMT2A (MLL) 11q23.3 rearrangement NEGATIVE 1.5%
+MECOM (EVI1) 3q26.2 rearrangement NEGATIVE 1.0%
+-5/5q- (EGR1) deletion 5q31 NEGATIVE 1.5%
+-7/7q- (D7S486) monosomy 7 / del(7q) NEGATIVE 1.0%
+TP53 (17p13.1) deletion 17p NEGATIVE 2.0%
+All probe signal counts were within the laboratory's established normal cutoff range. No evidence of the targeted rearrangements or copy-number
+abnormalities.
+INTERPRETATION
+Normal male karyotype (46,XY) with a negative AML FISH panel. No recurrent cytogenetic abnormality of acute myeloid leukemia
+was detected by either method. This places the case in the cytogenetically normal category. Cytogenetically normal AML is
+frequently driven by gene-level mutations that are not visible by karyotype or FISH; molecular testing (NPM1, FLT3, CEBPA, and a
+broader myeloid panel) is required for classification and risk stratification and has been ordered separately (see accession
+MMD-26-NGS-22150).
+Reviewed and electronically signed by Helena V. Brandt, PhD, FACMG, Director of Cytogenetics, 2026-04-29. This is one component of a combined
+hematopathology workup and should be interpreted together with the morphology, flow cytometry, and molecular reports.
+Accession CG-26-00871 | MRN-4471902 | Page 1 of 1

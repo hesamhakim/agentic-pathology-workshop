@@ -1,0 +1,68 @@
+{
+  "integrated_diagnosis": "Acute myeloid leukemia with mutated NPM1, with monocytic differentiation",
+  "histologic_diagnosis": "AML with monocytic differentiation (per morphology + flow)",
+  "who_grade": null,
+  "guideline_source": "WHO Haematolymphoid 5e (2022) / ICC 2022",
+  "required_molecular_features": [
+    "NPM1",
+    "FLT3-ITD",
+    "TP53",
+    "MGMT"
+  ],
+  "classifying_variants": [
+    "NPM1 type A insertion"
+  ],
+  "non_classifying_variants_reported": [
+    "FLT3-ITD",
+    "DNMT3A R882H"
+  ],
+  "expected_discordances": [
+    {
+      "topic": "blast count",
+      "positions": [
+        "MORPH=18%",
+        "FLOW=22%"
+      ],
+      "resolution": "expected variance; defining lesion present, threshold moot",
+      "changes_diagnosis": false
+    },
+    {
+      "topic": "monocytic lineage",
+      "positions": [
+        "MORPH hedges",
+        "FLOW positive"
+      ],
+      "resolution": "flow resolves the morphologic hedge",
+      "changes_diagnosis": false
+    }
+  ],
+  "expected_single_source_findings": [
+    {
+      "finding": "NPM1 type A insertion",
+      "only_source_id": "MOLEC",
+      "invisible_to": [
+        "MORPH",
+        "FLOW",
+        "CYTO"
+      ]
+    },
+    {
+      "finding": "FLT3 internal tandem duplication",
+      "only_source_id": "MOLEC",
+      "invisible_to": [
+        "MORPH",
+        "FLOW",
+        "CYTO"
+      ]
+    },
+    {
+      "finding": "DNMT3A R882H (non-classifying)",
+      "only_source_id": "MOLEC",
+      "invisible_to": [
+        "MORPH",
+        "FLOW",
+        "CYTO"
+      ]
+    }
+  ]
+}

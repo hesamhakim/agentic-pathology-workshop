@@ -1,0 +1,70 @@
+
+=== PAGE 1 ===
+
+Northshore University Hospital
+Department of Pathology, Neuropathology Division
+880 Lakeside Drive, Riverwood, IL 60001 (cid:127) CLIA 14D9911223
+NEUROPATHOLOGY — INTRA-OPERATIVE AND PERMANENT SECTIONS
+Patient: MARTINEZ-LANG, ELENA J. Accession: SP-26-N-04412
+MRN: MRN-3318477 Collected: 2026-04-04
+DOB / Age / Sex: 1979-06-02 / 47 y / Female Reported: 2026-04-08
+Ordering provider: Sokolov, Dimitri R., MD (Neurosurgery) Location: Inpatient — Neuroscience Step-Down
+SPECIMEN
+Right frontal lobe mass, gross total resection. Multiple fragments of soft gray-tan tissue, aggregate 4.1 x 3.2 x 2.6 cm, with focal
+hemorrhage. Submitted entirely (cassettes A1-A12). Material was also sent for molecular profiling and methylation classifier
+under separate accessions.
+CLINICAL HISTORY
+47-year-old woman with six-week history of new-onset focal motor seizures and progressive right-hand clumsiness. MRI brain
+demonstrated a 3.8 cm right frontal lobe mass with patchy enhancement and moderate vasogenic edema. No prior cancer
+history, no prior CNS irradiation. Family history negative for CNS tumors. Underwent right frontal craniotomy with gross total
+resection on 2026-04-04.
+INTRA-OPERATIVE CONSULTATION
+Smear preparations from the frontal lobe mass demonstrate an infiltrating glial neoplasm with mild-to-moderate atypia. Frozen
+section: "glial neoplasm; defer to permanent sections and ancillary studies for grading and classification." Conveyed verbally to
+Dr. Sokolov, 2026-04-04 09:46.
+MICROSCOPIC DESCRIPTION
+Sections demonstrate a moderately-to-markedly hypercellular astrocytic proliferation infiltrating cerebral cortex and subcortical
+white matter in a diffuse pattern. The tumor cells exhibit moderate nuclear pleomorphism with elongated, irregular nuclei and
+visible nucleoli; cytoplasm is scant to moderate. Mitotic figures are readily identified at up to 4 per 10 high-power fields in the
+most cellular areas (representative slide A4). Microvascular proliferation is NOT identified after review of multiple slides.
+Tumor necrosis is NOT identified. No oligodendroglial morphology is appreciated and there is no perinuclear halo formation.
+The infiltration pattern is consistent with a diffuse glioma rather than a circumscribed entity. Reactive astrocytosis and scattered
+macrophages are present at the tumor-brain interface.
+IMMUNOHISTOCHEMISTRY
+Marker Result Comment
+GFAP Diffuse, strong positivity Confirms glial origin
+IDH1 R132H (mAb H09) Strong cytoplasmic positivity Mutation-specific; correlated with NGS (separate accession)
+ATRX Loss of nuclear expression in tumor cells Endothelial cells serve as internal positive control
+p53 Strong nuclear positivity in >75% of tumor cells Mutant pattern; correlation with NGS for variant call
+Ki-67 (MIB-1) ~15% in hotspots, ~5% overall Elevated for astrocytic glioma
+Olig2 Positive Glial lineage marker
+EMA Negative Excludes meningioma / ependymoma
+Synaptophysin Negative in tumor cells Excludes neuronal differentiation
+BRAF V600E (VE1) Negative Performed given differential
+FLUORESCENCE IN SITU HYBRIDIZATION (FISH) — 1p / 19q
+Dual-color interphase FISH performed on FFPE sections (cassette A6) using paired centromeric and locus-specific probes for
+1p36/1q25 and 19q13/19p13. 100 tumor nuclei scored.
+Probe pair Ratio (target/control) Cutoff Result
+1p36 / 1q25 0.96 <0.80 = deletion INTACT (no deletion)
+
+=== PAGE 2 ===
+
+19q13 / 19p13 0.94 <0.80 = deletion INTACT (no deletion)
+INTERPRETATION: 1p/19q non-codeleted (intact). This finding excludes oligodendroglioma (which by current criteria requires both an IDH mutation and
+a whole-arm 1p/19q codeletion). Combined with the IDH1 R132H immunopositivity and ATRX loss, the case is in the diffuse astrocytic line.
+DIAGNOSIS
+RIGHT FRONTAL LOBE, MASS, GROSS TOTAL RESECTION:
+— DIFFUSE ASTROCYTIC GLIOMA, IDH-MUTANT (BY IHC AND PENDING NGS).
+— Mitotic activity present (up to 4/10 HPF); microvascular proliferation and necrosis NOT identified.
+— ATRX loss, p53 mutant pattern; 1p/19q intact.
+— Tentative grading consistent with CNS WHO grade 3; final grading per integrated diagnosis once NGS and
+methylation classifier results return.
+COMMENT
+Morphology, immunoprofile, and 1p/19q FISH support an IDH-mutant diffuse astrocytoma. Under WHO CNS5 (2021), grading
+of IDH-mutant astrocytomas integrates histology, molecular features (notably CDKN2A/B homozygous deletion as a grade-4
+criterion), and occasionally methylation profiling. The histologic features (mitoses present, no MVP, no necrosis) place this at
+the upper end of grade 2-3 territory. Final classification is pending NGS (accession HX-NGS-CNS-018244) and methylation
+classifier (accession BTMRS-26-M-0907). An integrated layered diagnosis will follow.
+Electronically signed: Reyes, Marisol G., MD, PhD — Neuropathology. Resident review: Iyer, P., MD (PGY-3). Report status: FINAL (surgical pathology
+component). This component report is part of an integrated diagnostic episode.
+Page 1 of 1 (cid:127) Accession SP-26-N-04412 (cid:127) MRN-3318477

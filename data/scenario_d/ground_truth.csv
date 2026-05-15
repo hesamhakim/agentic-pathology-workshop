@@ -1,4 +1,3 @@
-sample_id,tumor_family,style,expected_integrated,expected_grade,guideline_source,required_molecular_features
-sample_1,glioma,academic_amc,"Astrocytoma, IDH-mutant, CNS WHO grade 3",3,WHO CNS5 (2021),IDH1;ATRX;MGMT
-sample_2,medulloblastoma,reference_lab,"Medulloblastoma, SHH-activated and TP53-wildtype, CNS WHO grade 4",4,WHO CNS5 (2021),PTCH1;TP53;SHH
-sample_3,breast,hybrid_breast,"Invasive breast carcinoma of no special type, Nottingham grade 2, ER+/PR+/HER2-negative, PIK3CA-mutant",2,WHO Breast Tumours 5e (2019),PIK3CA;ER;HER2
+case_id,tumor_family,guideline,expected_integrated_diagnosis,n_component_pdfs,planted_features
+case_aml,aml,WHO Haematolymphoid 5e (2022) / ICC 2022,"Acute myeloid leukemia with mutated NPM1, with monocytic differentiation",4,"blast_count_discordance (18% morphology vs 22% flow);lineage_hedge_resolved_by_flow (morphology hedges; flow proves monocytic);single_source_classifying_NPM1_FLT3 (in molecular only; karyotype/FISH normal);lane_discipline_DNMT3A_not_classifying (Tier II, prognostic only)"
+case_glioma,glioma,WHO CNS5 (2021),"Astrocytoma, IDH-mutant, CNS WHO grade 3",3,"single_source_1p19q_intact (only on neuropath FISH; rules out oligodendroglioma);single_source_MGMT_methylation_status (only on molecular);single_source_methylation_class (only on methylation classifier; confirms astrocytoma IDH-mutant);concordance_IDH1_R132H (IHC on neuropath + sequence variant on molecular);lane_discipline_TP53_not_classifying (Tier II, prognostic only);negative_finding_CDKN2A_not_deleted (not a grade-4 driver; must not be hallucinated)"
