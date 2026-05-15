@@ -32,6 +32,7 @@ import httpx
 
 REPO = Path(__file__).resolve().parents[1]
 BUILD_SCRIPTS = [
+    REPO / "scripts" / "build_scenario_zero_flow.py",
     REPO / "scripts" / "build_scenario_a_v2_flow.py",
     REPO / "scripts" / "build_scenario_b_v2_flow.py",
     REPO / "scripts" / "build_scenario_c_v2_flow.py",
