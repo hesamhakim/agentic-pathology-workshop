@@ -1,19 +1,18 @@
-"""Scenario D v2 — PDFIntake.
+"""Scenario D v2 — PDFIntake (Stage 1 of Omar's two-stage pipeline).
 
-THIS is the document-AI step. It reads the pdfplumber raw-text dump of
-the chosen fabricated report (a single linearized blob with repeating
-page headers, broken tables, addenda appended, abbreviations without
-expansion — exactly what a real extractor gets) and runs an LLM with
-an editable system prompt to produce a structured `extracted` payload
-in the shape the rest of the pipeline expects.
+Loads ALL component reports for the chosen case (multi-PDF input —
+that's the whole point) and runs a single LLM call to emit one
+structured JSON object containing:
+  - per-source key findings (each tagged with source_id +
+    verbatim_support copied from the source)
+  - cross_report_observations: concordances, discordances (with
+    resolution + resolution_basis), single_source_findings
+  - molecular variants with a `classifying` boolean separating
+    disease-defining from prognostic-only events
 
-Optionally also runs a vision-capable model on the two embedded
-placeholder images and folds those descriptions into the Data so the
-Histology Synthesizer can use them.
-
-There are TWO editable levers in this single component:
-  - The extraction system prompt (this is the heart of the demo).
-  - The vision system prompt (only used when use_vision=true).
+The system prompt below is THE main editable lever for the case —
+it carries Omar's extraction rules verbatim. Attendees who modify
+it directly change what the rest of the pipeline gets to reason over.
 """
 
 from __future__ import annotations
@@ -22,7 +21,6 @@ import json
 
 from langflow.custom import Component
 from langflow.io import (
-    BoolInput,
     FloatInput,
     HandleInput,
     IntInput,
@@ -35,116 +33,147 @@ from langflow.schema.data import Data
 from tools.scenario_d.v2_helpers import (
     DEFAULT_DATA_DIR,
     chat_completion_text,
-    make_image_message,
     openai_client,
     resolve_data_dir,
 )
 
 
-DEFAULT_EXTRACTION_PROMPT = """You are a document-AI extractor for
-integrated pathology reports. The input is a raw text dump of a
-multi-page PDF — produced by a generic PDF-text extractor — so it will
-contain layout artifacts: page headers and footers repeated on every
-page, tables flattened into space-separated rows, occasional column
-collisions, character-encoding oddities (e.g. (cid:127), ‡, ligatures
-like "fi"), and an ADDENDUM section appended after the primary
-sign-out. Different labs format their reports differently — some are
-prose-heavy with sections in ALL CAPS, others are table-heavy with
-"TIER I/II/III" classifications, others use synoptic checklist
-layouts. Your job is to ignore the noise and produce a clean
-structured object.
+DEFAULT_EXTRACTION_PROMPT = """You are the EXTRACTION stage of a two-stage
+integrated-reporting pipeline. You receive raw text dumps from MULTIPLE
+component pathology reports for a single patient and single diagnostic
+episode (one patient, one specimen, several separately issued reports
+from different laboratories on different days). Your only job is to read
+all of them and produce ONE structured JSON object. You do NOT write the
+integrated report; that is the next stage. You do NOT soften, resolve,
+or smooth over anything yet.
 
-Output a SINGLE JSON object with exactly these top-level fields. If a
-field is genuinely absent from the report, use an empty string or
-empty list — do NOT invent values.
+The input you receive will contain explicit source delimiters of the form
+"========== SOURCE <ID> — <name> ==========" preceding each component's
+raw text. The valid source_id values for this case are listed in the
+incoming JSON header. Treat all components as belonging to the same
+patient if the MRN matches; flag any mismatch in extraction_metadata.
+
+KEY RULES
+
+1. EXTRACT, DO NOT INTERPRET. In the per-source "components" blocks,
+   record what each report says on its own terms. If morphology hedges
+   on lineage, capture the hedge. If two reports give different
+   numbers for the same quantity (e.g. blast count), record both as
+   they appear. Do not reconcile them here.
+
+2. EVERY FINDING CARRIES ITS SOURCE. Every object in a "key_findings"
+   array must have a source_id (matching one of the input sources) and
+   a "verbatim_support" string — a short phrase copied word-for-word
+   from that source's raw text. If you cannot find verbatim support
+   for a finding, do not include it.
+
+3. THE CROSS-REPORT BLOCK IS WHERE COMPARISON HAPPENS. After per-source
+   extraction, populate cross_report_observations:
+   - concordances: things two or more sources agree on. Each carries a
+     short statement and supporting_source_ids.
+   - discordances: apparent conflicts. Each must carry a topic, the
+     positions each source takes, a resolution, and a resolution_basis
+     (the reason it holds: a classification rule, expected
+     methodological variance between a manual and a gated count,
+     hemodilution of an aspirate, etc.). State whether the discordance
+     actually changes the diagnosis.
+   - single_source_findings: decisive findings that appear in exactly
+     one source and are invisible to the others. For each, name the
+     only_source_id, list invisible_to (the other source_ids), and
+     state diagnostic_impact in one sentence.
+
+4. THE classifying BOOLEAN ON VARIANTS. For each molecular variant,
+   set classifying=true ONLY if that variant by itself defines or
+   changes the WHO / ICC disease category for the relevant tumor
+   family. Examples:
+     - AML: NPM1 = true; FLT3-ITD = false (prognostic); DNMT3A = false.
+     - Glioma: IDH1/2 = true; 1p/19q codel = true; CDKN2A/B homo del
+       = true (grade-4 driver); TP53 = false.
+     - Medulloblastoma: PTCH1 (SHH activator) = true; SHH signature
+       = true; TP53 (in SHH context, stratifier) = false as classifying
+       — record under prognostic.
+     - Breast: PIK3CA = false (actionable, not classifying for entity name).
+   Always set prognostic_note for non-classifying variants.
+
+5. RETURN ONLY THE JSON OBJECT — no commentary, no markdown fences,
+   no backticks. Use the word "json" anywhere in your reasoning.
+
+OUTPUT SHAPE:
 
 {
-  "tumor_family":       "glioma" | "medulloblastoma" | "breast" | "other",
-  "demographics":       {"patient_id": "...", "age": <int|null>, "sex": "M"|"F"|"", "indication": "..."},
-  "clinical_history":   "<full clinical-history paragraph>",
-  "specimen":           "<specimen description>",
-  "macroscopic":        "<gross description, may be empty>",
-  "histology_text":     "<microscopic / histology description, full prose>",
-  "ihc_profile":        [{"marker": "...", "result": "..."}, ...],
-  "molecular_findings": {
-    "snv_indel":         [{"gene": "...", "hgvsc": "...", "hgvsp": "...",
-                            "vaf": <float|null>, "classification": "..."}],
-    "structural_variants": [{"kind": "...", "description": "..."}],
-    "copy_number":       [{"gene": "...", "copy_number": <int>, "kind": "..."}],
-    "msi_status":        "<MSS|MSI-H|... or empty>",
-    "tmb_mutations_per_mb": <float|null>,
-    "methylation":       [{"locus": "...", "status": "..."}],
-    "germline":          "<germline screen summary or empty>"
+  "case_id":    "case_<...>",
+  "tumor_family": "aml" | "glioma" | "medulloblastoma" | "breast",
+  "patient": {"name": "...", "mrn": "...", "age": <int|null>, "sex": "..."},
+  "specimen": {"site": "...", "collection_date": "..."},
+  "sources": [
+    {"source_id": "<ID>", "lab": "...", "accession": "...", "report_date": "..."}
+  ],
+  "components": {
+    "<ID>": {
+      "source_id": "<ID>",
+      "summary": "<one-paragraph component summary>",
+      "key_findings": [
+        {"text": "...", "source_id": "<ID>",
+         "verbatim_support": "<copied phrase>",
+         "category": "lineage|blast_burden|genetics|grade|biomarker|limitation|other"}
+      ],
+      "stated_limitations": "..."
+    }
   },
-  "pathologist_comments": "<the interpretation / comment paragraph(s)>",
-  "addendum_text":        "<addendum body if one exists, else empty string>"
+  "molecular_variants": [
+    {"gene": "...", "variant": "...", "vaf": "...", "tier": "...",
+     "classifying": <bool>, "prognostic_note": "...",
+     "source_id": "<ID>", "verbatim_support": "..."}
+  ],
+  "cross_report_observations": {
+    "concordances": [{"statement": "...", "supporting_source_ids": [...]}],
+    "discordances": [{"topic": "...",
+                      "positions": [{"source_id": "...", "position": "..."}],
+                      "resolution": "...",
+                      "resolution_basis": "...",
+                      "changes_diagnosis": <bool>}],
+    "single_source_findings": [{"finding": "...", "only_source_id": "...",
+                                "invisible_to": [...],
+                                "diagnostic_impact": "..."}]
+  },
+  "extraction_metadata": {"uncertain_extractions": ["..."]}
 }
 
-Rules:
-  1. tumor_family must be inferred from the diagnosis / specimen /
-     molecular findings — do not leave it empty unless truly unclear.
-  2. Sweep across all pages — fields you need may appear after table
-     breaks or in the ADDENDUM section at the end.
-  3. Strip repeating page headers/footers and "Page N" markers before
-     attributing text to a field.
-  4. For tables flattened into rows, recover the columns from context
-     (e.g. for an SNV table the columns are usually Gene / HGVSc /
-     HGVSp / VAF / Classification).
-  5. Preserve exact gene symbols and HGVS strings — do not paraphrase.
-  6. Return ONLY the JSON object; no commentary, no markdown fences,
-     no backticks. Use the word json in your reasoning if needed.
+Sweep across ALL source blocks before finalizing. Fields you need may
+appear in any block. Strip repeating page headers/footers and "Page N"
+markers when attributing text. Tables flattened into space-separated
+rows are common — recover columns from context. Preserve exact gene
+symbols and HGVS strings; do not paraphrase. If a value is ambiguous,
+add it to extraction_metadata.uncertain_extractions rather than
+guessing silently.
 """
 
 
-DEFAULT_VISION_PROMPT = """You are a pathology image describer. For each
-image you receive, write ONE concise paragraph (about 3 sentences)
-describing the dominant features a pathologist would note: cellularity,
-nuclear morphology, staining pattern, and whether the image is H&E or
-immunohistochemical. Do NOT attempt diagnosis. Be specific about color
-distribution. If an image clearly does not contain biological tissue,
-say so plainly."""
-
-
-_DEFAULT_IMAGES = {
-    "sample_1": [
-        {"label": "H&E ×20 — frontal lobe infiltrative astrocytic tumor", "kind": "he",
-         "file": "images/sample_1_image_1.png"},
-        {"label": "IDH1 R132H IHC ×20", "kind": "ihc",
-         "file": "images/sample_1_image_2.png"},
-    ],
-    "sample_2": [
-        {"label": "H&E ×20 — small round blue cell tumor", "kind": "he",
-         "file": "images/sample_2_image_1.png"},
-        {"label": "GAB1 IHC ×20 — cytoplasmic positivity", "kind": "ihc",
-         "file": "images/sample_2_image_2.png"},
-    ],
-    "sample_3": [
-        {"label": "H&E ×20 — invasive ductal carcinoma NST", "kind": "he",
-         "file": "images/sample_3_image_1.png"},
-        {"label": "ER IHC ×20 — Allred 8/8", "kind": "ihc",
-         "file": "images/sample_3_image_2.png"},
-    ],
+# Tumor family hint derived from case_id when the LLM call fails or
+# the extracted JSON is missing the field. Keeps downstream nodes alive.
+_TUMOR_FAMILY_BY_CASE = {
+    "case_aml": "aml",
+    "case_glioma": "glioma",
+    "case_medulloblastoma": "medulloblastoma",
+    "case_breast": "breast",
 }
 
 
-def _fallback_extracted(sample_id: str) -> dict:
-    """Minimal shape used when LLM extraction fails so downstream nodes
-    don't blow up. Records a flag so the QA reviewer can see it."""
+def _fallback_extracted(case_id: str) -> dict:
     return {
-        "tumor_family": "",
-        "demographics": {},
-        "clinical_history": "",
-        "specimen": "",
-        "macroscopic": "",
-        "histology_text": "",
-        "ihc_profile": [],
-        "molecular_findings": {
-            "snv_indel": [], "structural_variants": [], "copy_number": [],
-            "msi_status": "", "tmb_mutations_per_mb": None,
-            "methylation": [], "germline": "",
+        "case_id": case_id,
+        "tumor_family": _TUMOR_FAMILY_BY_CASE.get(case_id, ""),
+        "patient": {},
+        "specimen": {},
+        "sources": [],
+        "components": {},
+        "molecular_variants": [],
+        "cross_report_observations": {
+            "concordances": [],
+            "discordances": [],
+            "single_source_findings": [],
         },
-        "pathologist_comments": "",
-        "addendum_text": "",
+        "extraction_metadata": {"uncertain_extractions": []},
         "_extraction_failed": True,
     }
 
@@ -152,9 +181,11 @@ def _fallback_extracted(sample_id: str) -> dict:
 class ScenarioD_v2_PDFIntake(Component):
     display_name = "PDF Intake"
     description = (
-        "Reads the raw-text dump of the chosen sample's PDF and uses an LLM to "
-        "extract a structured payload. THIS is the document-AI step — the "
-        "extraction system prompt is the workshop's key editable lever."
+        "Stage 1 — loads ALL component reports for the chosen case (multi-PDF "
+        "input), runs an LLM extractor, and emits a structured JSON with "
+        "per-source key_findings + cross_report_observations (concordances, "
+        "discordances, single_source_findings) + classifying flags on variants. "
+        "THE main editable lever for the workshop."
     )
     icon = "file-text"
     name = "PDFIntake S-D.V2"
@@ -165,53 +196,61 @@ class ScenarioD_v2_PDFIntake(Component):
             display_name="Run Config",
             input_types=["Data"],
             required=False,
-            info="Optional. Connect Pipeline Config to override Sample ID / use_vision from the chat directive.",
+            info="Optional. Connect Pipeline Config to override Case ID from the chat directive.",
         ),
         StrInput(name="data_dir", display_name="Data Directory", value=DEFAULT_DATA_DIR, advanced=True),
         StrInput(
-            name="sample_id",
-            display_name="Sample ID",
-            value="sample_1",
-            info="One of sample_1 (glioma), sample_2 (medulloblastoma), sample_3 (breast).",
+            name="case_id",
+            display_name="Case ID",
+            value="case_aml",
+            info="One of: case_aml, case_glioma, case_medulloblastoma, case_breast.",
         ),
-        BoolInput(
-            name="use_vision",
-            display_name="Run Vision Call On Embedded Images",
-            value=False,
-            info="When true, a multimodal call describes the H&E/IHC placeholders.",
-        ),
-        StrInput(name="model", display_name="Extraction Model", value="openai/gpt-4o-mini",
-                 info="The LLM that turns the raw PDF text into structured fields."),
-        StrInput(name="vision_model", display_name="Vision Model", value="openai/gpt-4o",
-                 info="Multimodal model used when Use Vision is on."),
+        StrInput(name="model", display_name="Extraction Model", value="openai/gpt-4o",
+                 info="The LLM that does the multi-source structured extraction. "
+                      "Use gpt-4o (or stronger) here — the multi-document reasoning "
+                      "is harder than the simpler downstream steps."),
         FloatInput(name="temperature", display_name="Temperature", value=0.0),
-        IntInput(name="max_tokens", display_name="Max Tokens (extraction)", value=2500, advanced=True),
-        IntInput(name="vision_max_tokens", display_name="Max Tokens (vision)", value=600, advanced=True),
+        IntInput(name="max_tokens", display_name="Max Tokens", value=3000, advanced=True),
         MultilineInput(
             name="system_prompt",
             display_name="Extraction System Prompt",
             value=DEFAULT_EXTRACTION_PROMPT,
-            info="EDIT ME. Reshape what the document-AI extractor pulls out of the raw text.",
-        ),
-        MultilineInput(
-            name="vision_system_prompt",
-            display_name="Vision System Prompt",
-            value=DEFAULT_VISION_PROMPT,
-            info="EDIT ME. Reshape how the vision model describes embedded images.",
+            info="EDIT ME. THIS IS THE MAIN LEVER. Reshape the structured "
+                 "schema, change how the extractor handles discordances, or "
+                 "tighten the classifying-vs-prognostic rules. Every change "
+                 "ripples to the integrator downstream.",
         ),
     ]
 
-    outputs = [Output(display_name="Intake", name="intake", method="run_intake")]
+    outputs = [Output(display_name="Extraction", name="extraction", method="run_extract")]
 
-    def run_intake(self) -> Data:
+    def run_extract(self) -> Data:
         from tools.scenario_d import pdf_io
 
         run_config = (self.run_config.data.get("run_config", {}) if self.run_config else {})
-        sample_id = run_config.get("sample_id", self.sample_id)
-        use_vision = run_config.get("use_vision", self.use_vision)
+        case_id = run_config.get("case_id", self.case_id)
 
         base = resolve_data_dir(self.data_dir)
-        raw_text = pdf_io.load_raw_text(base, sample_id)
+        sources = pdf_io.load_case_raw_texts(base, case_id)
+        big_blob = pdf_io.concatenated_raw_texts(sources)
+
+        # Hint header — list the valid source_ids for THIS case at the top of
+        # the prompt so the LLM doesn't invent source_ids that aren't in scope.
+        header = json.dumps({
+            "case_id": case_id,
+            "expected_tumor_family": _TUMOR_FAMILY_BY_CASE.get(case_id, ""),
+            "valid_source_ids": [s["source_id"] for s in sources],
+            "source_directory": [
+                {"source_id": s["source_id"],
+                 "display_name": s["display_name"],
+                 "filename": s["filename"]}
+                for s in sources
+            ],
+        }, indent=2)
+        user_content = (
+            "Case header (for grounding only):\n" + header +
+            "\n\nRaw source dumps follow.\n" + big_blob
+        )
 
         client = openai_client()
         try:
@@ -219,86 +258,35 @@ class ScenarioD_v2_PDFIntake(Component):
                 client,
                 model=self.model,
                 system_prompt=self.system_prompt or DEFAULT_EXTRACTION_PROMPT,
-                user_content=raw_text,
+                user_content=user_content,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 json_mode=True,
-                span_name="scenario_d.pdf_intake.extraction",
+                span_name="scenario_d.pdf_intake.stage1_extract",
             )
             extracted = json.loads(raw_llm)
             if not isinstance(extracted, dict):
                 raise ValueError("extraction did not return a JSON object")
         except Exception as e:
-            extracted = _fallback_extracted(sample_id)
+            extracted = _fallback_extracted(case_id)
             extracted["_extraction_error"] = f"{type(e).__name__}: {e}"
             raw_llm = ""
 
-        # Backstop tumor_family for the WHO classifier downstream:
-        # if the LLM failed to infer it from a messy dump, fall back to
-        # a hint based on the sample_id chosen in the chat directive.
+        # Tumor-family backstop
         if not extracted.get("tumor_family"):
-            extracted["tumor_family"] = {
-                "sample_1": "glioma",
-                "sample_2": "medulloblastoma",
-                "sample_3": "breast",
-            }.get(sample_id, "")
-
-        # Optional vision pass: embeds the two placeholder images for the
-        # sample. Image filenames are deterministic per sample.
-        image_descriptions: list[dict] = []
-        if use_vision:
-            images_meta = _DEFAULT_IMAGES.get(sample_id, [])
-            if images_meta:
-                images_payload = []
-                try:
-                    images_payload = [
-                        (m["label"], pdf_io.load_image_bytes(base, m["file"]))
-                        for m in images_meta
-                    ]
-                except FileNotFoundError as e:
-                    image_descriptions.append({"label": "", "kind": "",
-                                               "description": f"(image file missing: {e})"})
-
-                if images_payload:
-                    user_content = make_image_message(
-                        text=(
-                            "Describe each of the following images in one short "
-                            "paragraph each. Number your paragraphs to match the "
-                            "image order."
-                        ),
-                        images=images_payload,
-                    )
-                    try:
-                        vision_raw = chat_completion_text(
-                            client,
-                            model=self.vision_model,
-                            system_prompt=self.vision_system_prompt or DEFAULT_VISION_PROMPT,
-                            user_content=user_content,
-                            temperature=self.temperature,
-                            max_tokens=self.vision_max_tokens,
-                            span_name="scenario_d.pdf_intake.vision",
-                        )
-                        paragraphs = [p.strip() for p in vision_raw.split("\n\n") if p.strip()]
-                        while len(paragraphs) < len(images_meta):
-                            paragraphs.append("")
-                        paragraphs = paragraphs[: len(images_meta)]
-                        for m, desc in zip(images_meta, paragraphs):
-                            image_descriptions.append({
-                                "label": m["label"], "kind": m["kind"],
-                                "description": desc,
-                            })
-                    except Exception as e:
-                        for m in images_meta:
-                            image_descriptions.append({
-                                "label": m["label"], "kind": m["kind"],
-                                "description": f"(vision call failed: {type(e).__name__})",
-                            })
+            extracted["tumor_family"] = _TUMOR_FAMILY_BY_CASE.get(case_id, "")
+        # case_id backstop
+        if not extracted.get("case_id"):
+            extracted["case_id"] = case_id
 
         return Data(data={
-            "sample_id": sample_id,
+            "case_id": case_id,
             "tumor_family": extracted.get("tumor_family", ""),
             "extracted": extracted,
-            "image_descriptions": image_descriptions,
             "extraction_raw_llm": raw_llm,
             "run_config": run_config,
+            "source_directory": [
+                {"source_id": s["source_id"], "display_name": s["display_name"]}
+                for s in sources
+            ],
         })

@@ -1,4 +1,4 @@
-"""Round-trip the raw-text dumps, the ground-truth JSON, and the embedded image PNGs."""
+"""Multi-PDF case loader tests."""
 
 from __future__ import annotations
 
@@ -9,87 +9,64 @@ import pytest
 from tools.scenario_d import pdf_io
 
 
-REQUIRED_GROUND_TRUTH_KEYS = {
-    "sample_id",
-    "tumor_family",
-    "source_pdf",
-    "style",
-    "demographics",
-    "clinical_history",
-    "specimen",
-    "histology_text",
-    "ihc_profile",
-    "molecular_findings",
-    "pathologist_comments",
-    "addendum_text",
-    "images",
-    "ground_truth",
-}
+ALL_CASES = ["case_aml", "case_glioma", "case_medulloblastoma", "case_breast"]
 
 
-def test_three_pdfs_exist(data_dir: Path, sample_ids: list[str]) -> None:
-    for sid in sample_ids:
-        assert (data_dir / f"{sid}.pdf").exists(), f"missing {sid}.pdf — run scripts/seed_data.py --scenario d"
+def test_list_cases() -> None:
+    assert set(pdf_io.list_cases()) == set(ALL_CASES)
 
 
-def test_each_sample_has_raw_text_dump(data_dir: Path, sample_ids: list[str]) -> None:
-    for sid in sample_ids:
-        raw = pdf_io.load_raw_text(data_dir, sid)
-        # Raw dumps are 2-6 KB; if they're empty or tiny, the PDF didn't extract.
-        assert len(raw) > 1500, f"{sid}: raw dump too small ({len(raw)} chars)"
-        assert "=== PAGE 1 ===" in raw, f"{sid}: page sentinel missing"
-        assert "=== PAGE 2 ===" in raw, f"{sid}: page 2 sentinel missing"
+@pytest.mark.parametrize("case_id", ALL_CASES)
+def test_case_manifest_shape(case_id: str) -> None:
+    m = pdf_io.case_manifest(case_id)
+    assert len(m) >= 3, f"{case_id}: expected at least 3 component reports"
+    for entry in m:
+        assert entry["source_id"] and isinstance(entry["source_id"], str)
+        assert entry["filename"] and isinstance(entry["filename"], str)
+        assert entry["display_name"]
+    sids = [e["source_id"] for e in m]
+    assert len(sids) == len(set(sids)), f"{case_id}: duplicate source_id"
 
 
-def test_raw_dumps_preserve_addendum_section(data_dir: Path, sample_ids: list[str]) -> None:
-    for sid in sample_ids:
-        raw = pdf_io.load_raw_text(data_dir, sid)
-        assert "ADDENDUM" in raw, f"{sid}: ADDENDUM section not in raw dump"
+@pytest.mark.parametrize("case_id", ALL_CASES)
+def test_each_case_pdfs_exist(data_dir: Path, case_id: str) -> None:
+    for spec in pdf_io.case_manifest(case_id):
+        pdf_path = data_dir / case_id / (spec["filename"] + ".pdf")
+        assert pdf_path.exists(), \
+            f"missing {pdf_path} — run scripts/seed_data.py --scenario d"
 
 
-def test_each_sample_has_extracted_ground_truth(data_dir: Path, sample_ids: list[str]) -> None:
-    for sid in sample_ids:
-        d = pdf_io.load_extracted_ground_truth(data_dir, sid)
-        assert REQUIRED_GROUND_TRUTH_KEYS.issubset(d.keys()), \
-            f"{sid}: missing keys {REQUIRED_GROUND_TRUTH_KEYS - d.keys()}"
-        assert d["sample_id"] == sid
-        assert d["demographics"].get("patient_id"), f"{sid}: empty patient_id"
-        assert len(d["ihc_profile"]) >= 4, f"{sid}: IHC profile too short"
-        assert len(d["images"]) >= 1, f"{sid}: no images recorded"
+@pytest.mark.parametrize("case_id", ALL_CASES)
+def test_load_case_raw_texts(data_dir: Path, case_id: str) -> None:
+    sources = pdf_io.load_case_raw_texts(data_dir, case_id)
+    assert len(sources) >= 3
+    for s in sources:
+        assert s["source_id"] in {entry["source_id"]
+                                  for entry in pdf_io.case_manifest(case_id)}
+        assert len(s["raw_text"]) > 1500, \
+            f"{case_id}/{s['source_id']}: raw text suspiciously small"
+        assert "=== PAGE 1 ===" in s["raw_text"]
 
 
-def test_three_distinct_styles(data_dir: Path, sample_ids: list[str]) -> None:
-    """Each sample must mimic a different real-world report style."""
-    styles = set()
-    for sid in sample_ids:
-        d = pdf_io.load_extracted_ground_truth(data_dir, sid)
-        styles.add(d["style"])
-    assert styles == {"academic_amc", "reference_lab", "hybrid_breast"}, \
-        f"expected three distinct styles, got {styles}"
+@pytest.mark.parametrize("case_id", ALL_CASES)
+def test_concatenated_includes_all_sources(data_dir: Path, case_id: str) -> None:
+    sources = pdf_io.load_case_raw_texts(data_dir, case_id)
+    blob = pdf_io.concatenated_raw_texts(sources)
+    for s in sources:
+        assert f"SOURCE {s['source_id']}" in blob, \
+            f"{case_id}: source delimiter for {s['source_id']} not in blob"
 
 
-def test_each_sample_has_images(data_dir: Path, sample_ids: list[str]) -> None:
-    for sid in sample_ids:
-        d = pdf_io.load_extracted_ground_truth(data_dir, sid)
-        for img in d["images"]:
-            raw = pdf_io.load_image_bytes(data_dir, img["file"])
-            assert raw[:8] == b"\x89PNG\r\n\x1a\n", f"{sid} {img['file']}: not a PNG"
-            assert len(raw) > 1000, f"{sid} {img['file']}: PNG suspiciously small"
-
-
-def test_invalid_sample_id_raises() -> None:
+def test_invalid_case_raises() -> None:
     with pytest.raises(ValueError):
-        pdf_io.load_raw_text("/tmp", "sample_99")
-    with pytest.raises(ValueError):
-        pdf_io.load_extracted_ground_truth("/tmp", "sample_99")
+        pdf_io.case_manifest("case_kangaroo")
 
 
-def test_molecular_findings_shape_in_ground_truth(data_dir: Path) -> None:
-    """The QA reviewer downstream depends on a consistent schema."""
-    for sid in ["sample_1", "sample_2", "sample_3"]:
-        d = pdf_io.load_extracted_ground_truth(data_dir, sid)
-        m = d["molecular_findings"]
-        assert "snv_indel" in m and isinstance(m["snv_indel"], list)
-        assert "structural_variants" in m and isinstance(m["structural_variants"], list)
-        assert "copy_number" in m and isinstance(m["copy_number"], list)
-        assert "msi_status" in m
+@pytest.mark.parametrize("case_id", ALL_CASES)
+def test_extracted_ground_truth_shape(data_dir: Path, case_id: str) -> None:
+    gt = pdf_io.load_extracted_ground_truth(data_dir, case_id)
+    assert gt.get("case_id") == case_id
+    assert gt.get("tumor_family") in {"aml", "glioma", "medulloblastoma", "breast"}
+    # The ground-truth payload is the CASE_META the seed script wrote.
+    assert "expected_integrated_diagnosis" in gt
+    assert "pdfs" in gt and len(gt["pdfs"]) >= 3

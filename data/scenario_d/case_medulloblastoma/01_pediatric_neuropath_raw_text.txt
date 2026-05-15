@@ -1,0 +1,62 @@
+
+=== PAGE 1 ===
+
+Children's Medical Center of the Lakes
+Department of Pathology, Pediatric Pathology Service
+55 University Park Drive, Cedarlake, IL 60003 (cid:127) CLIA 14D9933557
+PEDIATRIC NEUROPATHOLOGY — POSTERIOR FOSSA RESECTION
+Patient: WALKER, AIDEN T. Accession: PED-26-N-00882
+MRN: MRN-7720193 Collected: 2026-03-12
+DOB / Age / Sex: 2017-11-18 / 8 y / Male Reported: 2026-03-15
+Ordering provider: Halpern, Nora B., MD (Pediatric Neurosurgery) Location: Inpatient — Pediatric Neuro ICU
+SPECIMEN
+Cerebellar vermis mass, subtotal resection. Multiple soft, friable, gray-pink tissue fragments, aggregate 2.4 cm. No grossly
+identifiable necrosis. Submitted in cassettes B1-B7. Aliquots in RNAlater and snap-frozen for molecular and methylation
+profiling under separate accessions.
+CLINICAL HISTORY
+Previously well 8-year-old boy with three-week history of progressive morning headaches, ataxic gait, and one episode of
+emesis. MRI brain showed a 3.1 cm midline cerebellar vermis mass with obstructive hydrocephalus. No prior CNS history. No
+personal or family history consistent with Gorlin syndrome (no basal cell carcinomas, no rib or jaw anomalies, no palmar pits).
+Underwent posterior fossa craniotomy with subtotal resection on 2026-03-12. External ventricular drain placed peri-operatively.
+INTRA-OPERATIVE CONSULTATION
+Smear preparations of the posterior fossa mass demonstrate a densely cellular small round blue cell neoplasm with high
+nuclear-to-cytoplasmic ratio. Frozen section: "highly cellular small round blue cell tumor; differential includes
+medulloblastoma; defer specific subtyping to permanent sections, IHC, methylation, and molecular studies." Conveyed verbally
+to Dr. Halpern, 2026-03-12 11:18.
+MICROSCOPIC DESCRIPTION
+Sections demonstrate a densely cellular embryonal tumor composed of small round blue cells with hyperchromatic nuclei, scant
+cytoplasm, and brisk mitotic activity (greater than 15 mitoses per 10 high-power fields in hotspots). Homer Wright
+(neuroblastic) rosettes are identified focally. No large-cell or anaplastic features are appreciated and there is no significant
+nodularity or internodular pale-island architecture. Apoptotic bodies are scattered throughout. Adjacent cerebellar parenchyma
+shows reactive gliosis. No infiltrative pattern beyond the tumor mass is identified.
+IMMUNOHISTOCHEMISTRY
+Marker Result Comment
+Synaptophysin Diffuse, strong positive Neuronal differentiation
+NeuN Focal positive Neuronal lineage
+INI1 (SMARCB1) Retained nuclear expression Excludes AT/RT
+b-catenin Cytoplasmic only (no nuclear translocation) Argues AGAINST WNT-activated subgroup
+GAB1 Diffuse cytoplasmic positive Supports SHH subgroup at protein level
+YAP1 Nuclear and cytoplasmic positive Supports SHH or WNT (combined with b-catenin fi SHH)
+p53 Wild-type pattern (weak, patchy nuclear) No aberrant overexpression
+Ki-67 (MIB-1) ~45% in hotspots High proliferation index, as expected for medulloblastoma
+GFAP Negative in tumor cells Reactive astrocytes at margin only
+DIAGNOSIS
+POSTERIOR FOSSA / CEREBELLAR VERMIS, SUBTOTAL RESECTION:
+— MEDULLOBLASTOMA, CLASSIC HISTOLOGY.
+— IHC pattern (GAB1+, YAP1+, b-catenin cytoplasmic, INI1 retained) favors SHH-activated subgroup.
+— CNS WHO grade 4 (all medulloblastomas are grade 4 by definition under CNS5).
+
+=== PAGE 2 ===
+
+— Final subgroup and risk stratification per integrated diagnosis once molecular and methylation classifier results
+return.
+COMMENT
+Morphology + IHC are diagnostic of medulloblastoma, classic histology pattern. Per WHO CNS5 (2021) and current pediatric
+neuro-oncology practice, integrated diagnosis requires assignment of one of four molecular subgroups: WNT-activated,
+SHH-activated (further stratified by TP53 status), or non-WNT/non-SHH (Group 3 or Group 4). The IHC profile here (GAB1+,
+YAP1+, b-catenin cytoplasmic) supports an SHH-activated subgroup; this is to be confirmed by methylation profiling and
+complemented by molecular sequencing for prognostically important variants (TP53, PTCH1, SUFU, SMO; MYC/MYCN
+amplification status). Integrated diagnosis to follow.
+Electronically signed: Tan, Lin H., MD, Pediatric Neuropathology. Resident review: Doss, B., MD (PGY-4). Report status: FINAL (surgical pathology
+component). This component report is part of an integrated diagnostic episode.
+Page 1 of 1 (cid:127) Accession PED-26-N-00882 (cid:127) MRN-7720193

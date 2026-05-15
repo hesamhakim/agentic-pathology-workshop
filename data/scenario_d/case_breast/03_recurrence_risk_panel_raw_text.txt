@@ -1,0 +1,39 @@
+
+=== PAGE 1 ===
+
+Genomic Recurrence-Risk Service 275 Riverside Parkway, Edgewater, NY 10010
+CLIA 33D7711999
+(70-gene profile)
+Service Director: Ito, Renata K., PhD, Director
+70-GENE RECURRENCE RISK PROFILE — INVASIVE BREAST CARCINOMA — FINAL REPORT
+PATIENT SPECIMEN ORDERING
+BERGSTROM, ANITA L. Lab accession GRRS-26-RR-00731 Westhaven Cancer Institute
+MRN MRN-5519082 Client WCI-26-S-04115 T. Okafor, MD
+52 y / Female FFPE A4 Reported 2026-05-09
+Received 2026-05-02
+RECURRENCE RISK RESULT
+BINARY CALL: LOW RISK
+Continuous index: 0.18 (cutoff >0.31 = High Risk)
+10-year distant-recurrence risk (estimated): approximately 8% without adjuvant chemotherapy
+Sensitivity for chemotherapy benefit: Low — minimal predicted absolute benefit from adjuvant chemotherapy in this Low Risk
+genomic category
+CLINICAL CONTEXT
+This 70-gene expression profile is a high-complexity laboratory developed test for early-stage hormone-receptor-positive HER2-negative
+invasive breast carcinoma. The binary Low Risk / High Risk call combined with classical clinicopathologic features (tumor size, grade,
+nodal status, age) is intended to inform the decision to add adjuvant chemotherapy to endocrine therapy. In this case the patient's
+clinical-pathologic risk is intermediate (2.1 cm, grade 2, ER+/PR+/HER2-, pN0, postmenopausal). A Low Risk genomic call in an
+intermediate clinical-risk setting supports an endocrine-therapy-only adjuvant approach in most patients, after shared decision-making.
+METHODOLOGY
+Total RNA was extracted from FFPE block A4 and quantified by fluorometric assay. Reverse transcription and amplification performed
+on a 70-gene custom NanoString-equivalent codeset. Normalized expression values were submitted to the laboratory's validated
+70-gene index model, which returns a continuous recurrence-risk index (0.00 — 1.00) with a Bayesian binary low/high cutoff at 0.31. The
+cutoff is anchored to the original MINDACT-style 10-year distant-recurrence outcome cohort. Analytical performance: technical
+reproducibility CV < 0.04 on internal controls. This is a high-complexity laboratory-developed test; performance characteristics were
+established by Genomic Recurrence-Risk Service (70-gene profile). Not FDA-cleared.
+LIMITATIONS
+The recurrence-risk profile is designed for hormone-receptor-positive, HER2-negative, lymph-node-negative or limited node-positive (£3 positive nodes) early invasive
+breast carcinoma. The result should be interpreted alongside clinical-pathologic risk and patient preferences. The test does not address response to specific endocrine
+agents and does not predict CDK4/6 inhibitor benefit. Tumor cellularity in the submitted block was estimated at 55%; acceptable but on the lower end of the technical
+range.
+Electronically signed: Ito, Renata K., PhD, Director, Service Director, and Sandhu, J., PhD, Bioinformatics Lead — 2026-05-09.
+Lab accession GRRS-26-RR-00731 | Client WCI-26-S-04115 | MRN-5519082 | Page 1 of 1

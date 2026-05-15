@@ -1,8 +1,7 @@
 """Scenario D v2 — PipelineConfig.
 
-Parses chat-input directives into a strict run-config dict. The directive
-chooses which fabricated PDF to load, whether to run the vision pass on
-embedded images, and the output format.
+Parses chat-input directives into a strict run-config dict. The
+directive chooses which integrated case to load and the output format.
 """
 
 from __future__ import annotations
@@ -24,72 +23,73 @@ from tools.scenario_d.v2_helpers import chat_completion_text, openai_client
 
 
 DEFAULT_SYSTEM_PROMPT = """You translate an informal directive into a strict
-JSON config for the integrated-report -> WHO pipeline. Only the keys
-listed below are allowed; ignore everything else. If the user input is
-empty or doesn't mention a key, leave that key out (downstream nodes use
+JSON config for the integrated-reporting pipeline. Only the keys listed
+below are allowed; ignore everything else. If the user input is empty
+or doesn't mention a key, leave that key out (downstream nodes use
 their defaults).
 
 Allowed keys:
-  sample_id:      one of "sample_1" | "sample_2" | "sample_3"
-                  sample_1 = adult diffuse glioma
-                  sample_2 = pediatric medulloblastoma
-                  sample_3 = breast invasive carcinoma
-  use_vision:     boolean — when true, the PDF Intake node calls a vision
-                  model on the embedded H&E/IHC images
-  output_format:  one of "who_layered" | "narrative" | "json" | "html"
-  show_evidence:  boolean — include per-finding evidence in the report
+  case_id:        one of "case_aml" | "case_glioma" | "case_medulloblastoma" | "case_breast"
+                  case_aml             = AML, 4 component reports
+                  case_glioma          = adult diffuse glioma, 3 component reports
+                  case_medulloblastoma = pediatric medulloblastoma, 3 component reports
+                  case_breast          = breast invasive carcinoma, 4 component reports
+  output_format:  one of "integrated" | "narrative" | "json" | "html"
+  show_evidence:  boolean — include the Part B per-sentence evidence trace
+  show_qa:        boolean — include QA flags inline at the end
 
 Return ONLY the JSON object. Examples:
 
-User: "run sample 2 with vision off, output as narrative"
-You: {"sample_id": "sample_2", "use_vision": false, "output_format": "narrative"}
+User: "run the breast case as html"
+You: {"case_id": "case_breast", "output_format": "html"}
 
-User: "do the breast case with html output"
-You: {"sample_id": "sample_3", "output_format": "html"}
+User: "do the AML case but skip the evidence trace"
+You: {"case_id": "case_aml", "show_evidence": false}
 
 User: "" (empty)
 You: {}"""
 
 
-_VALID_SAMPLES = {"sample_1", "sample_2", "sample_3"}
-_VALID_FORMATS = {"who_layered", "narrative", "json", "html"}
+_VALID_CASES = {"case_aml", "case_glioma", "case_medulloblastoma", "case_breast"}
+_VALID_FORMATS = {"integrated", "narrative", "json", "html"}
 
 
 def _sanitize(parsed: dict) -> dict:
     out: dict = {}
-    sid = parsed.get("sample_id")
-    if isinstance(sid, str) and sid.strip().lower() in _VALID_SAMPLES:
-        out["sample_id"] = sid.strip().lower()
-    if isinstance(parsed.get("use_vision"), bool):
-        out["use_vision"] = parsed["use_vision"]
+    cid = parsed.get("case_id")
+    if isinstance(cid, str) and cid.strip().lower() in _VALID_CASES:
+        out["case_id"] = cid.strip().lower()
     fmt = parsed.get("output_format")
     if isinstance(fmt, str) and fmt.strip().lower() in _VALID_FORMATS:
         out["output_format"] = fmt.strip().lower()
     if isinstance(parsed.get("show_evidence"), bool):
         out["show_evidence"] = parsed["show_evidence"]
+    if isinstance(parsed.get("show_qa"), bool):
+        out["show_qa"] = parsed["show_qa"]
     return out
 
 
-# Convenience: friendly aliases the LLM may emit instead of strict keys.
 _ALIAS = {
-    "glioma": "sample_1",
-    "astrocytoma": "sample_1",
-    "medulloblastoma": "sample_2",
-    "pediatric": "sample_2",
-    "breast": "sample_3",
-    "breast cancer": "sample_3",
+    "aml": "case_aml",
+    "leukemia": "case_aml",
+    "bone marrow": "case_aml",
+    "glioma": "case_glioma",
+    "astrocytoma": "case_glioma",
+    "brain tumor": "case_glioma",
+    "medulloblastoma": "case_medulloblastoma",
+    "pediatric brain": "case_medulloblastoma",
+    "medullo": "case_medulloblastoma",
+    "breast": "case_breast",
 }
 
 
 def _resolve_aliases(user_text: str, parsed: dict) -> dict:
-    """If sample_id is still unset but the user hinted at a tumor family,
-    pick the matching sample. Keeps directives readable."""
-    if parsed.get("sample_id"):
+    if parsed.get("case_id"):
         return parsed
     t = (user_text or "").lower()
-    for needle, sid in _ALIAS.items():
+    for needle, cid in _ALIAS.items():
         if needle in t:
-            parsed["sample_id"] = sid
+            parsed["case_id"] = cid
             break
     return parsed
 
@@ -98,7 +98,7 @@ class ScenarioD_v2_PipelineConfig(Component):
     display_name = "Pipeline Config"
     description = (
         "Parses chat-input directive into a structured config "
-        "(sample_id, use_vision, output_format, show_evidence)."
+        "(case_id, output_format, show_evidence, show_qa)."
     )
     icon = "settings"
     name = "PipelineConfig S-D.V2"

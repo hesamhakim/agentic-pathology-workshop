@@ -1,0 +1,55 @@
+
+=== PAGE 1 ===
+
+Westhaven Cancer Institute — Molecular Diagnostics (in-house)
+4500 Cypress Boulevard, Building B, Westhaven, IL 60004
+Molecular Diagnostics
+CLIA 14D9988440 (cid:127) Lab Director: Liu, Hong-Mei, MD, PhD
+BREAST TUMOR MOLECULAR PROFILE — HOTSPOT PANEL + ERBB2 CN — FINAL REPORT
+PATIENT SPECIMEN ORDERING
+BERGSTROM, ANITA L. Lab accession WCI-26-MOL-08812 Westhaven Cancer Institute
+MRN MRN-5519082 Client accession WCI-26-S-04115 T. Okafor, MD
+52 y / Female FFPE block A4 (tumor) Received 2026-04-25
+Collected 2026-04-22 Reported 2026-05-02
+CLINICAL HISTORY (PROVIDED BY ORDERING SITE)
+52-year-old postmenopausal woman, gravida 2 para 2. Screening mammography (annual) demonstrated a new 2.1 cm spiculated mass
+in the upper outer quadrant of the left breast (BI-RADS 5). Core needle biopsy showed invasive carcinoma. No personal history of breast
+or ovarian cancer. Mother diagnosed with breast cancer at age 68 (receptor status unknown). Maternal aunt with ovarian cancer at 62.
+Patient elected breast-conserving surgery with sentinel lymph node biopsy on 2026-04-22.
+RESULT SUMMARY
+POSITIVE — PIK3CA p.(His1047Arg) hotspot variant detected (Tier I, ACTIONABLE for PI3K-targeted therapy in advanced/metastatic
+setting per current NCCN). ERBB2 copy number 2.1 (diploid, no amplification; concordant with HER2 IHC 1+ on surgical pathology).
+MSI: stable. TMB: 3.6 mut/Mb. See table and interpretation.
+DETECTED VARIANTS
+Gene Variant (HGVS) Consequence VAF Tier
+PIK3CA NM_006218.4:c.3140A>G Missense, H1047 hotspot; 32% I
+p.(His1047Arg) oncogenic activation
+Tier I = strong clinical / actionable significance. PIK3CA H1047R is an FDA-recognized companion biomarker for alpelisib in combination with fulvestrant in HR-positive
+HER2-negative advanced/metastatic breast carcinoma after progression on endocrine therapy.
+COPY-NUMBER (HER2 / ERBB2)
+Gene Copy number Interpretation
+ERBB2 (HER2) 2.1 copies Diploid — NO amplification. Concordant with HER2 IHC 1+ (negative) on surgical
+pathology.
+ADDITIONAL BIOMARKERS
+Biomarker Result Cutoff / interpretation
+Microsatellite Instability (MSI) MSS (stable) Microsatellite stable; MMR proficient (predicted).
+Tumor Mutational Burden 3.6 mut/Mb Below high-TMB threshold (10 mut/Mb).
+GENES WITHOUT REPORTABLE VARIANT
+No reportable variant detected in: TP53, ESR1, AKT1, PTEN, MAP2K1, BRAF (V600), KRAS, NRAS, HRAS, RB1, NF1, MAP3K1,
+GATA3, MED12, ARID1A, CDH1, FGFR1/2/3, MTOR, CHEK2, ATM (somatic). (Hotspot panel; for germline status of BRCA1, BRCA2,
+PALB2 and extended hereditary genes, see separate germline panel: ATLAS-26-G-06224.)
+INTERPRETATION
+The tumor harbors a PIK3CA p.(His1047Arg) oncogenic hotspot missense variant (VAF 32%). This is the most common activating
+mutation in invasive breast carcinoma and is the companion biomarker for alpelisib + endocrine combinations in advanced or metastatic
+HR-positive HER2-negative disease per current NCCN. ERBB2 copy number is 2.1 — diploid — concordant with the HER2 IHC 1+
+(negative) result on the surgical pathology report; no FISH is indicated. MSI is stable and TMB is below the high threshold;
+immune-checkpoint indications are unlikely. The PIK3CA variant is a potentially predictive (treatment-selection) biomarker. It is not a
+classifying feature of the WHO 5e breast carcinoma entity name and should be reported in the molecular and predictive-biomarker
+sections of the integrated report rather than in the diagnostic line.
+METHODOLOGY & LIMITATIONS
+Hotspot amplicon-based NGS panel (32 genes) on tumor DNA from FFPE block A4; mean coverage 1,400x. ERBB2 copy number assessed by panel-based read-depth
+ratio with orthogonal qPCR confirmation. MSI by 5-marker panel (BAT-25, BAT-26, NR-21, NR-24, MONO-27); TMB estimated from coding-region variant burden.
+Analytical sensitivity ~5% VAF; structural variants and large rearrangements not detected. Laboratory-developed test validated by Westhaven Cancer Institute —
+Molecular Diagnostics; not cleared or approved by the FDA.
+Electronically signed: Liu, Hong-Mei, MD, PhD, Molecular Pathology Director, and Hsu, T., MD — 2026-05-02.
+Lab accession WCI-26-MOL-08812 | Client WCI-26-S-04115 | MRN-5519082 | Page 1 of 1

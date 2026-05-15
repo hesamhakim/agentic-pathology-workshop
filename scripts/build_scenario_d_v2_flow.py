@@ -158,16 +158,16 @@ def main() -> int:
             make_edge(n_chatin, "message", ["Message"], n_cfg, "user_message", ["Message"]),
             # PipelineConfig -> PDFIntake
             make_edge(n_cfg, "run_config", ["Data"], n_intake, "run_config", ["Data"]),
-            # PDFIntake -> MolecularParser (Data)
-            make_edge(n_intake, "intake", ["Data"], n_molecular, "intake", ["Data"]),
-            # PDFIntake -> HistologySynthesizer (Data, parallel branch)
-            make_edge(n_intake, "intake", ["Data"], n_histology, "intake", ["Data"]),
-            # MolecularParser -> WHOClassifier (Data)
+            # PDFIntake -> MolecularParser (Stage-1 extraction Data)
+            make_edge(n_intake, "extraction", ["Data"], n_molecular, "extraction", ["Data"]),
+            # PDFIntake -> HistologySynthesizer (parallel branch, same Data)
+            make_edge(n_intake, "extraction", ["Data"], n_histology, "extraction", ["Data"]),
+            # MolecularParser -> WHOClassifier (Data; carries classifying/prognostic split)
             make_edge(n_molecular, "molecular", ["Data"], n_classifier, "molecular", ["Data"]),
             # HistologySynthesizer -> WHOClassifier (Message)
             make_edge(n_histology, "synthesis", ["Message"], n_classifier, "histology_synthesis", ["Message"]),
-            # WHOClassifier -> QAReviewer
-            make_edge(n_classifier, "classification", ["Data"], n_qa, "classification_data", ["Data"]),
+            # WHOClassifier (Stage-2 integrator) -> QAReviewer
+            make_edge(n_classifier, "integrated", ["Data"], n_qa, "integrated", ["Data"]),
             # QAReviewer -> ReportFormatter
             make_edge(n_qa, "reviewed", ["Data"], n_report, "reviewed", ["Data"]),
             # ReportFormatter -> ChatOutput

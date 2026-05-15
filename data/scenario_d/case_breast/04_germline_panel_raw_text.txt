@@ -1,0 +1,46 @@
+
+=== PAGE 1 ===
+
+1700 Westlake Avenue, Pinegrove, WA 98101
+Atlas Hereditary Cancer Genetics CLIA 50D6604421
+Laboratory Director: Quincy, Marlon R., MD, FACMG
+HEREDITARY BREAST AND OVARIAN CANCER PANEL (12 GENES) — FINAL REPORT
+PATIENT SPECIMEN ORDERING
+BERGSTROM, ANITA L. Lab accession ATLAS-26-G-06224 Westhaven Cancer Institute
+MRN MRN-5519082 Client WCI-26-S-04115 T. Okafor, MD
+52 y / Female Peripheral blood, EDTA Received 2026-05-04
+Drawn 2026-05-01 Reported 2026-05-13
+Note: this report was received after the primary surgical pathology sign-out (2026-04-29) and constitutes an ancillary germline component of the integrated
+diagnostic episode. The integrated report should be amended to incorporate this result.
+RESULT SUMMARY
+NEGATIVE — No pathogenic or likely pathogenic variants identified in any of the 12 genes on this panel. No reportable variants of
+uncertain significance (VUS) in BRCA1, BRCA2, PALB2, ATM, CHEK2, or TP53.
+GENES TESTED (NEGATIVE FOR P / LP VARIANTS)
+Gene Coverage (mean) Result
+BRCA1 245x No reportable variant
+BRCA2 238x No reportable variant
+PALB2 227x No reportable variant
+ATM 210x No reportable variant
+CHEK2 232x No reportable variant
+TP53 260x No reportable variant
+CDH1 215x No reportable variant
+STK11 220x No reportable variant
+PTEN 243x No reportable variant
+RAD51C 229x No reportable variant
+RAD51D 224x No reportable variant
+NF1 201x No reportable variant
+INTERPRETATION
+Germline testing across 12 hereditary breast and ovarian cancer genes returns NEGATIVE for pathogenic and likely pathogenic
+variants. Notably, BRCA1, BRCA2, PALB2, ATM, CHEK2, and TP53 are fully covered (mean coverage > 200x; minimum 50x per
+exon). No reportable VUS were identified. Given the patient's positive family history (mother breast Ca at 68, maternal aunt ovarian Ca
+at 62), this result does not establish a familial hereditary predisposition syndrome but does NOT exclude a low-penetrance non-coding
+variant, an undetected large rearrangement outside panel coverage, or a syndrome conferred by a gene not on this panel. Continued
+risk-adapted surveillance of first-degree relatives per current institutional guidelines is reasonable.
+METHODOLOGY & LIMITATIONS
+DNA extracted from peripheral blood lymphocytes; library prepared with hybrid capture; sequenced on a high-throughput platform with mean target coverage > 200x
+per gene. Variant calls assessed per ACMG/AMP 2015 + ClinGen guidance; variants classified as pathogenic, likely pathogenic, VUS, likely benign, or benign.
+Variants of uncertain significance, likely benign, and benign are not reported here unless directly affecting the requested decision. Large rearrangements assessed
+by MLPA for BRCA1, BRCA2, and PALB2. Mosaicism below 10% may not be detected. Atlas Hereditary Cancer Genetics is a CLIA-certified, CAP-accredited
+laboratory; this is a laboratory-developed test.
+Electronically signed: Quincy, Marlon R., MD, FACMG — 2026-05-13. Genetic counselor: Tao, Lin, MS, CGC.
+Lab accession ATLAS-26-G-06224 | Client WCI-26-S-04115 | MRN-5519082 | Page 1 of 1

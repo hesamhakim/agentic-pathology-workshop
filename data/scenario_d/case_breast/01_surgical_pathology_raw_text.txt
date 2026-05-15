@@ -1,0 +1,78 @@
+
+=== PAGE 1 ===
+
+Westhaven Cancer Institute
+Breast Pathology and Molecular Diagnostics
+4500 Cypress Boulevard, Westhaven, IL 60004 (cid:127) CLIA 14D9988440
+BREAST SURGICAL PATHOLOGY — PARTIAL MASTECTOMY WITH SENTINEL NODE
+BIOPSY
+Patient: BERGSTROM, ANITA L. Accession: WCI-26-S-04115
+MRN: MRN-5519082 Collected: 2026-04-22
+DOB / Age / Sex: 1973-09-30 / 52 y / Female Reported: 2026-04-29
+Surgeon: Okafor, Tasha M., MD (Breast Surgical Oncology) Location: Outpatient — Breast Cancer Center
+FINAL SURGICAL PATHOLOGY DIAGNOSIS
+A. Left breast, partial mastectomy:
+— Invasive carcinoma, no special type (ductal); 2.1 cm.
+— Nottingham grade 2 (tubule 3 + nuclear pleomorphism 2 + mitoses 2 = 7/9).
+— No lymphovascular invasion identified.
+— Margins: NEGATIVE; closest 4 mm (anterior).
+— Associated ductal carcinoma in situ, intermediate grade, solid pattern, occupying ~10% of the tumor.
+B. Sentinel lymph nodes (3, level I + level II + internal mammary):
+— NEGATIVE for metastatic carcinoma (0/3, by H&E and pankeratin IHC).
+CLINICAL HISTORY
+52-year-old postmenopausal woman, gravida 2 para 2. Screening mammography (annual) demonstrated a new 2.1 cm spiculated
+mass in the upper outer quadrant of the left breast (BI-RADS 5). Core needle biopsy showed invasive carcinoma. No personal
+history of breast or ovarian cancer. Mother diagnosed with breast cancer at age 68 (receptor status unknown). Maternal aunt
+with ovarian cancer at 62. Patient elected breast-conserving surgery with sentinel lymph node biopsy on 2026-04-22.
+GROSS DESCRIPTION
+A. The specimen is labeled "left breast, lumpectomy." It consists of fibrofatty breast tissue measuring 7.5 x 6.0 x 3.1 cm. The
+specimen is oriented with sutures (short = superior, long = lateral). Serial sectioning reveals a firm, spiculated, gray-white tumor
+measuring 2.1 x 1.9 x 1.6 cm located in the upper outer aspect, approximately 4 mm from the anterior margin. All margins are
+inked appropriately. Representative sections are submitted in cassettes A1-A14.
+B. Three sentinel lymph nodes labeled "level I," "level II," and "internal mammary," measuring 1.4 cm, 1.0 cm, and 0.8 cm
+respectively. Each bisected and submitted entirely (B1-B3).
+MICROSCOPIC DESCRIPTION
+Sections of the breast lesion (A1-A8) demonstrate an invasive carcinoma composed of nests and cords of moderately atypical
+epithelial cells infiltrating fibrous stroma. The architectural pattern is predominantly tubular and trabecular without well-formed
+glandular structures in >75% of the tumor (tubule formation score 3). Nuclei show moderate pleomorphism with vesicular
+chromatin and small nucleoli (nuclear score 2). Mitoses are counted at 8 per 10 high-power fields (40x, 0.50 mm field diameter;
+mitotic score 2). Combined Nottingham score is 3 + 2 + 2 = 7 of 9, corresponding to histologic grade 2. No definite
+lymphovascular invasion is identified after review of all sections including peri-tumoral D2-40 IHC. Associated ductal
+carcinoma in situ, intermediate grade, solid and cribriform pattern, is present and accounts for approximately 10% of the tumor;
+necrosis is not present in the in-situ component. All inked margins are free of tumor; the closest margin is 4 mm anteriorly.
+Sections of the three sentinel lymph nodes (B1-B3) are entirely submitted and show no metastatic carcinoma by H&E or by
+pankeratin (AE1/AE3) IHC.
+BIOMARKER STUDIES (IHC)
+Marker Result Score / Quantitation Status
+Estrogen receptor (ER, SP1) Positive, 95% strong nuclear Allred 8/8 (proportion 5 + intensity 3) POSITIVE
+Progesterone receptor (PR, 1E2P)ositive, 40% strong nuclear Allred 7/8 (proportion 4 + intensity 3) POSITIVE
+HER2 (4B5) 1+ membranous in <10% of cells Incomplete, faint; circumferential <10% NEGATIVE (no FISH indicated)
+
+=== PAGE 2 ===
+
+Ki-67 (MIB-1) ~18% in hot-spot, ~12% overall Intermediate proliferation index Reported per ASCO/CAP 2020 guidance
+E-cadherin Retained, membranous Excludes invasive lobular carcinoma Retained
+AE1/AE3 (sentinel nodes) Negative No metastatic carcinoma identified Negative
+HER2 IHC 1+ is reported as NEGATIVE per ASCO/CAP 2018; no reflex FISH is indicated. The Ki-67 result is provided per ASCO/CAP 2020 guidance but
+is not used to assign a definitive cutoff for endocrine-only vs combined therapy decisions.
+SYNOPTIC SUMMARY (CAP-style, key elements)
+Procedure Partial mastectomy with sentinel lymph node biopsy
+Tumor site Left breast, upper outer quadrant
+Tumor size (largest invasive focus) 2.1 cm
+Histologic type Invasive carcinoma, no special type (ductal)
+Nottingham score (tubule + nuclear + mitoses) 3 + 2 + 2 = 7 / 9 fi Grade 2
+Lymphovascular invasion Not identified
+DCIS component Present, intermediate grade, ~10%
+Margin status Negative; closest 4 mm anteriorly
+Lymph node status 0 / 3 sentinel nodes positive
+Pathologic stage (AJCC 8th) pT2 pN0 (no distant assessment)
+COMMENT
+Invasive ductal carcinoma, no special type, Nottingham grade 2, 2.1 cm, ER+/PR+/HER2-negative, with associated
+intermediate-grade DCIS (~10%). Margins are negative (closest 4 mm anterior) and 0/3 sentinel nodes are positive. Pathologic
+stage is pT2 pN0. Companion molecular profiling (PIK3CA hotspot, ERBB2 copy number) and a 70-gene recurrence-risk assay
+have been ordered (accession WCI-26-MOL-08812 and GRRS-26-RR-00731 respectively). Outside germline panel
+(BRCA1/2/PALB2/CHEK2/ATM/TP53) ordered per family history; result pending (accession ATLAS-26-G-06224). Integrated
+diagnosis to follow once all ancillary studies are available.
+Electronically signed: Okafor, Tasha M., MD — Breast Pathology. Co-reviewed: Liu, Hong-Mei, MD, PhD (Molecular Pathology Director). Report status:
+FINAL (surgical pathology component).
+Page 1 of 1 (cid:127) Accession WCI-26-S-04115 (cid:127) MRN-5519082

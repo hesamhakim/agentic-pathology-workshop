@@ -1,0 +1,99 @@
+{
+  "case_id": "case_medulloblastoma",
+  "tumor_family": "medulloblastoma",
+  "guideline": "WHO CNS5 (2021)",
+  "expected_integrated_diagnosis": "Medulloblastoma, SHH-activated and TP53-wildtype, CNS WHO grade 4",
+  "pdfs": [
+    {
+      "filename": "01_pediatric_neuropath.pdf",
+      "display_name": "Pediatric neurosurgical pathology (morphology + IHC)",
+      "lab": "Children's Medical Center of the Lakes",
+      "accession": "PED-26-N-00882",
+      "report_date": "2026-03-15",
+      "source_id": "NEURO"
+    },
+    {
+      "filename": "02_molecular_ngs.pdf",
+      "display_name": "Pediatric CNS NGS + RNA signature (172-gene)",
+      "lab": "Helix Genomic Reference Laboratory",
+      "accession": "HX-NGS-CNS-018367",
+      "report_date": "2026-03-26",
+      "source_id": "MOLEC"
+    },
+    {
+      "filename": "03_methylation_classifier.pdf",
+      "display_name": "Methylation classifier (CNS tumor classifier v12.5)",
+      "lab": "Brain Tumor Methylation Reference Service",
+      "accession": "BTMRS-26-M-1014",
+      "report_date": "2026-04-02",
+      "source_id": "METH"
+    }
+  ],
+  "planted_features": [
+    "single_source_PTCH1_LOF (sequence-level SHH-activation evidence; molecular only)",
+    "single_source_TP53_wildtype (decisive stratifier; molecular Sanger only)",
+    "single_source_IHC_pattern_SHH (GAB1+/YAP1+/beta-catenin cytoplasmic; neuropath only)",
+    "single_source_methylation_class_MB_SHH3 (methylation only)",
+    "four_way_concordance_SHH_activation (IHC + RNA signature + PTCH1 LOF + methylation class)",
+    "lane_discipline_TP53_wt_is_stratifier_not_finding (must not appear as a positive finding in dx line)",
+    "negative_finding_MYC_MYCN_diploid (must not hallucinate amplification)"
+  ],
+  "integrated_diagnosis": "Medulloblastoma, SHH-activated and TP53-wildtype, CNS WHO grade 4",
+  "histologic_diagnosis": "Classic medulloblastoma",
+  "who_grade": 4,
+  "guideline_source": "WHO CNS5 (2021)",
+  "required_molecular_features": [
+    "PTCH1",
+    "TP53",
+    "SHH_signature",
+    "MYC_MYCN_status"
+  ],
+  "classifying_variants": [
+    "PTCH1 p.(Arg691*)"
+  ],
+  "non_classifying_variants_reported": [],
+  "expected_discordances": [],
+  "expected_concordances": [
+    {
+      "topic": "SHH activation",
+      "supporting": [
+        "NEURO (GAB1/YAP1/\u03b2-catenin IHC)",
+        "MOLEC (PTCH1 LOF + RNA signature)",
+        "METH (DKFZ MB-SHH-3)"
+      ]
+    },
+    {
+      "topic": "TP53 wild-type",
+      "supporting": [
+        "MOLEC (Sanger)",
+        "METH (array prediction)"
+      ]
+    }
+  ],
+  "expected_single_source_findings": [
+    {
+      "finding": "PTCH1 p.(Arg691*) nonsense",
+      "only_source_id": "MOLEC",
+      "invisible_to": [
+        "NEURO",
+        "METH"
+      ]
+    },
+    {
+      "finding": "SHH-activated RNA centroid (correlation 0.91)",
+      "only_source_id": "MOLEC",
+      "invisible_to": [
+        "NEURO",
+        "METH"
+      ]
+    },
+    {
+      "finding": "MB, SHH-3 methylation class (calibrated 0.94)",
+      "only_source_id": "METH",
+      "invisible_to": [
+        "NEURO",
+        "MOLEC"
+      ]
+    }
+  ]
+}

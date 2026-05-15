@@ -1,16 +1,18 @@
-"""Runtime PDF intake helpers for Scenario D.
+"""Multi-PDF case loader for Scenario D.
 
-The seed script (scripts/seed/scenario_d.py) writes a pdfplumber raw-text
-dump alongside each fabricated PDF. The runtime workflow reads that
-linearized text (preserving its layout artifacts — repeated page
-headers, broken tables, column collisions, character-encoding
-oddities) and an LLM does the structuring. THAT'S the document-AI
-demo: messy text in, structured fields out.
+Each scenario-D case lives under data/scenario_d/<case_id>/ and
+contains several component PDFs from different laboratories, each with
+a pre-extracted raw-text dump produced at seed time by pdfplumber.
+The runtime workflow reads those raw-text dumps and an LLM does the
+structuring.
 
-`load_extracted_ground_truth` exposes the same fields as a structured
-JSON, but it is only intended for tests. The runtime PDFIntake
-component must NOT read it — if it did, the AI parsing step would be
-trivially bypassed.
+`load_case_raw_texts` returns the per-source raw text indexed by
+source_id (NEURO/MOLEC/MORPH/FLOW/CYTO/etc.) so the PDFIntake
+component can fold them into a single multi-source prompt with
+explicit source tags.
+
+`load_extracted_ground_truth` is for tests only — never call it from
+the runtime workflow.
 """
 
 from __future__ import annotations
@@ -19,55 +21,102 @@ import json
 from pathlib import Path
 
 
-VALID_SAMPLES = {"sample_1", "sample_2", "sample_3"}
+# Each case directory's expected component reports. The runtime
+# component reads this mapping to know which files to load per case.
+CASE_MANIFEST: dict[str, list[dict]] = {
+    "case_aml": [
+        {"source_id": "MORPH", "filename": "01_bone_marrow_morphology",
+         "display_name": "Bone marrow morphology"},
+        {"source_id": "FLOW",  "filename": "02_flow_cytometry",
+         "display_name": "Flow cytometry"},
+        {"source_id": "CYTO",  "filename": "03_cytogenetics_fish",
+         "display_name": "Cytogenetics + FISH"},
+        {"source_id": "MOLEC", "filename": "04_molecular_ngs",
+         "display_name": "Myeloid NGS panel"},
+    ],
+    "case_glioma": [
+        {"source_id": "NEURO", "filename": "01_neurosurgical_pathology",
+         "display_name": "Neurosurgical pathology"},
+        {"source_id": "MOLEC", "filename": "02_molecular_ngs",
+         "display_name": "CNS tumor NGS panel"},
+        {"source_id": "METH",  "filename": "03_methylation_classifier",
+         "display_name": "Methylation classifier"},
+    ],
+    "case_medulloblastoma": [
+        {"source_id": "NEURO", "filename": "01_pediatric_neuropath",
+         "display_name": "Pediatric neurosurgical pathology"},
+        {"source_id": "MOLEC", "filename": "02_molecular_ngs",
+         "display_name": "CNS tumor NGS + RNA signature"},
+        {"source_id": "METH",  "filename": "03_methylation_classifier",
+         "display_name": "Methylation classifier"},
+    ],
+    "case_breast": [
+        {"source_id": "SURG",  "filename": "01_surgical_pathology",
+         "display_name": "Breast surgical pathology + biomarker IHC"},
+        {"source_id": "MOLEC", "filename": "02_molecular_profiling",
+         "display_name": "Tumor molecular profile"},
+        {"source_id": "RREC",  "filename": "03_recurrence_risk_panel",
+         "display_name": "70-gene recurrence-risk profile"},
+        {"source_id": "GERM",  "filename": "04_germline_panel",
+         "display_name": "Hereditary breast germline panel"},
+    ],
+}
 
 
-def load_raw_text(data_dir: Path | str, sample_id: str) -> str:
-    """Linearized pdfplumber dump for one fabricated report.
-
-    Returns the raw text. Includes page-break sentinels (`=== PAGE N ===`)
-    and the bleed-through of repeating page headers/footers, which is
-    exactly what a real document-AI extractor has to deal with."""
-    if sample_id not in VALID_SAMPLES:
-        raise ValueError(f"sample_id must be one of {sorted(VALID_SAMPLES)}, got {sample_id!r}")
-    base = Path(data_dir)
-    path = base / f"{sample_id}_raw_text.txt"
-    if not path.exists():
-        raise FileNotFoundError(
-            f"{path} not found. Run scripts/seed_data.py --scenario d first."
-        )
-    return path.read_text()
+def list_cases() -> list[str]:
+    return sorted(CASE_MANIFEST.keys())
 
 
-def load_extracted_ground_truth(data_dir: Path | str, sample_id: str) -> dict:
-    """Tests-only structured ground-truth payload.
+def case_manifest(case_id: str) -> list[dict]:
+    if case_id not in CASE_MANIFEST:
+        raise ValueError(f"case_id must be one of {list_cases()}, got {case_id!r}")
+    return CASE_MANIFEST[case_id]
 
-    Never call this from the runtime workflow — it would defeat the
-    purpose of the PDFIntake LLM extraction. Use load_raw_text instead.
+
+def load_case_raw_texts(data_dir: Path | str, case_id: str) -> list[dict]:
+    """Load all component raw-text dumps for one case.
+
+    Returns a list of dicts in canonical source-order:
+      [{"source_id": "MORPH", "display_name": "...", "filename": "01_...pdf",
+        "raw_text": "..."}, ...]
     """
-    if sample_id not in VALID_SAMPLES:
-        raise ValueError(f"sample_id must be one of {sorted(VALID_SAMPLES)}, got {sample_id!r}")
-    base = Path(data_dir)
-    path = base / f"{sample_id}_extracted.json"
+    base = Path(data_dir) / case_id
+    if not base.exists():
+        raise FileNotFoundError(
+            f"{base} not found. Run scripts/seed_data.py --scenario d first."
+        )
+    out: list[dict] = []
+    for spec in case_manifest(case_id):
+        txt_path = base / (spec["filename"] + "_raw_text.txt")
+        if not txt_path.exists():
+            raise FileNotFoundError(f"{txt_path} not found.")
+        out.append({
+            "source_id": spec["source_id"],
+            "display_name": spec["display_name"],
+            "filename": spec["filename"] + ".pdf",
+            "raw_text": txt_path.read_text(),
+        })
+    return out
+
+
+def concatenated_raw_texts(sources: list[dict]) -> str:
+    """Glue per-source raw-text dumps into a single prompt-ready blob
+    with explicit source-tagged delimiters. The LLM extractor consumes
+    this directly."""
+    parts: list[str] = []
+    for s in sources:
+        parts.append(f"\n\n========== SOURCE {s['source_id']} — "
+                     f"{s['display_name']} ({s['filename']}) ==========\n\n")
+        parts.append(s["raw_text"])
+    return "".join(parts)
+
+
+def load_extracted_ground_truth(data_dir: Path | str, case_id: str) -> dict:
+    """Tests-only ground-truth payload from the seed script."""
+    base = Path(data_dir) / case_id
+    path = base / "extracted_ground_truth.json"
     if not path.exists():
         raise FileNotFoundError(
             f"{path} not found. Run scripts/seed_data.py --scenario d first."
         )
     return json.loads(path.read_text())
-
-
-def load_image_bytes(data_dir: Path | str, image_file: str) -> bytes:
-    """Read an embedded-image PNG from `data/scenario_d/images/`.
-
-    `image_file` comes from `extracted["images"][i]["file"]` and is a
-    repo-relative path like `images/sample_1_image_1.png`.
-    """
-    base = Path(data_dir)
-    path = base / image_file
-    if not path.exists():
-        raise FileNotFoundError(f"{path} not found.")
-    return path.read_bytes()
-
-
-def list_samples() -> list[str]:
-    return sorted(VALID_SAMPLES)

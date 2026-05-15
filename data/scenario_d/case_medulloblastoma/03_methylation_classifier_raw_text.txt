@@ -1,0 +1,53 @@
+
+=== PAGE 1 ===
+
+1450 Halsted, North Tower, Lakeshore, IL 60002
+Brain Tumor Methylation
+CLIA 14D9928844
+Reference Service Service Director: Hofmann, Kerstin H., PhD, Director (Neuropathology
+Bioinformatics)
+DNA METHYLATION-BASED CNS TUMOR CLASSIFIER (v12.5) — FINAL REPORT
+PATIENT SPECIMEN ORDERING
+WALKER, AIDEN T. Reference accession BTMRS-26-M-1014 Children's Medical Center of the Lakes
+MRN MRN-7720193 Client PED-26-N-00882 Tan, L., MD
+8 y / Male FFPE, B3 Received 2026-03-20
+DNA extracted 2026-03-22 Reported 2026-04-02
+CLASSIFIER RESULT
+Methylation family: Medulloblastoma
+Methylation class: MB, SHH-activated (subgroup 3)
+Calibrated score: 0.94 (threshold for classification: ‡ 0.90)
+TP53 status (by methylation-array model): Wild-type pattern
+METHODOLOGY
+Genomic DNA was extracted from FFPE tumor tissue (cassette B3). DNA (500 ng) was bisulfite-converted and assayed on the
+Illumina Infinium MethylationEPIC v2.0 array (~935,000 CpGs). Raw IDAT files were processed by an in-house pipeline
+(preprocessNoob, BMIQ, batch-effect correction) and the resulting beta-value matrix was submitted to the CNS Tumor Methylation
+Classifier (v12.5). A random-forest classifier assigns one of 184 methylation classes; calibrated scores derived via Platt scaling on an
+independent validation cohort.
+TOP CLASSIFICATION CANDIDATES (calibrated scores)
+Methylation class Family Score
+MB, SHH-activated (subgroup 3) Medulloblastoma 0.94
+MB, SHH-activated (subgroup 1, infant) Medulloblastoma 0.03
+MB, SHH-activated (subgroup 4, TP53-mut) Medulloblastoma 0.02
+MB, Group 3 Medulloblastoma 0.01
+MB, Group 4 Medulloblastoma 0.00
+MB, WNT-activated Medulloblastoma 0.00
+The top class — MB, SHH-activated (subgroup 3) — receives a calibrated score well above the 0.90 threshold. The TP53-mutant SHH-activated subgroup ranks at
+0.02, consistent with the molecular report's TP53 wild-type call.
+COPY-NUMBER PROFILE (FROM ARRAY)
+Array-derived copy-number profile is largely balanced. No MYC (8q24.21) or MYCN (2p24.3) amplification. No i(17q). No focal 9q22
+(PTCH1 locus) deletion at array resolution (consistent with the somatic LOF point mutation reported on the NGS panel). The
+copy-number landscape is typical of MB, SHH-activated, in the school-age cohort.
+INTERPRETATION
+The methylation profile classifies this case as MB, SHH-activated (subgroup 3) with a calibrated score of 0.94 (high confidence). The
+methylation-based TP53 prediction model calls a wild-type pattern, concordant with the Sanger-confirmed TP53 wild-type result on the
+molecular report. Combined with the morphology (classic medulloblastoma), the IHC pattern (GAB1+, YAP1+, b-catenin cytoplasmic),
+and the molecular findings (PTCH1 LOF, SHH RNA signature), the case represents medulloblastoma, SHH-activated, TP53-wildtype,
+in the prognostically favorable molecular-risk category. WHO CNS5 grading: all medulloblastomas are CNS WHO grade 4 by
+definition.
+LIMITATIONS
+The methylation classifier is intended for adjunctive use alongside histopathology and molecular testing. Calibrated scores below 0.90 should not be used for
+classification. Tumor purity, array-batch effects, and age-related methylation drift can influence performance. The TP53 prediction is array-based; orthogonal
+confirmation by sequencing (reported separately) is recommended for clinical decision-making.
+Electronically signed: Hofmann, Kerstin H., PhD, Director (Neuropathology Bioinformatics), and Adebayo, Tunde O., PhD, Senior Bioinformatics Scientist —
+2026-04-02.
+Reference accession BTMRS-26-M-1014 | Client PED-26-N-00882 | MRN-7720193 | Page 1 of 1

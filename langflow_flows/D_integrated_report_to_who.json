@@ -4,14 +4,14 @@
   "data": {
     "nodes": [
       {
-        "id": "ChatInput-720391",
+        "id": "ChatInput-9008ee",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 400
         },
         "data": {
-          "id": "ChatInput-720391",
+          "id": "ChatInput-9008ee",
           "type": "ChatInput",
           "node": {
             "base_classes": [
@@ -291,14 +291,14 @@
         }
       },
       {
-        "id": "PipelineConfig_S-D.V2-67c761",
+        "id": "PipelineConfig_S-D.V2-211cb9",
         "type": "genericNode",
         "position": {
           "x": 450,
           "y": 400
         },
         "data": {
-          "id": "PipelineConfig_S-D.V2-67c761",
+          "id": "PipelineConfig_S-D.V2-211cb9",
           "type": "PipelineConfig S-D.V2",
           "node": {
             "template": {
@@ -332,7 +332,7 @@
                 "list": false,
                 "show": true,
                 "multiline": true,
-                "value": "\"\"\"Scenario D v2 \u2014 PipelineConfig.\n\nParses chat-input directives into a strict run-config dict. The directive\nchooses which fabricated PDF to load, whether to run the vision pass on\nembedded images, and the output format.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You translate an informal directive into a strict\nJSON config for the integrated-report -> WHO pipeline. Only the keys\nlisted below are allowed; ignore everything else. If the user input is\nempty or doesn't mention a key, leave that key out (downstream nodes use\ntheir defaults).\n\nAllowed keys:\n  sample_id:      one of \"sample_1\" | \"sample_2\" | \"sample_3\"\n                  sample_1 = adult diffuse glioma\n                  sample_2 = pediatric medulloblastoma\n                  sample_3 = breast invasive carcinoma\n  use_vision:     boolean \u2014 when true, the PDF Intake node calls a vision\n                  model on the embedded H&E/IHC images\n  output_format:  one of \"who_layered\" | \"narrative\" | \"json\" | \"html\"\n  show_evidence:  boolean \u2014 include per-finding evidence in the report\n\nReturn ONLY the JSON object. Examples:\n\nUser: \"run sample 2 with vision off, output as narrative\"\nYou: {\"sample_id\": \"sample_2\", \"use_vision\": false, \"output_format\": \"narrative\"}\n\nUser: \"do the breast case with html output\"\nYou: {\"sample_id\": \"sample_3\", \"output_format\": \"html\"}\n\nUser: \"\" (empty)\nYou: {}\"\"\"\n\n\n_VALID_SAMPLES = {\"sample_1\", \"sample_2\", \"sample_3\"}\n_VALID_FORMATS = {\"who_layered\", \"narrative\", \"json\", \"html\"}\n\n\ndef _sanitize(parsed: dict) -> dict:\n    out: dict = {}\n    sid = parsed.get(\"sample_id\")\n    if isinstance(sid, str) and sid.strip().lower() in _VALID_SAMPLES:\n        out[\"sample_id\"] = sid.strip().lower()\n    if isinstance(parsed.get(\"use_vision\"), bool):\n        out[\"use_vision\"] = parsed[\"use_vision\"]\n    fmt = parsed.get(\"output_format\")\n    if isinstance(fmt, str) and fmt.strip().lower() in _VALID_FORMATS:\n        out[\"output_format\"] = fmt.strip().lower()\n    if isinstance(parsed.get(\"show_evidence\"), bool):\n        out[\"show_evidence\"] = parsed[\"show_evidence\"]\n    return out\n\n\n# Convenience: friendly aliases the LLM may emit instead of strict keys.\n_ALIAS = {\n    \"glioma\": \"sample_1\",\n    \"astrocytoma\": \"sample_1\",\n    \"medulloblastoma\": \"sample_2\",\n    \"pediatric\": \"sample_2\",\n    \"breast\": \"sample_3\",\n    \"breast cancer\": \"sample_3\",\n}\n\n\ndef _resolve_aliases(user_text: str, parsed: dict) -> dict:\n    \"\"\"If sample_id is still unset but the user hinted at a tumor family,\n    pick the matching sample. Keeps directives readable.\"\"\"\n    if parsed.get(\"sample_id\"):\n        return parsed\n    t = (user_text or \"\").lower()\n    for needle, sid in _ALIAS.items():\n        if needle in t:\n            parsed[\"sample_id\"] = sid\n            break\n    return parsed\n\n\nclass ScenarioD_v2_PipelineConfig(Component):\n    display_name = \"Pipeline Config\"\n    description = (\n        \"Parses chat-input directive into a structured config \"\n        \"(sample_id, use_vision, output_format, show_evidence).\"\n    )\n    icon = \"settings\"\n    name = \"PipelineConfig S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"user_message\",\n            display_name=\"User Message\",\n            input_types=[\"Message\"],\n            info=\"Connect a Chat Input here.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\", advanced=True),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0, advanced=True),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=200, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Reshape what directives the parser accepts.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Run Config\", name=\"run_config\", method=\"run_parse\")]\n\n    def run_parse(self) -> Data:\n        user_text = (self.user_message.text or \"\") if self.user_message else \"\"\n        user_text = user_text.strip()\n        if not user_text:\n            return Data(data={\"run_config\": {}, \"user_text\": \"\"})\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=user_text,\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n            span_name=\"scenario_d.pipeline_config\",\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError:\n            parsed = {}\n        parsed = parsed if isinstance(parsed, dict) else {}\n        parsed = _resolve_aliases(user_text, parsed)\n        config = _sanitize(parsed)\n        return Data(data={\"run_config\": config, \"user_text\": user_text, \"raw_llm\": raw})\n",
+                "value": "\"\"\"Scenario D v2 \u2014 PipelineConfig.\n\nParses chat-input directives into a strict run-config dict. The\ndirective chooses which integrated case to load and the output format.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You translate an informal directive into a strict\nJSON config for the integrated-reporting pipeline. Only the keys listed\nbelow are allowed; ignore everything else. If the user input is empty\nor doesn't mention a key, leave that key out (downstream nodes use\ntheir defaults).\n\nAllowed keys:\n  case_id:        one of \"case_aml\" | \"case_glioma\" | \"case_medulloblastoma\" | \"case_breast\"\n                  case_aml             = AML, 4 component reports\n                  case_glioma          = adult diffuse glioma, 3 component reports\n                  case_medulloblastoma = pediatric medulloblastoma, 3 component reports\n                  case_breast          = breast invasive carcinoma, 4 component reports\n  output_format:  one of \"integrated\" | \"narrative\" | \"json\" | \"html\"\n  show_evidence:  boolean \u2014 include the Part B per-sentence evidence trace\n  show_qa:        boolean \u2014 include QA flags inline at the end\n\nReturn ONLY the JSON object. Examples:\n\nUser: \"run the breast case as html\"\nYou: {\"case_id\": \"case_breast\", \"output_format\": \"html\"}\n\nUser: \"do the AML case but skip the evidence trace\"\nYou: {\"case_id\": \"case_aml\", \"show_evidence\": false}\n\nUser: \"\" (empty)\nYou: {}\"\"\"\n\n\n_VALID_CASES = {\"case_aml\", \"case_glioma\", \"case_medulloblastoma\", \"case_breast\"}\n_VALID_FORMATS = {\"integrated\", \"narrative\", \"json\", \"html\"}\n\n\ndef _sanitize(parsed: dict) -> dict:\n    out: dict = {}\n    cid = parsed.get(\"case_id\")\n    if isinstance(cid, str) and cid.strip().lower() in _VALID_CASES:\n        out[\"case_id\"] = cid.strip().lower()\n    fmt = parsed.get(\"output_format\")\n    if isinstance(fmt, str) and fmt.strip().lower() in _VALID_FORMATS:\n        out[\"output_format\"] = fmt.strip().lower()\n    if isinstance(parsed.get(\"show_evidence\"), bool):\n        out[\"show_evidence\"] = parsed[\"show_evidence\"]\n    if isinstance(parsed.get(\"show_qa\"), bool):\n        out[\"show_qa\"] = parsed[\"show_qa\"]\n    return out\n\n\n_ALIAS = {\n    \"aml\": \"case_aml\",\n    \"leukemia\": \"case_aml\",\n    \"bone marrow\": \"case_aml\",\n    \"glioma\": \"case_glioma\",\n    \"astrocytoma\": \"case_glioma\",\n    \"brain tumor\": \"case_glioma\",\n    \"medulloblastoma\": \"case_medulloblastoma\",\n    \"pediatric brain\": \"case_medulloblastoma\",\n    \"medullo\": \"case_medulloblastoma\",\n    \"breast\": \"case_breast\",\n}\n\n\ndef _resolve_aliases(user_text: str, parsed: dict) -> dict:\n    if parsed.get(\"case_id\"):\n        return parsed\n    t = (user_text or \"\").lower()\n    for needle, cid in _ALIAS.items():\n        if needle in t:\n            parsed[\"case_id\"] = cid\n            break\n    return parsed\n\n\nclass ScenarioD_v2_PipelineConfig(Component):\n    display_name = \"Pipeline Config\"\n    description = (\n        \"Parses chat-input directive into a structured config \"\n        \"(case_id, output_format, show_evidence, show_qa).\"\n    )\n    icon = \"settings\"\n    name = \"PipelineConfig S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"user_message\",\n            display_name=\"User Message\",\n            input_types=[\"Message\"],\n            info=\"Connect a Chat Input here.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\", advanced=True),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0, advanced=True),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=200, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Reshape what directives the parser accepts.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Run Config\", name=\"run_config\", method=\"run_parse\")]\n\n    def run_parse(self) -> Data:\n        user_text = (self.user_message.text or \"\") if self.user_message else \"\"\n        user_text = user_text.strip()\n        if not user_text:\n            return Data(data={\"run_config\": {}, \"user_text\": \"\"})\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=user_text,\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n            span_name=\"scenario_d.pipeline_config\",\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError:\n            parsed = {}\n        parsed = parsed if isinstance(parsed, dict) else {}\n        parsed = _resolve_aliases(user_text, parsed)\n        config = _sanitize(parsed)\n        return Data(data={\"run_config\": config, \"user_text\": user_text, \"raw_llm\": raw})\n",
                 "fileTypes": [],
                 "file_path": "",
                 "password": false,
@@ -398,7 +398,7 @@
                 "placeholder": "",
                 "show": true,
                 "name": "system_prompt",
-                "value": "You translate an informal directive into a strict\nJSON config for the integrated-report -> WHO pipeline. Only the keys\nlisted below are allowed; ignore everything else. If the user input is\nempty or doesn't mention a key, leave that key out (downstream nodes use\ntheir defaults).\n\nAllowed keys:\n  sample_id:      one of \"sample_1\" | \"sample_2\" | \"sample_3\"\n                  sample_1 = adult diffuse glioma\n                  sample_2 = pediatric medulloblastoma\n                  sample_3 = breast invasive carcinoma\n  use_vision:     boolean \u2014 when true, the PDF Intake node calls a vision\n                  model on the embedded H&E/IHC images\n  output_format:  one of \"who_layered\" | \"narrative\" | \"json\" | \"html\"\n  show_evidence:  boolean \u2014 include per-finding evidence in the report\n\nReturn ONLY the JSON object. Examples:\n\nUser: \"run sample 2 with vision off, output as narrative\"\nYou: {\"sample_id\": \"sample_2\", \"use_vision\": false, \"output_format\": \"narrative\"}\n\nUser: \"do the breast case with html output\"\nYou: {\"sample_id\": \"sample_3\", \"output_format\": \"html\"}\n\nUser: \"\" (empty)\nYou: {}",
+                "value": "You translate an informal directive into a strict\nJSON config for the integrated-reporting pipeline. Only the keys listed\nbelow are allowed; ignore everything else. If the user input is empty\nor doesn't mention a key, leave that key out (downstream nodes use\ntheir defaults).\n\nAllowed keys:\n  case_id:        one of \"case_aml\" | \"case_glioma\" | \"case_medulloblastoma\" | \"case_breast\"\n                  case_aml             = AML, 4 component reports\n                  case_glioma          = adult diffuse glioma, 3 component reports\n                  case_medulloblastoma = pediatric medulloblastoma, 3 component reports\n                  case_breast          = breast invasive carcinoma, 4 component reports\n  output_format:  one of \"integrated\" | \"narrative\" | \"json\" | \"html\"\n  show_evidence:  boolean \u2014 include the Part B per-sentence evidence trace\n  show_qa:        boolean \u2014 include QA flags inline at the end\n\nReturn ONLY the JSON object. Examples:\n\nUser: \"run the breast case as html\"\nYou: {\"case_id\": \"case_breast\", \"output_format\": \"html\"}\n\nUser: \"do the AML case but skip the evidence trace\"\nYou: {\"case_id\": \"case_aml\", \"show_evidence\": false}\n\nUser: \"\" (empty)\nYou: {}",
                 "display_name": "System Prompt",
                 "advanced": false,
                 "input_types": [
@@ -434,7 +434,7 @@
                 "_input_type": "FloatInput"
               }
             },
-            "description": "Parses chat-input directive into a structured config (sample_id, use_vision, output_format, show_evidence).",
+            "description": "Parses chat-input directive into a structured config (case_id, output_format, show_evidence, show_qa).",
             "icon": "settings",
             "base_classes": [
               "JSON"
@@ -475,7 +475,7 @@
             "edited": false,
             "metadata": {
               "module": "custom_components.pipeline_config",
-              "code_hash": "19a98167dc86",
+              "code_hash": "1a21b9285eb7",
               "dependencies": {
                 "total_dependencies": 2,
                 "dependencies": [
@@ -496,14 +496,14 @@
         }
       },
       {
-        "id": "PDFIntake_S-D.V2-3e1fd0",
+        "id": "PDFIntake_S-D.V2-71e2db",
         "type": "genericNode",
         "position": {
           "x": 900,
           "y": 400
         },
         "data": {
-          "id": "PDFIntake_S-D.V2-3e1fd0",
+          "id": "PDFIntake_S-D.V2-71e2db",
           "type": "PDFIntake S-D.V2",
           "node": {
             "template": {
@@ -524,11 +524,32 @@
                   "Data"
                 ],
                 "dynamic": false,
-                "info": "Optional. Connect Pipeline Config to override Sample ID / use_vision from the chat directive.",
+                "info": "Optional. Connect Pipeline Config to override Case ID from the chat directive.",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "type": "other",
                 "_input_type": "HandleInput"
+              },
+              "case_id": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "case_id",
+                "value": "case_aml",
+                "display_name": "Case ID",
+                "advanced": false,
+                "dynamic": false,
+                "info": "One of: case_aml, case_glioma, case_medulloblastoma, case_breast.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
               },
               "code": {
                 "type": "code",
@@ -537,7 +558,7 @@
                 "list": false,
                 "show": true,
                 "multiline": true,
-                "value": "\"\"\"Scenario D v2 \u2014 PDFIntake.\n\nTHIS is the document-AI step. It reads the pdfplumber raw-text dump of\nthe chosen fabricated report (a single linearized blob with repeating\npage headers, broken tables, addenda appended, abbreviations without\nexpansion \u2014 exactly what a real extractor gets) and runs an LLM with\nan editable system prompt to produce a structured `extracted` payload\nin the shape the rest of the pipeline expects.\n\nOptionally also runs a vision-capable model on the two embedded\nplaceholder images and folds those descriptions into the Data so the\nHistology Synthesizer can use them.\n\nThere are TWO editable levers in this single component:\n  - The extraction system prompt (this is the heart of the demo).\n  - The vision system prompt (only used when use_vision=true).\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    BoolInput,\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import (\n    DEFAULT_DATA_DIR,\n    chat_completion_text,\n    make_image_message,\n    openai_client,\n    resolve_data_dir,\n)\n\n\nDEFAULT_EXTRACTION_PROMPT = \"\"\"You are a document-AI extractor for\nintegrated pathology reports. The input is a raw text dump of a\nmulti-page PDF \u2014 produced by a generic PDF-text extractor \u2014 so it will\ncontain layout artifacts: page headers and footers repeated on every\npage, tables flattened into space-separated rows, occasional column\ncollisions, character-encoding oddities (e.g. (cid:127), \u2021, ligatures\nlike \"fi\"), and an ADDENDUM section appended after the primary\nsign-out. Different labs format their reports differently \u2014 some are\nprose-heavy with sections in ALL CAPS, others are table-heavy with\n\"TIER I/II/III\" classifications, others use synoptic checklist\nlayouts. Your job is to ignore the noise and produce a clean\nstructured object.\n\nOutput a SINGLE JSON object with exactly these top-level fields. If a\nfield is genuinely absent from the report, use an empty string or\nempty list \u2014 do NOT invent values.\n\n{\n  \"tumor_family\":       \"glioma\" | \"medulloblastoma\" | \"breast\" | \"other\",\n  \"demographics\":       {\"patient_id\": \"...\", \"age\": <int|null>, \"sex\": \"M\"|\"F\"|\"\", \"indication\": \"...\"},\n  \"clinical_history\":   \"<full clinical-history paragraph>\",\n  \"specimen\":           \"<specimen description>\",\n  \"macroscopic\":        \"<gross description, may be empty>\",\n  \"histology_text\":     \"<microscopic / histology description, full prose>\",\n  \"ihc_profile\":        [{\"marker\": \"...\", \"result\": \"...\"}, ...],\n  \"molecular_findings\": {\n    \"snv_indel\":         [{\"gene\": \"...\", \"hgvsc\": \"...\", \"hgvsp\": \"...\",\n                            \"vaf\": <float|null>, \"classification\": \"...\"}],\n    \"structural_variants\": [{\"kind\": \"...\", \"description\": \"...\"}],\n    \"copy_number\":       [{\"gene\": \"...\", \"copy_number\": <int>, \"kind\": \"...\"}],\n    \"msi_status\":        \"<MSS|MSI-H|... or empty>\",\n    \"tmb_mutations_per_mb\": <float|null>,\n    \"methylation\":       [{\"locus\": \"...\", \"status\": \"...\"}],\n    \"germline\":          \"<germline screen summary or empty>\"\n  },\n  \"pathologist_comments\": \"<the interpretation / comment paragraph(s)>\",\n  \"addendum_text\":        \"<addendum body if one exists, else empty string>\"\n}\n\nRules:\n  1. tumor_family must be inferred from the diagnosis / specimen /\n     molecular findings \u2014 do not leave it empty unless truly unclear.\n  2. Sweep across all pages \u2014 fields you need may appear after table\n     breaks or in the ADDENDUM section at the end.\n  3. Strip repeating page headers/footers and \"Page N\" markers before\n     attributing text to a field.\n  4. For tables flattened into rows, recover the columns from context\n     (e.g. for an SNV table the columns are usually Gene / HGVSc /\n     HGVSp / VAF / Classification).\n  5. Preserve exact gene symbols and HGVS strings \u2014 do not paraphrase.\n  6. Return ONLY the JSON object; no commentary, no markdown fences,\n     no backticks. Use the word json in your reasoning if needed.\n\"\"\"\n\n\nDEFAULT_VISION_PROMPT = \"\"\"You are a pathology image describer. For each\nimage you receive, write ONE concise paragraph (about 3 sentences)\ndescribing the dominant features a pathologist would note: cellularity,\nnuclear morphology, staining pattern, and whether the image is H&E or\nimmunohistochemical. Do NOT attempt diagnosis. Be specific about color\ndistribution. If an image clearly does not contain biological tissue,\nsay so plainly.\"\"\"\n\n\n_DEFAULT_IMAGES = {\n    \"sample_1\": [\n        {\"label\": \"H&E \u00d720 \u2014 frontal lobe infiltrative astrocytic tumor\", \"kind\": \"he\",\n         \"file\": \"images/sample_1_image_1.png\"},\n        {\"label\": \"IDH1 R132H IHC \u00d720\", \"kind\": \"ihc\",\n         \"file\": \"images/sample_1_image_2.png\"},\n    ],\n    \"sample_2\": [\n        {\"label\": \"H&E \u00d720 \u2014 small round blue cell tumor\", \"kind\": \"he\",\n         \"file\": \"images/sample_2_image_1.png\"},\n        {\"label\": \"GAB1 IHC \u00d720 \u2014 cytoplasmic positivity\", \"kind\": \"ihc\",\n         \"file\": \"images/sample_2_image_2.png\"},\n    ],\n    \"sample_3\": [\n        {\"label\": \"H&E \u00d720 \u2014 invasive ductal carcinoma NST\", \"kind\": \"he\",\n         \"file\": \"images/sample_3_image_1.png\"},\n        {\"label\": \"ER IHC \u00d720 \u2014 Allred 8/8\", \"kind\": \"ihc\",\n         \"file\": \"images/sample_3_image_2.png\"},\n    ],\n}\n\n\ndef _fallback_extracted(sample_id: str) -> dict:\n    \"\"\"Minimal shape used when LLM extraction fails so downstream nodes\n    don't blow up. Records a flag so the QA reviewer can see it.\"\"\"\n    return {\n        \"tumor_family\": \"\",\n        \"demographics\": {},\n        \"clinical_history\": \"\",\n        \"specimen\": \"\",\n        \"macroscopic\": \"\",\n        \"histology_text\": \"\",\n        \"ihc_profile\": [],\n        \"molecular_findings\": {\n            \"snv_indel\": [], \"structural_variants\": [], \"copy_number\": [],\n            \"msi_status\": \"\", \"tmb_mutations_per_mb\": None,\n            \"methylation\": [], \"germline\": \"\",\n        },\n        \"pathologist_comments\": \"\",\n        \"addendum_text\": \"\",\n        \"_extraction_failed\": True,\n    }\n\n\nclass ScenarioD_v2_PDFIntake(Component):\n    display_name = \"PDF Intake\"\n    description = (\n        \"Reads the raw-text dump of the chosen sample's PDF and uses an LLM to \"\n        \"extract a structured payload. THIS is the document-AI step \u2014 the \"\n        \"extraction system prompt is the workshop's key editable lever.\"\n    )\n    icon = \"file-text\"\n    name = \"PDFIntake S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"run_config\",\n            display_name=\"Run Config\",\n            input_types=[\"Data\"],\n            required=False,\n            info=\"Optional. Connect Pipeline Config to override Sample ID / use_vision from the chat directive.\",\n        ),\n        StrInput(name=\"data_dir\", display_name=\"Data Directory\", value=DEFAULT_DATA_DIR, advanced=True),\n        StrInput(\n            name=\"sample_id\",\n            display_name=\"Sample ID\",\n            value=\"sample_1\",\n            info=\"One of sample_1 (glioma), sample_2 (medulloblastoma), sample_3 (breast).\",\n        ),\n        BoolInput(\n            name=\"use_vision\",\n            display_name=\"Run Vision Call On Embedded Images\",\n            value=False,\n            info=\"When true, a multimodal call describes the H&E/IHC placeholders.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Extraction Model\", value=\"openai/gpt-4o-mini\",\n                 info=\"The LLM that turns the raw PDF text into structured fields.\"),\n        StrInput(name=\"vision_model\", display_name=\"Vision Model\", value=\"openai/gpt-4o\",\n                 info=\"Multimodal model used when Use Vision is on.\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens (extraction)\", value=2500, advanced=True),\n        IntInput(name=\"vision_max_tokens\", display_name=\"Max Tokens (vision)\", value=600, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"Extraction System Prompt\",\n            value=DEFAULT_EXTRACTION_PROMPT,\n            info=\"EDIT ME. Reshape what the document-AI extractor pulls out of the raw text.\",\n        ),\n        MultilineInput(\n            name=\"vision_system_prompt\",\n            display_name=\"Vision System Prompt\",\n            value=DEFAULT_VISION_PROMPT,\n            info=\"EDIT ME. Reshape how the vision model describes embedded images.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Intake\", name=\"intake\", method=\"run_intake\")]\n\n    def run_intake(self) -> Data:\n        from tools.scenario_d import pdf_io\n\n        run_config = (self.run_config.data.get(\"run_config\", {}) if self.run_config else {})\n        sample_id = run_config.get(\"sample_id\", self.sample_id)\n        use_vision = run_config.get(\"use_vision\", self.use_vision)\n\n        base = resolve_data_dir(self.data_dir)\n        raw_text = pdf_io.load_raw_text(base, sample_id)\n\n        client = openai_client()\n        try:\n            raw_llm = chat_completion_text(\n                client,\n                model=self.model,\n                system_prompt=self.system_prompt or DEFAULT_EXTRACTION_PROMPT,\n                user_content=raw_text,\n                temperature=self.temperature,\n                max_tokens=self.max_tokens,\n                json_mode=True,\n                span_name=\"scenario_d.pdf_intake.extraction\",\n            )\n            extracted = json.loads(raw_llm)\n            if not isinstance(extracted, dict):\n                raise ValueError(\"extraction did not return a JSON object\")\n        except Exception as e:\n            extracted = _fallback_extracted(sample_id)\n            extracted[\"_extraction_error\"] = f\"{type(e).__name__}: {e}\"\n            raw_llm = \"\"\n\n        # Backstop tumor_family for the WHO classifier downstream:\n        # if the LLM failed to infer it from a messy dump, fall back to\n        # a hint based on the sample_id chosen in the chat directive.\n        if not extracted.get(\"tumor_family\"):\n            extracted[\"tumor_family\"] = {\n                \"sample_1\": \"glioma\",\n                \"sample_2\": \"medulloblastoma\",\n                \"sample_3\": \"breast\",\n            }.get(sample_id, \"\")\n\n        # Optional vision pass: embeds the two placeholder images for the\n        # sample. Image filenames are deterministic per sample.\n        image_descriptions: list[dict] = []\n        if use_vision:\n            images_meta = _DEFAULT_IMAGES.get(sample_id, [])\n            if images_meta:\n                images_payload = []\n                try:\n                    images_payload = [\n                        (m[\"label\"], pdf_io.load_image_bytes(base, m[\"file\"]))\n                        for m in images_meta\n                    ]\n                except FileNotFoundError as e:\n                    image_descriptions.append({\"label\": \"\", \"kind\": \"\",\n                                               \"description\": f\"(image file missing: {e})\"})\n\n                if images_payload:\n                    user_content = make_image_message(\n                        text=(\n                            \"Describe each of the following images in one short \"\n                            \"paragraph each. Number your paragraphs to match the \"\n                            \"image order.\"\n                        ),\n                        images=images_payload,\n                    )\n                    try:\n                        vision_raw = chat_completion_text(\n                            client,\n                            model=self.vision_model,\n                            system_prompt=self.vision_system_prompt or DEFAULT_VISION_PROMPT,\n                            user_content=user_content,\n                            temperature=self.temperature,\n                            max_tokens=self.vision_max_tokens,\n                            span_name=\"scenario_d.pdf_intake.vision\",\n                        )\n                        paragraphs = [p.strip() for p in vision_raw.split(\"\\n\\n\") if p.strip()]\n                        while len(paragraphs) < len(images_meta):\n                            paragraphs.append(\"\")\n                        paragraphs = paragraphs[: len(images_meta)]\n                        for m, desc in zip(images_meta, paragraphs):\n                            image_descriptions.append({\n                                \"label\": m[\"label\"], \"kind\": m[\"kind\"],\n                                \"description\": desc,\n                            })\n                    except Exception as e:\n                        for m in images_meta:\n                            image_descriptions.append({\n                                \"label\": m[\"label\"], \"kind\": m[\"kind\"],\n                                \"description\": f\"(vision call failed: {type(e).__name__})\",\n                            })\n\n        return Data(data={\n            \"sample_id\": sample_id,\n            \"tumor_family\": extracted.get(\"tumor_family\", \"\"),\n            \"extracted\": extracted,\n            \"image_descriptions\": image_descriptions,\n            \"extraction_raw_llm\": raw_llm,\n            \"run_config\": run_config,\n        })\n",
+                "value": "\"\"\"Scenario D v2 \u2014 PDFIntake (Stage 1 of Omar's two-stage pipeline).\n\nLoads ALL component reports for the chosen case (multi-PDF input \u2014\nthat's the whole point) and runs a single LLM call to emit one\nstructured JSON object containing:\n  - per-source key findings (each tagged with source_id +\n    verbatim_support copied from the source)\n  - cross_report_observations: concordances, discordances (with\n    resolution + resolution_basis), single_source_findings\n  - molecular variants with a `classifying` boolean separating\n    disease-defining from prognostic-only events\n\nThe system prompt below is THE main editable lever for the case \u2014\nit carries Omar's extraction rules verbatim. Attendees who modify\nit directly change what the rest of the pipeline gets to reason over.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import (\n    DEFAULT_DATA_DIR,\n    chat_completion_text,\n    openai_client,\n    resolve_data_dir,\n)\n\n\nDEFAULT_EXTRACTION_PROMPT = \"\"\"You are the EXTRACTION stage of a two-stage\nintegrated-reporting pipeline. You receive raw text dumps from MULTIPLE\ncomponent pathology reports for a single patient and single diagnostic\nepisode (one patient, one specimen, several separately issued reports\nfrom different laboratories on different days). Your only job is to read\nall of them and produce ONE structured JSON object. You do NOT write the\nintegrated report; that is the next stage. You do NOT soften, resolve,\nor smooth over anything yet.\n\nThe input you receive will contain explicit source delimiters of the form\n\"========== SOURCE <ID> \u2014 <name> ==========\" preceding each component's\nraw text. The valid source_id values for this case are listed in the\nincoming JSON header. Treat all components as belonging to the same\npatient if the MRN matches; flag any mismatch in extraction_metadata.\n\nKEY RULES\n\n1. EXTRACT, DO NOT INTERPRET. In the per-source \"components\" blocks,\n   record what each report says on its own terms. If morphology hedges\n   on lineage, capture the hedge. If two reports give different\n   numbers for the same quantity (e.g. blast count), record both as\n   they appear. Do not reconcile them here.\n\n2. EVERY FINDING CARRIES ITS SOURCE. Every object in a \"key_findings\"\n   array must have a source_id (matching one of the input sources) and\n   a \"verbatim_support\" string \u2014 a short phrase copied word-for-word\n   from that source's raw text. If you cannot find verbatim support\n   for a finding, do not include it.\n\n3. THE CROSS-REPORT BLOCK IS WHERE COMPARISON HAPPENS. After per-source\n   extraction, populate cross_report_observations:\n   - concordances: things two or more sources agree on. Each carries a\n     short statement and supporting_source_ids.\n   - discordances: apparent conflicts. Each must carry a topic, the\n     positions each source takes, a resolution, and a resolution_basis\n     (the reason it holds: a classification rule, expected\n     methodological variance between a manual and a gated count,\n     hemodilution of an aspirate, etc.). State whether the discordance\n     actually changes the diagnosis.\n   - single_source_findings: decisive findings that appear in exactly\n     one source and are invisible to the others. For each, name the\n     only_source_id, list invisible_to (the other source_ids), and\n     state diagnostic_impact in one sentence.\n\n4. THE classifying BOOLEAN ON VARIANTS. For each molecular variant,\n   set classifying=true ONLY if that variant by itself defines or\n   changes the WHO / ICC disease category for the relevant tumor\n   family. Examples:\n     - AML: NPM1 = true; FLT3-ITD = false (prognostic); DNMT3A = false.\n     - Glioma: IDH1/2 = true; 1p/19q codel = true; CDKN2A/B homo del\n       = true (grade-4 driver); TP53 = false.\n     - Medulloblastoma: PTCH1 (SHH activator) = true; SHH signature\n       = true; TP53 (in SHH context, stratifier) = false as classifying\n       \u2014 record under prognostic.\n     - Breast: PIK3CA = false (actionable, not classifying for entity name).\n   Always set prognostic_note for non-classifying variants.\n\n5. RETURN ONLY THE JSON OBJECT \u2014 no commentary, no markdown fences,\n   no backticks. Use the word \"json\" anywhere in your reasoning.\n\nOUTPUT SHAPE:\n\n{\n  \"case_id\":    \"case_<...>\",\n  \"tumor_family\": \"aml\" | \"glioma\" | \"medulloblastoma\" | \"breast\",\n  \"patient\": {\"name\": \"...\", \"mrn\": \"...\", \"age\": <int|null>, \"sex\": \"...\"},\n  \"specimen\": {\"site\": \"...\", \"collection_date\": \"...\"},\n  \"sources\": [\n    {\"source_id\": \"<ID>\", \"lab\": \"...\", \"accession\": \"...\", \"report_date\": \"...\"}\n  ],\n  \"components\": {\n    \"<ID>\": {\n      \"source_id\": \"<ID>\",\n      \"summary\": \"<one-paragraph component summary>\",\n      \"key_findings\": [\n        {\"text\": \"...\", \"source_id\": \"<ID>\",\n         \"verbatim_support\": \"<copied phrase>\",\n         \"category\": \"lineage|blast_burden|genetics|grade|biomarker|limitation|other\"}\n      ],\n      \"stated_limitations\": \"...\"\n    }\n  },\n  \"molecular_variants\": [\n    {\"gene\": \"...\", \"variant\": \"...\", \"vaf\": \"...\", \"tier\": \"...\",\n     \"classifying\": <bool>, \"prognostic_note\": \"...\",\n     \"source_id\": \"<ID>\", \"verbatim_support\": \"...\"}\n  ],\n  \"cross_report_observations\": {\n    \"concordances\": [{\"statement\": \"...\", \"supporting_source_ids\": [...]}],\n    \"discordances\": [{\"topic\": \"...\",\n                      \"positions\": [{\"source_id\": \"...\", \"position\": \"...\"}],\n                      \"resolution\": \"...\",\n                      \"resolution_basis\": \"...\",\n                      \"changes_diagnosis\": <bool>}],\n    \"single_source_findings\": [{\"finding\": \"...\", \"only_source_id\": \"...\",\n                                \"invisible_to\": [...],\n                                \"diagnostic_impact\": \"...\"}]\n  },\n  \"extraction_metadata\": {\"uncertain_extractions\": [\"...\"]}\n}\n\nSweep across ALL source blocks before finalizing. Fields you need may\nappear in any block. Strip repeating page headers/footers and \"Page N\"\nmarkers when attributing text. Tables flattened into space-separated\nrows are common \u2014 recover columns from context. Preserve exact gene\nsymbols and HGVS strings; do not paraphrase. If a value is ambiguous,\nadd it to extraction_metadata.uncertain_extractions rather than\nguessing silently.\n\"\"\"\n\n\n# Tumor family hint derived from case_id when the LLM call fails or\n# the extracted JSON is missing the field. Keeps downstream nodes alive.\n_TUMOR_FAMILY_BY_CASE = {\n    \"case_aml\": \"aml\",\n    \"case_glioma\": \"glioma\",\n    \"case_medulloblastoma\": \"medulloblastoma\",\n    \"case_breast\": \"breast\",\n}\n\n\ndef _fallback_extracted(case_id: str) -> dict:\n    return {\n        \"case_id\": case_id,\n        \"tumor_family\": _TUMOR_FAMILY_BY_CASE.get(case_id, \"\"),\n        \"patient\": {},\n        \"specimen\": {},\n        \"sources\": [],\n        \"components\": {},\n        \"molecular_variants\": [],\n        \"cross_report_observations\": {\n            \"concordances\": [],\n            \"discordances\": [],\n            \"single_source_findings\": [],\n        },\n        \"extraction_metadata\": {\"uncertain_extractions\": []},\n        \"_extraction_failed\": True,\n    }\n\n\nclass ScenarioD_v2_PDFIntake(Component):\n    display_name = \"PDF Intake\"\n    description = (\n        \"Stage 1 \u2014 loads ALL component reports for the chosen case (multi-PDF \"\n        \"input), runs an LLM extractor, and emits a structured JSON with \"\n        \"per-source key_findings + cross_report_observations (concordances, \"\n        \"discordances, single_source_findings) + classifying flags on variants. \"\n        \"THE main editable lever for the workshop.\"\n    )\n    icon = \"file-text\"\n    name = \"PDFIntake S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"run_config\",\n            display_name=\"Run Config\",\n            input_types=[\"Data\"],\n            required=False,\n            info=\"Optional. Connect Pipeline Config to override Case ID from the chat directive.\",\n        ),\n        StrInput(name=\"data_dir\", display_name=\"Data Directory\", value=DEFAULT_DATA_DIR, advanced=True),\n        StrInput(\n            name=\"case_id\",\n            display_name=\"Case ID\",\n            value=\"case_aml\",\n            info=\"One of: case_aml, case_glioma, case_medulloblastoma, case_breast.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Extraction Model\", value=\"openai/gpt-4o\",\n                 info=\"The LLM that does the multi-source structured extraction. \"\n                      \"Use gpt-4o (or stronger) here \u2014 the multi-document reasoning \"\n                      \"is harder than the simpler downstream steps.\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=3000, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"Extraction System Prompt\",\n            value=DEFAULT_EXTRACTION_PROMPT,\n            info=\"EDIT ME. THIS IS THE MAIN LEVER. Reshape the structured \"\n                 \"schema, change how the extractor handles discordances, or \"\n                 \"tighten the classifying-vs-prognostic rules. Every change \"\n                 \"ripples to the integrator downstream.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Extraction\", name=\"extraction\", method=\"run_extract\")]\n\n    def run_extract(self) -> Data:\n        from tools.scenario_d import pdf_io\n\n        run_config = (self.run_config.data.get(\"run_config\", {}) if self.run_config else {})\n        case_id = run_config.get(\"case_id\", self.case_id)\n\n        base = resolve_data_dir(self.data_dir)\n        sources = pdf_io.load_case_raw_texts(base, case_id)\n        big_blob = pdf_io.concatenated_raw_texts(sources)\n\n        # Hint header \u2014 list the valid source_ids for THIS case at the top of\n        # the prompt so the LLM doesn't invent source_ids that aren't in scope.\n        header = json.dumps({\n            \"case_id\": case_id,\n            \"expected_tumor_family\": _TUMOR_FAMILY_BY_CASE.get(case_id, \"\"),\n            \"valid_source_ids\": [s[\"source_id\"] for s in sources],\n            \"source_directory\": [\n                {\"source_id\": s[\"source_id\"],\n                 \"display_name\": s[\"display_name\"],\n                 \"filename\": s[\"filename\"]}\n                for s in sources\n            ],\n        }, indent=2)\n        user_content = (\n            \"Case header (for grounding only):\\n\" + header +\n            \"\\n\\nRaw source dumps follow.\\n\" + big_blob\n        )\n\n        client = openai_client()\n        try:\n            raw_llm = chat_completion_text(\n                client,\n                model=self.model,\n                system_prompt=self.system_prompt or DEFAULT_EXTRACTION_PROMPT,\n                user_content=user_content,\n                temperature=self.temperature,\n                max_tokens=self.max_tokens,\n                json_mode=True,\n                span_name=\"scenario_d.pdf_intake.stage1_extract\",\n            )\n            extracted = json.loads(raw_llm)\n            if not isinstance(extracted, dict):\n                raise ValueError(\"extraction did not return a JSON object\")\n        except Exception as e:\n            extracted = _fallback_extracted(case_id)\n            extracted[\"_extraction_error\"] = f\"{type(e).__name__}: {e}\"\n            raw_llm = \"\"\n\n        # Tumor-family backstop\n        if not extracted.get(\"tumor_family\"):\n            extracted[\"tumor_family\"] = _TUMOR_FAMILY_BY_CASE.get(case_id, \"\")\n        # case_id backstop\n        if not extracted.get(\"case_id\"):\n            extracted[\"case_id\"] = case_id\n\n        return Data(data={\n            \"case_id\": case_id,\n            \"tumor_family\": extracted.get(\"tumor_family\", \"\"),\n            \"extracted\": extracted,\n            \"extraction_raw_llm\": raw_llm,\n            \"run_config\": run_config,\n            \"source_directory\": [\n                {\"source_id\": s[\"source_id\"], \"display_name\": s[\"display_name\"]}\n                for s in sources\n            ],\n        })\n",
                 "fileTypes": [],
                 "file_path": "",
                 "password": false,
@@ -579,329 +600,7 @@
                 "placeholder": "",
                 "show": true,
                 "name": "max_tokens",
-                "value": 2500,
-                "display_name": "Max Tokens (extraction)",
-                "advanced": true,
-                "dynamic": false,
-                "info": "",
-                "title_case": false,
-                "track_in_telemetry": true,
-                "type": "int",
-                "_input_type": "IntInput"
-              },
-              "model": {
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "load_from_db": false,
-                "list": false,
-                "list_add_label": "Add More",
-                "override_skip": false,
-                "required": false,
-                "placeholder": "",
-                "show": true,
-                "name": "model",
-                "value": "openai/gpt-4o-mini",
-                "display_name": "Extraction Model",
-                "advanced": false,
-                "dynamic": false,
-                "info": "The LLM that turns the raw PDF text into structured fields.",
-                "title_case": false,
-                "track_in_telemetry": false,
-                "type": "str",
-                "_input_type": "StrInput"
-              },
-              "sample_id": {
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "load_from_db": false,
-                "list": false,
-                "list_add_label": "Add More",
-                "override_skip": false,
-                "required": false,
-                "placeholder": "",
-                "show": true,
-                "name": "sample_id",
-                "value": "sample_1",
-                "display_name": "Sample ID",
-                "advanced": false,
-                "dynamic": false,
-                "info": "One of sample_1 (glioma), sample_2 (medulloblastoma), sample_3 (breast).",
-                "title_case": false,
-                "track_in_telemetry": false,
-                "type": "str",
-                "_input_type": "StrInput"
-              },
-              "system_prompt": {
-                "tool_mode": false,
-                "trace_as_input": true,
-                "multiline": true,
-                "ai_enabled": false,
-                "trace_as_metadata": true,
-                "load_from_db": false,
-                "list": false,
-                "list_add_label": "Add More",
-                "override_skip": false,
-                "required": false,
-                "placeholder": "",
-                "show": true,
-                "name": "system_prompt",
-                "value": "You are a document-AI extractor for\nintegrated pathology reports. The input is a raw text dump of a\nmulti-page PDF \u2014 produced by a generic PDF-text extractor \u2014 so it will\ncontain layout artifacts: page headers and footers repeated on every\npage, tables flattened into space-separated rows, occasional column\ncollisions, character-encoding oddities (e.g. (cid:127), \u2021, ligatures\nlike \"fi\"), and an ADDENDUM section appended after the primary\nsign-out. Different labs format their reports differently \u2014 some are\nprose-heavy with sections in ALL CAPS, others are table-heavy with\n\"TIER I/II/III\" classifications, others use synoptic checklist\nlayouts. Your job is to ignore the noise and produce a clean\nstructured object.\n\nOutput a SINGLE JSON object with exactly these top-level fields. If a\nfield is genuinely absent from the report, use an empty string or\nempty list \u2014 do NOT invent values.\n\n{\n  \"tumor_family\":       \"glioma\" | \"medulloblastoma\" | \"breast\" | \"other\",\n  \"demographics\":       {\"patient_id\": \"...\", \"age\": <int|null>, \"sex\": \"M\"|\"F\"|\"\", \"indication\": \"...\"},\n  \"clinical_history\":   \"<full clinical-history paragraph>\",\n  \"specimen\":           \"<specimen description>\",\n  \"macroscopic\":        \"<gross description, may be empty>\",\n  \"histology_text\":     \"<microscopic / histology description, full prose>\",\n  \"ihc_profile\":        [{\"marker\": \"...\", \"result\": \"...\"}, ...],\n  \"molecular_findings\": {\n    \"snv_indel\":         [{\"gene\": \"...\", \"hgvsc\": \"...\", \"hgvsp\": \"...\",\n                            \"vaf\": <float|null>, \"classification\": \"...\"}],\n    \"structural_variants\": [{\"kind\": \"...\", \"description\": \"...\"}],\n    \"copy_number\":       [{\"gene\": \"...\", \"copy_number\": <int>, \"kind\": \"...\"}],\n    \"msi_status\":        \"<MSS|MSI-H|... or empty>\",\n    \"tmb_mutations_per_mb\": <float|null>,\n    \"methylation\":       [{\"locus\": \"...\", \"status\": \"...\"}],\n    \"germline\":          \"<germline screen summary or empty>\"\n  },\n  \"pathologist_comments\": \"<the interpretation / comment paragraph(s)>\",\n  \"addendum_text\":        \"<addendum body if one exists, else empty string>\"\n}\n\nRules:\n  1. tumor_family must be inferred from the diagnosis / specimen /\n     molecular findings \u2014 do not leave it empty unless truly unclear.\n  2. Sweep across all pages \u2014 fields you need may appear after table\n     breaks or in the ADDENDUM section at the end.\n  3. Strip repeating page headers/footers and \"Page N\" markers before\n     attributing text to a field.\n  4. For tables flattened into rows, recover the columns from context\n     (e.g. for an SNV table the columns are usually Gene / HGVSc /\n     HGVSp / VAF / Classification).\n  5. Preserve exact gene symbols and HGVS strings \u2014 do not paraphrase.\n  6. Return ONLY the JSON object; no commentary, no markdown fences,\n     no backticks. Use the word json in your reasoning if needed.\n",
-                "display_name": "Extraction System Prompt",
-                "advanced": false,
-                "input_types": [
-                  "Message"
-                ],
-                "dynamic": false,
-                "info": "EDIT ME. Reshape what the document-AI extractor pulls out of the raw text.",
-                "title_case": false,
-                "track_in_telemetry": false,
-                "copy_field": false,
-                "password": false,
-                "type": "str",
-                "_input_type": "MultilineInput"
-              },
-              "temperature": {
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "list": false,
-                "list_add_label": "Add More",
-                "override_skip": false,
-                "required": false,
-                "placeholder": "",
-                "show": true,
-                "name": "temperature",
-                "value": 0.0,
-                "display_name": "Temperature",
-                "advanced": false,
-                "dynamic": false,
-                "info": "",
-                "title_case": false,
-                "track_in_telemetry": true,
-                "type": "float",
-                "_input_type": "FloatInput"
-              },
-              "use_vision": {
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "list": false,
-                "list_add_label": "Add More",
-                "override_skip": false,
-                "required": false,
-                "placeholder": "",
-                "show": true,
-                "name": "use_vision",
-                "value": false,
-                "display_name": "Run Vision Call On Embedded Images",
-                "advanced": false,
-                "dynamic": false,
-                "info": "When true, a multimodal call describes the H&E/IHC placeholders.",
-                "title_case": false,
-                "track_in_telemetry": true,
-                "type": "bool",
-                "_input_type": "BoolInput"
-              },
-              "vision_max_tokens": {
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "list": false,
-                "list_add_label": "Add More",
-                "override_skip": false,
-                "required": false,
-                "placeholder": "",
-                "show": true,
-                "name": "vision_max_tokens",
-                "value": 600,
-                "display_name": "Max Tokens (vision)",
-                "advanced": true,
-                "dynamic": false,
-                "info": "",
-                "title_case": false,
-                "track_in_telemetry": true,
-                "type": "int",
-                "_input_type": "IntInput"
-              },
-              "vision_model": {
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "load_from_db": false,
-                "list": false,
-                "list_add_label": "Add More",
-                "override_skip": false,
-                "required": false,
-                "placeholder": "",
-                "show": true,
-                "name": "vision_model",
-                "value": "openai/gpt-4o",
-                "display_name": "Vision Model",
-                "advanced": false,
-                "dynamic": false,
-                "info": "Multimodal model used when Use Vision is on.",
-                "title_case": false,
-                "track_in_telemetry": false,
-                "type": "str",
-                "_input_type": "StrInput"
-              },
-              "vision_system_prompt": {
-                "tool_mode": false,
-                "trace_as_input": true,
-                "multiline": true,
-                "ai_enabled": false,
-                "trace_as_metadata": true,
-                "load_from_db": false,
-                "list": false,
-                "list_add_label": "Add More",
-                "override_skip": false,
-                "required": false,
-                "placeholder": "",
-                "show": true,
-                "name": "vision_system_prompt",
-                "value": "You are a pathology image describer. For each\nimage you receive, write ONE concise paragraph (about 3 sentences)\ndescribing the dominant features a pathologist would note: cellularity,\nnuclear morphology, staining pattern, and whether the image is H&E or\nimmunohistochemical. Do NOT attempt diagnosis. Be specific about color\ndistribution. If an image clearly does not contain biological tissue,\nsay so plainly.",
-                "display_name": "Vision System Prompt",
-                "advanced": false,
-                "input_types": [
-                  "Message"
-                ],
-                "dynamic": false,
-                "info": "EDIT ME. Reshape how the vision model describes embedded images.",
-                "title_case": false,
-                "track_in_telemetry": false,
-                "copy_field": false,
-                "password": false,
-                "type": "str",
-                "_input_type": "MultilineInput"
-              }
-            },
-            "description": "Reads the raw-text dump of the chosen sample's PDF and uses an LLM to extract a structured payload. THIS is the document-AI step \u2014 the extraction system prompt is the workshop's key editable lever.",
-            "icon": "file-text",
-            "base_classes": [
-              "JSON"
-            ],
-            "display_name": "PDF Intake",
-            "documentation": "",
-            "minimized": false,
-            "custom_fields": {},
-            "output_types": [],
-            "pinned": false,
-            "conditional_paths": [],
-            "frozen": false,
-            "outputs": [
-              {
-                "types": [
-                  "JSON"
-                ],
-                "selected": "JSON",
-                "name": "intake",
-                "display_name": "Intake",
-                "method": "run_intake",
-                "value": "__UNDEFINED__",
-                "cache": true,
-                "allows_loop": false,
-                "group_outputs": false,
-                "tool_mode": true
-              }
-            ],
-            "field_order": [
-              "run_config",
-              "data_dir",
-              "sample_id",
-              "use_vision",
-              "model",
-              "vision_model",
-              "temperature",
-              "max_tokens",
-              "vision_max_tokens",
-              "system_prompt",
-              "vision_system_prompt"
-            ],
-            "beta": false,
-            "legacy": false,
-            "edited": false,
-            "metadata": {
-              "module": "custom_components.pdf_intake",
-              "code_hash": "6a9df8e6893c",
-              "dependencies": {
-                "total_dependencies": 2,
-                "dependencies": [
-                  {
-                    "name": "langflow",
-                    "version": "1.9.2"
-                  },
-                  {
-                    "name": "tools",
-                    "version": null
-                  }
-                ]
-              }
-            },
-            "tool_mode": false
-          },
-          "showNode": true
-        }
-      },
-      {
-        "id": "MolecularParser_S-D.V2-8eb18e",
-        "type": "genericNode",
-        "position": {
-          "x": 1350,
-          "y": 200
-        },
-        "data": {
-          "id": "MolecularParser_S-D.V2-8eb18e",
-          "type": "MolecularParser S-D.V2",
-          "node": {
-            "template": {
-              "_type": "Component",
-              "intake": {
-                "trace_as_metadata": true,
-                "list": false,
-                "list_add_label": "Add More",
-                "override_skip": false,
-                "required": false,
-                "placeholder": "",
-                "show": true,
-                "name": "intake",
-                "value": "",
-                "display_name": "Intake",
-                "advanced": false,
-                "input_types": [
-                  "Data"
-                ],
-                "dynamic": false,
-                "info": "Connect the PDF Intake's output.",
-                "title_case": false,
-                "track_in_telemetry": false,
-                "type": "other",
-                "_input_type": "HandleInput"
-              },
-              "code": {
-                "type": "code",
-                "required": true,
-                "placeholder": "",
-                "list": false,
-                "show": true,
-                "multiline": true,
-                "value": "\"\"\"Scenario D v2 \u2014 MolecularParser (parallel branch).\n\nLLM agent that re-asserts a clean structured view of the molecular\nfindings, even though the seed-script pre-extracted JSON is already\nclean. The point is pedagogical: in a real workflow, this is where\nmessy molecular text becomes a structured list, and attendees can\ntighten the schema by editing the system prompt.\n\nReturns Data with `molecular_features` = list of normalized records and\npasses the intake payload through unchanged so downstream nodes can\nchain off the same Data object.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a molecular-findings normalizer. You\nreceive the molecular section of a pathology report as JSON (SNV/indel\nlist, structural variants, copy-number alterations, MSI, TMB,\nmethylation, optional germline screen).\n\nEmit a JSON object with a single key \"molecular_features\" whose value is\na flat list of normalized records. Each record:\n  {\n    \"gene\": \"IDH1\",\n    \"kind\": \"snv\" | \"indel\" | \"fusion\" | \"cnv\" | \"methylation\" | \"signature\" | \"biomarker\",\n    \"evidence\": \"short string lifted from the source\",\n    \"classification\": \"Pathogenic\" | \"Likely Pathogenic\" | \"VUS\" | \"Wild-type\" | \"Actionable\" | \"\"\n  }\n\nInclude MSI status and TMB as \"biomarker\" records (gene field \"MSI\",\n\"TMB\"). Include methylation entries as their own \"methylation\" records.\nDo NOT invent findings. If a section is empty, omit those records.\nReturn ONLY the JSON object. Use the word json in your reasoning if needed.\"\"\"\n\n\nclass ScenarioD_v2_MolecularParser(Component):\n    display_name = \"Molecular Parser\"\n    description = (\n        \"LLM agent. Normalizes the molecular section into a flat list of structured \"\n        \"records (gene, kind, evidence, classification).\"\n    )\n    icon = \"git-branch\"\n    name = \"MolecularParser S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"intake\",\n            display_name=\"Intake\",\n            input_types=[\"Data\"],\n            info=\"Connect the PDF Intake's output.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=1200, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Tighten the normalized schema or change `kind` taxonomy.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Molecular Features\", name=\"molecular\", method=\"run_parse\")]\n\n    def run_parse(self) -> Data:\n        d = self.intake.data\n        extracted = d.get(\"extracted\", {})\n        mol = extracted.get(\"molecular_findings\", {})\n\n        payload = {\n            \"sample_id\": d.get(\"sample_id\"),\n            \"tumor_family\": d.get(\"tumor_family\"),\n            \"molecular_findings\": mol,\n        }\n\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n            span_name=\"scenario_d.molecular_parser\",\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError as e:\n            raise ValueError(f\"MolecularParser did not return valid JSON: {raw!r}\") from e\n\n        features = parsed.get(\"molecular_features\", [])\n        if not isinstance(features, list):\n            features = []\n\n        return Data(data={\n            **d,\n            \"molecular_features\": features,\n            \"molecular_raw_llm\": raw,\n        })\n",
-                "fileTypes": [],
-                "file_path": "",
-                "password": false,
-                "name": "code",
-                "advanced": true,
-                "dynamic": true,
-                "info": "",
-                "load_from_db": false,
-                "title_case": false
-              },
-              "max_tokens": {
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "list": false,
-                "list_add_label": "Add More",
-                "override_skip": false,
-                "required": false,
-                "placeholder": "",
-                "show": true,
-                "name": "max_tokens",
-                "value": 1200,
+                "value": 3000,
                 "display_name": "Max Tokens",
                 "advanced": true,
                 "dynamic": false,
@@ -922,11 +621,11 @@
                 "placeholder": "",
                 "show": true,
                 "name": "model",
-                "value": "openai/gpt-4o-mini",
-                "display_name": "Model",
+                "value": "openai/gpt-4o",
+                "display_name": "Extraction Model",
                 "advanced": false,
                 "dynamic": false,
-                "info": "",
+                "info": "The LLM that does the multi-source structured extraction. Use gpt-4o (or stronger) here \u2014 the multi-document reasoning is harder than the simpler downstream steps.",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "type": "str",
@@ -946,14 +645,14 @@
                 "placeholder": "",
                 "show": true,
                 "name": "system_prompt",
-                "value": "You are a molecular-findings normalizer. You\nreceive the molecular section of a pathology report as JSON (SNV/indel\nlist, structural variants, copy-number alterations, MSI, TMB,\nmethylation, optional germline screen).\n\nEmit a JSON object with a single key \"molecular_features\" whose value is\na flat list of normalized records. Each record:\n  {\n    \"gene\": \"IDH1\",\n    \"kind\": \"snv\" | \"indel\" | \"fusion\" | \"cnv\" | \"methylation\" | \"signature\" | \"biomarker\",\n    \"evidence\": \"short string lifted from the source\",\n    \"classification\": \"Pathogenic\" | \"Likely Pathogenic\" | \"VUS\" | \"Wild-type\" | \"Actionable\" | \"\"\n  }\n\nInclude MSI status and TMB as \"biomarker\" records (gene field \"MSI\",\n\"TMB\"). Include methylation entries as their own \"methylation\" records.\nDo NOT invent findings. If a section is empty, omit those records.\nReturn ONLY the JSON object. Use the word json in your reasoning if needed.",
-                "display_name": "System Prompt",
+                "value": "You are the EXTRACTION stage of a two-stage\nintegrated-reporting pipeline. You receive raw text dumps from MULTIPLE\ncomponent pathology reports for a single patient and single diagnostic\nepisode (one patient, one specimen, several separately issued reports\nfrom different laboratories on different days). Your only job is to read\nall of them and produce ONE structured JSON object. You do NOT write the\nintegrated report; that is the next stage. You do NOT soften, resolve,\nor smooth over anything yet.\n\nThe input you receive will contain explicit source delimiters of the form\n\"========== SOURCE <ID> \u2014 <name> ==========\" preceding each component's\nraw text. The valid source_id values for this case are listed in the\nincoming JSON header. Treat all components as belonging to the same\npatient if the MRN matches; flag any mismatch in extraction_metadata.\n\nKEY RULES\n\n1. EXTRACT, DO NOT INTERPRET. In the per-source \"components\" blocks,\n   record what each report says on its own terms. If morphology hedges\n   on lineage, capture the hedge. If two reports give different\n   numbers for the same quantity (e.g. blast count), record both as\n   they appear. Do not reconcile them here.\n\n2. EVERY FINDING CARRIES ITS SOURCE. Every object in a \"key_findings\"\n   array must have a source_id (matching one of the input sources) and\n   a \"verbatim_support\" string \u2014 a short phrase copied word-for-word\n   from that source's raw text. If you cannot find verbatim support\n   for a finding, do not include it.\n\n3. THE CROSS-REPORT BLOCK IS WHERE COMPARISON HAPPENS. After per-source\n   extraction, populate cross_report_observations:\n   - concordances: things two or more sources agree on. Each carries a\n     short statement and supporting_source_ids.\n   - discordances: apparent conflicts. Each must carry a topic, the\n     positions each source takes, a resolution, and a resolution_basis\n     (the reason it holds: a classification rule, expected\n     methodological variance between a manual and a gated count,\n     hemodilution of an aspirate, etc.). State whether the discordance\n     actually changes the diagnosis.\n   - single_source_findings: decisive findings that appear in exactly\n     one source and are invisible to the others. For each, name the\n     only_source_id, list invisible_to (the other source_ids), and\n     state diagnostic_impact in one sentence.\n\n4. THE classifying BOOLEAN ON VARIANTS. For each molecular variant,\n   set classifying=true ONLY if that variant by itself defines or\n   changes the WHO / ICC disease category for the relevant tumor\n   family. Examples:\n     - AML: NPM1 = true; FLT3-ITD = false (prognostic); DNMT3A = false.\n     - Glioma: IDH1/2 = true; 1p/19q codel = true; CDKN2A/B homo del\n       = true (grade-4 driver); TP53 = false.\n     - Medulloblastoma: PTCH1 (SHH activator) = true; SHH signature\n       = true; TP53 (in SHH context, stratifier) = false as classifying\n       \u2014 record under prognostic.\n     - Breast: PIK3CA = false (actionable, not classifying for entity name).\n   Always set prognostic_note for non-classifying variants.\n\n5. RETURN ONLY THE JSON OBJECT \u2014 no commentary, no markdown fences,\n   no backticks. Use the word \"json\" anywhere in your reasoning.\n\nOUTPUT SHAPE:\n\n{\n  \"case_id\":    \"case_<...>\",\n  \"tumor_family\": \"aml\" | \"glioma\" | \"medulloblastoma\" | \"breast\",\n  \"patient\": {\"name\": \"...\", \"mrn\": \"...\", \"age\": <int|null>, \"sex\": \"...\"},\n  \"specimen\": {\"site\": \"...\", \"collection_date\": \"...\"},\n  \"sources\": [\n    {\"source_id\": \"<ID>\", \"lab\": \"...\", \"accession\": \"...\", \"report_date\": \"...\"}\n  ],\n  \"components\": {\n    \"<ID>\": {\n      \"source_id\": \"<ID>\",\n      \"summary\": \"<one-paragraph component summary>\",\n      \"key_findings\": [\n        {\"text\": \"...\", \"source_id\": \"<ID>\",\n         \"verbatim_support\": \"<copied phrase>\",\n         \"category\": \"lineage|blast_burden|genetics|grade|biomarker|limitation|other\"}\n      ],\n      \"stated_limitations\": \"...\"\n    }\n  },\n  \"molecular_variants\": [\n    {\"gene\": \"...\", \"variant\": \"...\", \"vaf\": \"...\", \"tier\": \"...\",\n     \"classifying\": <bool>, \"prognostic_note\": \"...\",\n     \"source_id\": \"<ID>\", \"verbatim_support\": \"...\"}\n  ],\n  \"cross_report_observations\": {\n    \"concordances\": [{\"statement\": \"...\", \"supporting_source_ids\": [...]}],\n    \"discordances\": [{\"topic\": \"...\",\n                      \"positions\": [{\"source_id\": \"...\", \"position\": \"...\"}],\n                      \"resolution\": \"...\",\n                      \"resolution_basis\": \"...\",\n                      \"changes_diagnosis\": <bool>}],\n    \"single_source_findings\": [{\"finding\": \"...\", \"only_source_id\": \"...\",\n                                \"invisible_to\": [...],\n                                \"diagnostic_impact\": \"...\"}]\n  },\n  \"extraction_metadata\": {\"uncertain_extractions\": [\"...\"]}\n}\n\nSweep across ALL source blocks before finalizing. Fields you need may\nappear in any block. Strip repeating page headers/footers and \"Page N\"\nmarkers when attributing text. Tables flattened into space-separated\nrows are common \u2014 recover columns from context. Preserve exact gene\nsymbols and HGVS strings; do not paraphrase. If a value is ambiguous,\nadd it to extraction_metadata.uncertain_extractions rather than\nguessing silently.\n",
+                "display_name": "Extraction System Prompt",
                 "advanced": false,
                 "input_types": [
                   "Message"
                 ],
                 "dynamic": false,
-                "info": "EDIT ME. Tighten the normalized schema or change `kind` taxonomy.",
+                "info": "EDIT ME. THIS IS THE MAIN LEVER. Reshape the structured schema, change how the extractor handles discordances, or tighten the classifying-vs-prognostic rules. Every change ripples to the integrator downstream.",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "copy_field": false,
@@ -982,12 +681,12 @@
                 "_input_type": "FloatInput"
               }
             },
-            "description": "LLM agent. Normalizes the molecular section into a flat list of structured records (gene, kind, evidence, classification).",
-            "icon": "git-branch",
+            "description": "Stage 1 \u2014 loads ALL component reports for the chosen case (multi-PDF input), runs an LLM extractor, and emits a structured JSON with per-source key_findings + cross_report_observations (concordances, discordances, single_source_findings) + classifying flags on variants. THE main editable lever for the workshop.",
+            "icon": "file-text",
             "base_classes": [
               "JSON"
             ],
-            "display_name": "Molecular Parser",
+            "display_name": "PDF Intake",
             "documentation": "",
             "minimized": false,
             "custom_fields": {},
@@ -1001,9 +700,9 @@
                   "JSON"
                 ],
                 "selected": "JSON",
-                "name": "molecular",
-                "display_name": "Molecular Features",
-                "method": "run_parse",
+                "name": "extraction",
+                "display_name": "Extraction",
+                "method": "run_extract",
                 "value": "__UNDEFINED__",
                 "cache": true,
                 "allows_loop": false,
@@ -1012,7 +711,9 @@
               }
             ],
             "field_order": [
-              "intake",
+              "run_config",
+              "data_dir",
+              "case_id",
               "model",
               "temperature",
               "max_tokens",
@@ -1022,8 +723,8 @@
             "legacy": false,
             "edited": false,
             "metadata": {
-              "module": "custom_components.molecular_parser",
-              "code_hash": "83e0e3a21668",
+              "module": "custom_components.pdf_intake",
+              "code_hash": "f2cfbad10a15",
               "dependencies": {
                 "total_dependencies": 2,
                 "dependencies": [
@@ -1044,19 +745,19 @@
         }
       },
       {
-        "id": "HistologySynthesizer_S-D.V2-ea9765",
+        "id": "MolecularParser_S-D.V2-794698",
         "type": "genericNode",
         "position": {
           "x": 1350,
-          "y": 700
+          "y": 200
         },
         "data": {
-          "id": "HistologySynthesizer_S-D.V2-ea9765",
-          "type": "HistologySynthesizer S-D.V2",
+          "id": "MolecularParser_S-D.V2-794698",
+          "type": "MolecularParser S-D.V2",
           "node": {
             "template": {
               "_type": "Component",
-              "intake": {
+              "extraction": {
                 "trace_as_metadata": true,
                 "list": false,
                 "list_add_label": "Add More",
@@ -1064,9 +765,9 @@
                 "required": false,
                 "placeholder": "",
                 "show": true,
-                "name": "intake",
+                "name": "extraction",
                 "value": "",
-                "display_name": "Intake",
+                "display_name": "Extraction",
                 "advanced": false,
                 "input_types": [
                   "Data"
@@ -1085,7 +786,114 @@
                 "list": false,
                 "show": true,
                 "multiline": true,
-                "value": "\"\"\"Scenario D v2 \u2014 HistologySynthesizer (parallel branch).\n\nLLM agent that combines the H&E narrative, IHC profile, and (if\navailable) the image descriptions into a single short morphologic\nsynthesis paragraph. Output is a Message so it flows into the WHO\nClassifier the same way Scenario A's EvidenceAdvisor flows into the\nTournament Judge.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.message import Message\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a pathology morphology synthesizer.\nGiven a free-text H&E description, an IHC profile (marker -> result), and\noptional vision-derived image descriptions, write ONE paragraph (4-6\nsentences) summarizing the key morphologic and immunohistochemical\nfeatures in a form a WHO classifier downstream will use.\n\nCover, in order:\n  1. Cell type and architecture (e.g. \"diffuse astrocytic proliferation\").\n  2. Cytologic atypia and mitotic activity (use HPF counts when given).\n  3. Presence or absence of grade-defining features (necrosis, MVP,\n     vascular proliferation, anaplasia).\n  4. Key IHC findings most relevant to the suspected entity.\n  5. Any image-level cue that reinforces (or undercuts) the call.\n\nBe concrete. Use the report's own numerics. No hedging.\"\"\"\n\n\nclass ScenarioD_v2_HistologySynthesizer(Component):\n    display_name = \"Histology Synthesizer\"\n    description = (\n        \"LLM agent. Combines H&E narrative, IHC profile, and image descriptions into a \"\n        \"single 4-6 sentence morphologic synthesis paragraph for the WHO classifier.\"\n    )\n    icon = \"microscope\"\n    name = \"HistologySynthesizer S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"intake\",\n            display_name=\"Intake\",\n            input_types=[\"Data\"],\n            info=\"Connect the PDF Intake's output.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.2),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=400, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Change what the classifier downstream gets to see.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Morphologic Synthesis\", name=\"synthesis\", method=\"run_synth\")]\n\n    def run_synth(self) -> Message:\n        d = self.intake.data\n        extracted = d.get(\"extracted\", {})\n        payload = {\n            \"tumor_family\": d.get(\"tumor_family\"),\n            \"histology_text\": extracted.get(\"histology_text\", \"\"),\n            \"ihc_profile\": extracted.get(\"ihc_profile\", []),\n            \"image_descriptions\": d.get(\"image_descriptions\", []),\n        }\n\n        client = openai_client()\n        text = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            span_name=\"scenario_d.histology_synthesizer\",\n        )\n        return Message(text=text.strip())\n",
+                "value": "\"\"\"Scenario D v2 \u2014 MolecularParser (post-extraction refinement).\n\nPure-Python pass over the Stage 1 extractor's molecular_variants array.\nAdds two helpers that make the integrator's life easier downstream:\n\n  classifying_variants:     [{gene, variant, prognostic_note, source_id}, ...]\n                            filtered where classifying = true.\n  prognostic_variants:      same shape, where classifying = false.\n\nWe do NOT re-call the LLM here. The Stage 1 extractor already did the\nhard work (including setting the classifying flag per the system prompt\nrules); this node makes those facts easy for the WHO Classifier to\nconsume without re-parsing. Attendees can still flip individual flags\nby editing the extractor's prompt.\n\"\"\"\n\nfrom __future__ import annotations\n\nfrom langflow.custom import Component\nfrom langflow.io import HandleInput, Output\nfrom langflow.schema.data import Data\n\n\nclass ScenarioD_v2_MolecularParser(Component):\n    display_name = \"Molecular Parser\"\n    description = (\n        \"Pure-Python pass over the extractor's molecular_variants list. Splits \"\n        \"the variants into classifying (define the disease entity) and \"\n        \"prognostic (reported but non-classifying) buckets so the integrator \"\n        \"can apply lane discipline.\"\n    )\n    icon = \"git-branch\"\n    name = \"MolecularParser S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"extraction\",\n            display_name=\"Extraction\",\n            input_types=[\"Data\"],\n            info=\"Connect the PDF Intake's output.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Molecular Features\", name=\"molecular\", method=\"run_split\")]\n\n    def run_split(self) -> Data:\n        d = self.extraction.data\n        extracted = d.get(\"extracted\", {})\n        variants = extracted.get(\"molecular_variants\", []) or []\n\n        classifying: list[dict] = []\n        prognostic: list[dict] = []\n        for v in variants:\n            if not isinstance(v, dict):\n                continue\n            if bool(v.get(\"classifying\")):\n                classifying.append(v)\n            else:\n                prognostic.append(v)\n\n        return Data(data={\n            **d,\n            \"classifying_variants\": classifying,\n            \"prognostic_variants\": prognostic,\n            \"n_variants_total\": len(variants),\n        })\n",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
+                "advanced": true,
+                "dynamic": true,
+                "info": "",
+                "load_from_db": false,
+                "title_case": false
+              }
+            },
+            "description": "Pure-Python pass over the extractor's molecular_variants list. Splits the variants into classifying (define the disease entity) and prognostic (reported but non-classifying) buckets so the integrator can apply lane discipline.",
+            "icon": "git-branch",
+            "base_classes": [
+              "JSON"
+            ],
+            "display_name": "Molecular Parser",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "JSON"
+                ],
+                "selected": "JSON",
+                "name": "molecular",
+                "display_name": "Molecular Features",
+                "method": "run_split",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "allows_loop": false,
+                "group_outputs": false,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "extraction"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.molecular_parser",
+              "code_hash": "9bada8907332",
+              "dependencies": {
+                "total_dependencies": 1,
+                "dependencies": [
+                  {
+                    "name": "langflow",
+                    "version": "1.9.2"
+                  }
+                ]
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true
+        }
+      },
+      {
+        "id": "HistologySynthesizer_S-D.V2-2e8427",
+        "type": "genericNode",
+        "position": {
+          "x": 1350,
+          "y": 700
+        },
+        "data": {
+          "id": "HistologySynthesizer_S-D.V2-2e8427",
+          "type": "HistologySynthesizer S-D.V2",
+          "node": {
+            "template": {
+              "_type": "Component",
+              "extraction": {
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "extraction",
+                "value": "",
+                "display_name": "Extraction",
+                "advanced": false,
+                "input_types": [
+                  "Data"
+                ],
+                "dynamic": false,
+                "info": "Connect the PDF Intake's output.",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "other",
+                "_input_type": "HandleInput"
+              },
+              "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "\"\"\"Scenario D v2 \u2014 HistologySynthesizer (parallel branch).\n\nLLM agent that distills the morphology- and IHC-bearing components of\nthe extracted payload into a single short morphologic synthesis\nparagraph that the WHO Classifier folds into its prompt. Mirrors the\nEvidence Advisor pattern in Scenario A.\n\nFor multi-PDF cases the morphology / IHC content can be spread across\ntwo component reports (e.g. AML has morphology and flow each\ncontributing). This component pulls all morphology- and lineage-\nrelevant summaries from the extractor's per-source `components`\nblocks and writes one coherent paragraph.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.message import Message\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a pathology morphology synthesizer.\nYou receive the morphology- and immunophenotype-bearing component\nsummaries from a multi-source diagnostic episode. Write ONE paragraph\n(4-7 sentences) summarizing the key morphologic and immunohistochemical\nfeatures for a WHO classifier downstream.\n\nCover, in order:\n  1. Specimen type and overall architecture (e.g. \"densely cellular\n     embryonal tumor of the cerebellar vermis\").\n  2. Cytologic atypia, mitotic activity, and any grade-defining\n     features (necrosis, MVP, anaplasia).\n  3. Key IHC / immunophenotype findings most relevant to the\n     suspected entity, including any pattern that resolves a lineage\n     hedge stated in another component.\n  4. Whether any morphologic feature is single-source (one report\n     names it, others cannot see it).\n\nBe concrete. Use the reports' own numerics. Do not invent findings.\nDo not assign a grade or call the integrated diagnosis \u2014 those are\nthe integrator's job.\"\"\"\n\n\nclass ScenarioD_v2_HistologySynthesizer(Component):\n    display_name = \"Histology Synthesizer\"\n    description = (\n        \"LLM agent. Distills the morphology- and IHC-bearing component \"\n        \"summaries from the multi-source extraction into a single 4-7 \"\n        \"sentence morphologic synthesis paragraph for the WHO classifier.\"\n    )\n    icon = \"microscope\"\n    name = \"HistologySynthesizer S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"extraction\",\n            display_name=\"Extraction\",\n            input_types=[\"Data\"],\n            info=\"Connect the PDF Intake's output.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.2),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=400, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Change what the classifier downstream gets to see.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Morphologic Synthesis\", name=\"synthesis\", method=\"run_synth\")]\n\n    def run_synth(self) -> Message:\n        d = self.extraction.data\n        extracted = d.get(\"extracted\", {})\n        components = extracted.get(\"components\", {}) or {}\n        # Surface only the morphology- and IHC-relevant components; the\n        # extractor tags each per-source block, so feed them all and let\n        # the LLM pick.\n        payload = {\n            \"tumor_family\": d.get(\"tumor_family\"),\n            \"specimen\": extracted.get(\"specimen\", {}),\n            \"components_with_morphology_or_ihc\": {\n                sid: {\n                    \"summary\": (c or {}).get(\"summary\", \"\"),\n                    \"key_findings\": (c or {}).get(\"key_findings\", []),\n                    \"stated_limitations\": (c or {}).get(\"stated_limitations\", \"\"),\n                }\n                for sid, c in components.items()\n            },\n            \"concordances\": (extracted.get(\"cross_report_observations\", {}) or {})\n                .get(\"concordances\", []),\n            \"discordances\": (extracted.get(\"cross_report_observations\", {}) or {})\n                .get(\"discordances\", []),\n            \"single_source_findings\": (extracted.get(\"cross_report_observations\", {}) or {})\n                .get(\"single_source_findings\", []),\n        }\n\n        client = openai_client()\n        text = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            span_name=\"scenario_d.histology_synthesizer\",\n        )\n        return Message(text=text.strip())\n",
                 "fileTypes": [],
                 "file_path": "",
                 "password": false,
@@ -1151,7 +959,7 @@
                 "placeholder": "",
                 "show": true,
                 "name": "system_prompt",
-                "value": "You are a pathology morphology synthesizer.\nGiven a free-text H&E description, an IHC profile (marker -> result), and\noptional vision-derived image descriptions, write ONE paragraph (4-6\nsentences) summarizing the key morphologic and immunohistochemical\nfeatures in a form a WHO classifier downstream will use.\n\nCover, in order:\n  1. Cell type and architecture (e.g. \"diffuse astrocytic proliferation\").\n  2. Cytologic atypia and mitotic activity (use HPF counts when given).\n  3. Presence or absence of grade-defining features (necrosis, MVP,\n     vascular proliferation, anaplasia).\n  4. Key IHC findings most relevant to the suspected entity.\n  5. Any image-level cue that reinforces (or undercuts) the call.\n\nBe concrete. Use the report's own numerics. No hedging.",
+                "value": "You are a pathology morphology synthesizer.\nYou receive the morphology- and immunophenotype-bearing component\nsummaries from a multi-source diagnostic episode. Write ONE paragraph\n(4-7 sentences) summarizing the key morphologic and immunohistochemical\nfeatures for a WHO classifier downstream.\n\nCover, in order:\n  1. Specimen type and overall architecture (e.g. \"densely cellular\n     embryonal tumor of the cerebellar vermis\").\n  2. Cytologic atypia, mitotic activity, and any grade-defining\n     features (necrosis, MVP, anaplasia).\n  3. Key IHC / immunophenotype findings most relevant to the\n     suspected entity, including any pattern that resolves a lineage\n     hedge stated in another component.\n  4. Whether any morphologic feature is single-source (one report\n     names it, others cannot see it).\n\nBe concrete. Use the reports' own numerics. Do not invent findings.\nDo not assign a grade or call the integrated diagnosis \u2014 those are\nthe integrator's job.",
                 "display_name": "System Prompt",
                 "advanced": false,
                 "input_types": [
@@ -1187,7 +995,7 @@
                 "_input_type": "FloatInput"
               }
             },
-            "description": "LLM agent. Combines H&E narrative, IHC profile, and image descriptions into a single 4-6 sentence morphologic synthesis paragraph for the WHO classifier.",
+            "description": "LLM agent. Distills the morphology- and IHC-bearing component summaries from the multi-source extraction into a single 4-7 sentence morphologic synthesis paragraph for the WHO classifier.",
             "icon": "microscope",
             "base_classes": [
               "Message"
@@ -1217,7 +1025,7 @@
               }
             ],
             "field_order": [
-              "intake",
+              "extraction",
               "model",
               "temperature",
               "max_tokens",
@@ -1228,7 +1036,7 @@
             "edited": false,
             "metadata": {
               "module": "custom_components.histology_synthesizer",
-              "code_hash": "519efe63516c",
+              "code_hash": "0dc885e73036",
               "dependencies": {
                 "total_dependencies": 2,
                 "dependencies": [
@@ -1249,14 +1057,14 @@
         }
       },
       {
-        "id": "WHOClassifier_S-D.V2-f9c649",
+        "id": "WHOClassifier_S-D.V2-f74cd3",
         "type": "genericNode",
         "position": {
           "x": 1900,
           "y": 400
         },
         "data": {
-          "id": "WHOClassifier_S-D.V2-f9c649",
+          "id": "WHOClassifier_S-D.V2-f74cd3",
           "type": "WHOClassifier S-D.V2",
           "node": {
             "template": {
@@ -1293,13 +1101,13 @@
                 "show": true,
                 "name": "molecular",
                 "value": "",
-                "display_name": "Molecular Features",
+                "display_name": "Molecular (post-parser)",
                 "advanced": false,
                 "input_types": [
                   "Data"
                 ],
                 "dynamic": false,
-                "info": "Connect Molecular Parser. Carries through intake/clinical context.",
+                "info": "Connect Molecular Parser (carries extracted + variant split).",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "type": "other",
@@ -1312,7 +1120,7 @@
                 "list": false,
                 "show": true,
                 "multiline": true,
-                "value": "\"\"\"Scenario D v2 \u2014 WHOClassifier.\n\nTHE main reasoner. Receives:\n  - molecular features (Data, from MolecularParser; also carries the\n    intake / clinical context through `extracted`)\n  - morphologic synthesis (Message, from HistologySynthesizer)\n\nEmits the layered WHO diagnosis as a JSON Data payload. The system\nprompt below encodes WHO CNS5 + WHO Breast 5e rules \u2014 this is the\n\"edit me\" lever participants change to demonstrate how a guideline\nchange ripples through to the report.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are the WHO integrated-diagnosis classifier\nfor an agentic pathology workflow. Apply the current WHO 5th-edition rules\nappropriate to the tumor family and produce a layered diagnosis.\n\nTumor families this prompt currently encodes:\n\n[glioma]  \u2014 WHO CNS5 (2021).\n  - Astrocytoma, IDH-mutant: grade 2-4. Grade 3 requires mitotic activity.\n    Grade 4 requires microvascular proliferation OR necrosis OR CDKN2A/B\n    homozygous deletion.\n  - Oligodendroglioma, IDH-mutant and 1p/19q-codeleted: grade 2 or 3.\n  - Glioblastoma, IDH-wildtype: requires EGFR amp, +7/-10, OR TERT\n    promoter mutation in an IDH-wildtype diffuse astrocytic glioma.\n  - MGMT promoter methylation status MUST appear in molecular_features\n    for the report to be complete.\n\n[medulloblastoma]  \u2014 WHO CNS5 (2021).\n  - All medulloblastomas are CNS WHO grade 4.\n  - Required: histologic pattern + molecular subgroup\n    (WNT-activated / SHH-activated TP53-wt / SHH-activated TP53-mut /\n     non-WNT-non-SHH Group 3 / non-WNT-non-SHH Group 4).\n  - TP53 status MUST be reported for SHH-activated cases.\n  - MYC / MYCN amplification flags high-risk biology.\n\n[breast]  \u2014 WHO Breast Tumours 5e (2019).\n  - Invasive carcinoma of no special type uses Nottingham grading\n    (tubule formation + nuclear pleomorphism + mitoses, each 1-3, sum\n     3-9). Grade 1 = 3-5, grade 2 = 6-7, grade 3 = 8-9.\n  - ER, PR, HER2 status MUST be reported.\n  - HER2 IHC 0 or 1+ negative; 2+ requires FISH; 3+ positive.\n\nReturn ONLY a JSON object:\n{\n  \"integrated_diagnosis\": \"...\",\n  \"histologic_diagnosis\": \"...\",\n  \"who_grade\": <integer or null>,\n  \"molecular_features\": [\"IDH1 R132H\", ...],   <-- short labels only\n  \"guideline_source\": \"WHO CNS5 (2021)\",\n  \"rationale\": \"2-3 sentence justification tying morphology + molecular to grade\",\n  \"evidence\": [\n    {\"feature\": \"IDH1 R132H\", \"source\": \"snv_indel\"},\n    ...\n  ]\n}\n\nIf the tumor family isn't in the list above, return your best WHO call\nbut set \"guideline_source\" to \"Out-of-catalog \u2014 manual review required\"\nand explain in rationale.\n\nNo commentary, no markdown. Use the word json in your reasoning if needed.\"\"\"\n\n\nclass ScenarioD_v2_WHOClassifier(Component):\n    display_name = \"WHO Classifier\"\n    description = (\n        \"LLM agent. Applies WHO 5th-edition rules from the system prompt to produce \"\n        \"a layered integrated diagnosis. THIS IS THE EDITABLE LEVER.\"\n    )\n    icon = \"book-open\"\n    name = \"WHOClassifier S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"molecular\",\n            display_name=\"Molecular Features\",\n            input_types=[\"Data\"],\n            info=\"Connect Molecular Parser. Carries through intake/clinical context.\",\n        ),\n        HandleInput(\n            name=\"histology_synthesis\",\n            display_name=\"Morphologic Synthesis\",\n            input_types=[\"Message\"],\n            info=\"Connect Histology Synthesizer.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=1500, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=(\n                \"EDIT ME. Add a new tumor family, tighten grade thresholds, or change \"\n                \"the layered-diagnosis output shape. This is the centerpiece of the demo.\"\n            ),\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Classification\", name=\"classification\", method=\"run_classify\")]\n\n    def run_classify(self) -> Data:\n        d = self.molecular.data\n        extracted = d.get(\"extracted\", {})\n        synthesis = self.histology_synthesis.text if self.histology_synthesis else \"\"\n\n        payload = {\n            \"tumor_family\": d.get(\"tumor_family\"),\n            \"clinical_history\": extracted.get(\"clinical_history\", \"\"),\n            \"specimen\": extracted.get(\"specimen\", \"\"),\n            \"morphologic_synthesis\": synthesis,\n            \"molecular_features\": d.get(\"molecular_features\", []),\n            \"pathologist_comments\": extracted.get(\"pathologist_comments\", \"\"),\n        }\n\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n            span_name=\"scenario_d.who_classifier\",\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError as e:\n            raise ValueError(f\"WHOClassifier did not return valid JSON: {raw!r}\") from e\n\n        return Data(data={\n            **d,\n            \"classification\": parsed,\n            \"morphologic_synthesis\": synthesis,\n            \"classifier_raw_llm\": raw,\n        })\n",
+                "value": "\"\"\"Scenario D v2 \u2014 WHOClassifier (Stage 2 integrator).\n\nOmar's Stage 2 prompt, adapted to our pipeline. Receives the Stage 1\nextractor's structured JSON plus the morphologic synthesis paragraph\nand emits:\n\n  Part A (integrated_report):  11-section structured report.\n  Part B (evidence_trace):     one row per sentence in the\n                               integrated interpretation and final\n                               diagnosis, mapped to its supporting\n                               source_id(s) and a `basis`.\n\nThe integrator may use ONLY information present in the extracted JSON.\nAny sentence in the interpretation or diagnosis without a traceable\nsupport is a pipeline failure and is marked UNSUPPORTED by the QA\nreviewer downstream.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are the INTEGRATION stage of a two-stage\npipeline. You receive a structured JSON extraction of multiple\ncomponent pathology reports for one diagnostic episode and a short\nmorphologic synthesis paragraph from a parallel agent. The extraction\nalready contains per-source findings, concordances, discordances with\ntheir resolutions, single-source findings, and the molecular variants\nflagged as classifying vs prognostic. Your job is to synthesize that\ninto a single integrated hematopathology / pathology report PLUS an\nevidence trace mapping every interpretation and diagnosis sentence to\nits supporting source(s).\n\nYou act as the one responsible diagnostician signing the combined\nreport. Integrated reporting is synthesis, not assembly. Do not staple\nthe component reports together \u2014 explain how the pieces fit.\n\nOUTPUT shape \u2014 a SINGLE JSON object with two top-level keys:\n\n{\n  \"integrated_report\": {\n    \"patient_specimen_id\":    \"<one short sentence>\",\n    \"component_studies\":      [{\"source_id\": \"...\", \"lab\": \"...\",\n                                 \"accession\": \"...\", \"report_date\": \"...\"}],\n    \"clinical_context\":       \"<one short paragraph>\",\n    \"morphology_summary\":     \"<paragraph>\",\n    \"flow_or_ihc_summary\":    \"<paragraph; may be empty if not applicable>\",\n    \"cytogenetics_summary\":   \"<paragraph; may be empty>\",\n    \"molecular_summary\":      \"<paragraph>\",\n    \"integrated_interpretation\": [\n      \"Sentence 1.\", \"Sentence 2.\", ...\n    ],\n    \"final_integrated_diagnosis\": [\n      \"Sentence 1.\", \"Sentence 2.\", ...\n    ],\n    \"prognostic_predictive_notes\": \"<paragraph>\",\n    \"limitations_pending\": \"<paragraph>\"\n  },\n  \"evidence_trace\": [\n    {\"section\": \"integrated_interpretation\" | \"final_integrated_diagnosis\",\n     \"sentence_number\": <int>,\n     \"sentence\": \"<exact sentence text>\",\n     \"supporting_source_ids\": [\"...\", ...],\n     \"basis\": \"direct_finding\" | \"concordance\" | \"discordance_resolution\"\n              | \"single_source_finding\" | \"classification_rule\" | \"UNSUPPORTED\"}\n  ]\n}\n\nRULES\n\n1. USE ONLY WHAT IS IN THE EXTRACTION. Every clinical claim in\n   integrated_interpretation and final_integrated_diagnosis must trace\n   to a finding, a concordance, a discordance resolution, a\n   single-source finding, or a recognized classification rule that\n   the extractor already carries (e.g. a discordance resolution_basis\n   that names \"20% blast threshold does not apply when a defining\n   genetic abnormality is present\"). Do NOT import outside facts.\n\n2. RESOLVE THE DISCORDANCES OUT LOUD. Each discordance in the\n   extraction must be addressed explicitly in the interpretation.\n   Name the conflicting numbers or assessments, state the resolution,\n   and state why it holds. Do not silently pick one number.\n\n3. NAME THE SINGLE-SOURCE FINDINGS. For any finding the extraction\n   marks as single-source, say so plainly in the interpretation: this\n   finding was detectable only on the named source and was invisible\n   to the others, and here is what it changes. This is the central\n   argument for integrated reporting.\n\n4. KEEP NON-CLASSIFYING VARIANTS IN THEIR LANE. A variant with\n   classifying=false (e.g. DNMT3A in AML; TP53 in IDH-mutant\n   astrocytoma; PIK3CA in invasive breast carcinoma) is reported in\n   molecular_summary and prognostic_predictive_notes. It must NOT\n   appear in final_integrated_diagnosis and must NOT be used to\n   assign the disease entity. If you find yourself using it to\n   classify, stop \u2014 that is the error this case is designed to catch.\n\n5. DIAGNOSIS IN CLASSIFICATION TERMS. Final diagnosis should read the\n   way a signed-out report would state it, in WHO/ICC language,\n   reflecting the defining genetic abnormality, the lineage / grade\n   established by morphology + IHC where relevant, and an adverse\n   co-mutation only where it belongs (the prognostic notes line, not\n   the diagnosis line).\n\n6. CARRY LIMITATIONS FORWARD. If the extraction flagged uncertain\n   extractions or component-level stated limitations, reflect them in\n   limitations_pending rather than papering over them.\n\n7. EVIDENCE TRACE INTEGRITY. Every sentence you place in\n   integrated_interpretation and final_integrated_diagnosis must have\n   a row in evidence_trace whose `sentence` matches it verbatim.\n   If a sentence has no support, either remove it or mark its trace\n   row basis=UNSUPPORTED. Any UNSUPPORTED row in the final output\n   counts as a pipeline failure for scoring.\n\nReturn ONLY the JSON object. Use the word \"json\" in your reasoning\nif needed.\"\"\"\n\n\nclass ScenarioD_v2_WHOClassifier(Component):\n    display_name = \"WHO Classifier (Integrator)\"\n    description = (\n        \"Stage 2 integrator. Reads the multi-source extracted JSON + the \"\n        \"morphologic synthesis and emits the integrated report (11 sections) \"\n        \"PLUS a per-sentence evidence trace. Implements Omar's Stage 2 design.\"\n    )\n    icon = \"book-open\"\n    name = \"WHOClassifier S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"molecular\",\n            display_name=\"Molecular (post-parser)\",\n            input_types=[\"Data\"],\n            info=\"Connect Molecular Parser (carries extracted + variant split).\",\n        ),\n        HandleInput(\n            name=\"histology_synthesis\",\n            display_name=\"Morphologic Synthesis\",\n            input_types=[\"Message\"],\n            info=\"Connect Histology Synthesizer.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o\",\n                 info=\"Use a strong reasoning model here \u2014 the integration step \"\n                      \"must respect all of Omar's rules simultaneously.\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=3500, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=(\n                \"EDIT ME. Change how the integrator structures the report, \"\n                \"what counts as a valid evidence basis, or which lane \"\n                \"discipline rules it enforces.\"\n            ),\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Integrated\", name=\"integrated\",\n                      method=\"run_integrate\")]\n\n    def run_integrate(self) -> Data:\n        d = self.molecular.data\n        extracted = d.get(\"extracted\", {})\n        synthesis = self.histology_synthesis.text if self.histology_synthesis else \"\"\n\n        payload = {\n            \"tumor_family\": d.get(\"tumor_family\"),\n            \"case_id\": d.get(\"case_id\"),\n            \"morphologic_synthesis\": synthesis,\n            \"classifying_variants\": d.get(\"classifying_variants\", []),\n            \"prognostic_variants\": d.get(\"prognostic_variants\", []),\n            \"extraction\": extracted,\n        }\n\n        client = openai_client()\n        raw_llm = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n            span_name=\"scenario_d.who_classifier.stage2_integrate\",\n        )\n        try:\n            parsed = json.loads(raw_llm)\n            if not isinstance(parsed, dict):\n                raise ValueError(\"integrator did not return a JSON object\")\n        except Exception as e:\n            parsed = {\n                \"integrated_report\": {},\n                \"evidence_trace\": [],\n                \"_integrator_error\": f\"{type(e).__name__}: {e}\",\n            }\n\n        return Data(data={\n            **d,\n            \"integrated_report\": parsed.get(\"integrated_report\", {}),\n            \"evidence_trace\": parsed.get(\"evidence_trace\", []),\n            \"integrator_raw_llm\": raw_llm,\n            \"morphologic_synthesis\": synthesis,\n        })\n",
                 "fileTypes": [],
                 "file_path": "",
                 "password": false,
@@ -1333,7 +1141,7 @@
                 "placeholder": "",
                 "show": true,
                 "name": "max_tokens",
-                "value": 1500,
+                "value": 3500,
                 "display_name": "Max Tokens",
                 "advanced": true,
                 "dynamic": false,
@@ -1358,7 +1166,7 @@
                 "display_name": "Model",
                 "advanced": false,
                 "dynamic": false,
-                "info": "",
+                "info": "Use a strong reasoning model here \u2014 the integration step must respect all of Omar's rules simultaneously.",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "type": "str",
@@ -1378,14 +1186,14 @@
                 "placeholder": "",
                 "show": true,
                 "name": "system_prompt",
-                "value": "You are the WHO integrated-diagnosis classifier\nfor an agentic pathology workflow. Apply the current WHO 5th-edition rules\nappropriate to the tumor family and produce a layered diagnosis.\n\nTumor families this prompt currently encodes:\n\n[glioma]  \u2014 WHO CNS5 (2021).\n  - Astrocytoma, IDH-mutant: grade 2-4. Grade 3 requires mitotic activity.\n    Grade 4 requires microvascular proliferation OR necrosis OR CDKN2A/B\n    homozygous deletion.\n  - Oligodendroglioma, IDH-mutant and 1p/19q-codeleted: grade 2 or 3.\n  - Glioblastoma, IDH-wildtype: requires EGFR amp, +7/-10, OR TERT\n    promoter mutation in an IDH-wildtype diffuse astrocytic glioma.\n  - MGMT promoter methylation status MUST appear in molecular_features\n    for the report to be complete.\n\n[medulloblastoma]  \u2014 WHO CNS5 (2021).\n  - All medulloblastomas are CNS WHO grade 4.\n  - Required: histologic pattern + molecular subgroup\n    (WNT-activated / SHH-activated TP53-wt / SHH-activated TP53-mut /\n     non-WNT-non-SHH Group 3 / non-WNT-non-SHH Group 4).\n  - TP53 status MUST be reported for SHH-activated cases.\n  - MYC / MYCN amplification flags high-risk biology.\n\n[breast]  \u2014 WHO Breast Tumours 5e (2019).\n  - Invasive carcinoma of no special type uses Nottingham grading\n    (tubule formation + nuclear pleomorphism + mitoses, each 1-3, sum\n     3-9). Grade 1 = 3-5, grade 2 = 6-7, grade 3 = 8-9.\n  - ER, PR, HER2 status MUST be reported.\n  - HER2 IHC 0 or 1+ negative; 2+ requires FISH; 3+ positive.\n\nReturn ONLY a JSON object:\n{\n  \"integrated_diagnosis\": \"...\",\n  \"histologic_diagnosis\": \"...\",\n  \"who_grade\": <integer or null>,\n  \"molecular_features\": [\"IDH1 R132H\", ...],   <-- short labels only\n  \"guideline_source\": \"WHO CNS5 (2021)\",\n  \"rationale\": \"2-3 sentence justification tying morphology + molecular to grade\",\n  \"evidence\": [\n    {\"feature\": \"IDH1 R132H\", \"source\": \"snv_indel\"},\n    ...\n  ]\n}\n\nIf the tumor family isn't in the list above, return your best WHO call\nbut set \"guideline_source\" to \"Out-of-catalog \u2014 manual review required\"\nand explain in rationale.\n\nNo commentary, no markdown. Use the word json in your reasoning if needed.",
+                "value": "You are the INTEGRATION stage of a two-stage\npipeline. You receive a structured JSON extraction of multiple\ncomponent pathology reports for one diagnostic episode and a short\nmorphologic synthesis paragraph from a parallel agent. The extraction\nalready contains per-source findings, concordances, discordances with\ntheir resolutions, single-source findings, and the molecular variants\nflagged as classifying vs prognostic. Your job is to synthesize that\ninto a single integrated hematopathology / pathology report PLUS an\nevidence trace mapping every interpretation and diagnosis sentence to\nits supporting source(s).\n\nYou act as the one responsible diagnostician signing the combined\nreport. Integrated reporting is synthesis, not assembly. Do not staple\nthe component reports together \u2014 explain how the pieces fit.\n\nOUTPUT shape \u2014 a SINGLE JSON object with two top-level keys:\n\n{\n  \"integrated_report\": {\n    \"patient_specimen_id\":    \"<one short sentence>\",\n    \"component_studies\":      [{\"source_id\": \"...\", \"lab\": \"...\",\n                                 \"accession\": \"...\", \"report_date\": \"...\"}],\n    \"clinical_context\":       \"<one short paragraph>\",\n    \"morphology_summary\":     \"<paragraph>\",\n    \"flow_or_ihc_summary\":    \"<paragraph; may be empty if not applicable>\",\n    \"cytogenetics_summary\":   \"<paragraph; may be empty>\",\n    \"molecular_summary\":      \"<paragraph>\",\n    \"integrated_interpretation\": [\n      \"Sentence 1.\", \"Sentence 2.\", ...\n    ],\n    \"final_integrated_diagnosis\": [\n      \"Sentence 1.\", \"Sentence 2.\", ...\n    ],\n    \"prognostic_predictive_notes\": \"<paragraph>\",\n    \"limitations_pending\": \"<paragraph>\"\n  },\n  \"evidence_trace\": [\n    {\"section\": \"integrated_interpretation\" | \"final_integrated_diagnosis\",\n     \"sentence_number\": <int>,\n     \"sentence\": \"<exact sentence text>\",\n     \"supporting_source_ids\": [\"...\", ...],\n     \"basis\": \"direct_finding\" | \"concordance\" | \"discordance_resolution\"\n              | \"single_source_finding\" | \"classification_rule\" | \"UNSUPPORTED\"}\n  ]\n}\n\nRULES\n\n1. USE ONLY WHAT IS IN THE EXTRACTION. Every clinical claim in\n   integrated_interpretation and final_integrated_diagnosis must trace\n   to a finding, a concordance, a discordance resolution, a\n   single-source finding, or a recognized classification rule that\n   the extractor already carries (e.g. a discordance resolution_basis\n   that names \"20% blast threshold does not apply when a defining\n   genetic abnormality is present\"). Do NOT import outside facts.\n\n2. RESOLVE THE DISCORDANCES OUT LOUD. Each discordance in the\n   extraction must be addressed explicitly in the interpretation.\n   Name the conflicting numbers or assessments, state the resolution,\n   and state why it holds. Do not silently pick one number.\n\n3. NAME THE SINGLE-SOURCE FINDINGS. For any finding the extraction\n   marks as single-source, say so plainly in the interpretation: this\n   finding was detectable only on the named source and was invisible\n   to the others, and here is what it changes. This is the central\n   argument for integrated reporting.\n\n4. KEEP NON-CLASSIFYING VARIANTS IN THEIR LANE. A variant with\n   classifying=false (e.g. DNMT3A in AML; TP53 in IDH-mutant\n   astrocytoma; PIK3CA in invasive breast carcinoma) is reported in\n   molecular_summary and prognostic_predictive_notes. It must NOT\n   appear in final_integrated_diagnosis and must NOT be used to\n   assign the disease entity. If you find yourself using it to\n   classify, stop \u2014 that is the error this case is designed to catch.\n\n5. DIAGNOSIS IN CLASSIFICATION TERMS. Final diagnosis should read the\n   way a signed-out report would state it, in WHO/ICC language,\n   reflecting the defining genetic abnormality, the lineage / grade\n   established by morphology + IHC where relevant, and an adverse\n   co-mutation only where it belongs (the prognostic notes line, not\n   the diagnosis line).\n\n6. CARRY LIMITATIONS FORWARD. If the extraction flagged uncertain\n   extractions or component-level stated limitations, reflect them in\n   limitations_pending rather than papering over them.\n\n7. EVIDENCE TRACE INTEGRITY. Every sentence you place in\n   integrated_interpretation and final_integrated_diagnosis must have\n   a row in evidence_trace whose `sentence` matches it verbatim.\n   If a sentence has no support, either remove it or mark its trace\n   row basis=UNSUPPORTED. Any UNSUPPORTED row in the final output\n   counts as a pipeline failure for scoring.\n\nReturn ONLY the JSON object. Use the word \"json\" in your reasoning\nif needed.",
                 "display_name": "System Prompt",
                 "advanced": false,
                 "input_types": [
                   "Message"
                 ],
                 "dynamic": false,
-                "info": "EDIT ME. Add a new tumor family, tighten grade thresholds, or change the layered-diagnosis output shape. This is the centerpiece of the demo.",
+                "info": "EDIT ME. Change how the integrator structures the report, what counts as a valid evidence basis, or which lane discipline rules it enforces.",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "copy_field": false,
@@ -1414,12 +1222,12 @@
                 "_input_type": "FloatInput"
               }
             },
-            "description": "LLM agent. Applies WHO 5th-edition rules from the system prompt to produce a layered integrated diagnosis. THIS IS THE EDITABLE LEVER.",
+            "description": "Stage 2 integrator. Reads the multi-source extracted JSON + the morphologic synthesis and emits the integrated report (11 sections) PLUS a per-sentence evidence trace. Implements Omar's Stage 2 design.",
             "icon": "book-open",
             "base_classes": [
               "JSON"
             ],
-            "display_name": "WHO Classifier",
+            "display_name": "WHO Classifier (Integrator)",
             "documentation": "",
             "minimized": false,
             "custom_fields": {},
@@ -1433,9 +1241,9 @@
                   "JSON"
                 ],
                 "selected": "JSON",
-                "name": "classification",
-                "display_name": "Classification",
-                "method": "run_classify",
+                "name": "integrated",
+                "display_name": "Integrated",
+                "method": "run_integrate",
                 "value": "__UNDEFINED__",
                 "cache": true,
                 "allows_loop": false,
@@ -1455,8 +1263,8 @@
             "legacy": false,
             "edited": false,
             "metadata": {
-              "module": "custom_components.who_classifier",
-              "code_hash": "50cc9e314644",
+              "module": "custom_components.who_classifier_integrator",
+              "code_hash": "24142a4cd9d5",
               "dependencies": {
                 "total_dependencies": 2,
                 "dependencies": [
@@ -1477,19 +1285,19 @@
         }
       },
       {
-        "id": "QAReviewer_S-D.V2-ae7bf3",
+        "id": "QAReviewer_S-D.V2-b26d44",
         "type": "genericNode",
         "position": {
           "x": 2400,
           "y": 400
         },
         "data": {
-          "id": "QAReviewer_S-D.V2-ae7bf3",
+          "id": "QAReviewer_S-D.V2-b26d44",
           "type": "QAReviewer S-D.V2",
           "node": {
             "template": {
               "_type": "Component",
-              "classification_data": {
+              "integrated": {
                 "trace_as_metadata": true,
                 "list": false,
                 "list_add_label": "Add More",
@@ -1497,15 +1305,15 @@
                 "required": false,
                 "placeholder": "",
                 "show": true,
-                "name": "classification_data",
+                "name": "integrated",
                 "value": "",
-                "display_name": "Classification",
+                "display_name": "Integrated",
                 "advanced": false,
                 "input_types": [
                   "Data"
                 ],
                 "dynamic": false,
-                "info": "Connect the WHO Classifier's output.",
+                "info": "Connect the WHO Classifier (Integrator) output.",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "type": "other",
@@ -1518,7 +1326,7 @@
                 "list": false,
                 "show": true,
                 "multiline": true,
-                "value": "\"\"\"Scenario D v2 \u2014 QAReviewer.\n\nReviews the WHO classification for completeness against the static\nWHO-criteria catalog. Flags missing required findings (e.g. a glioma\nreport missing MGMT methylation status), grade calls that conflict with\nthe cited rationale, and molecular features referenced by the classifier\nbut not present in the parsed list.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import FloatInput, HandleInput, IntInput, MultilineInput, Output, StrInput\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a WHO-compliance QA reviewer. You\nreceive (a) the layered classification produced by another agent, (b)\nthe list of parsed molecular features, and (c) the WHO required-findings\ncatalog for the relevant tumor family. Spot-check, do not override.\n\nLook for:\n  - Missing required findings (severity high if a grade-defining marker\n    is absent \u2014 e.g. IDH status absent for a glioma report).\n  - Grade call inconsistent with the cited rationale (severity high if\n    the rationale describes grade-4 features but the call is grade 3,\n    or vice versa).\n  - Molecular features cited in the classification's \"evidence\" array\n    that are not present in molecular_features (severity medium \u2014\n    possible hallucination).\n  - Missing methylation status (e.g. MGMT for gliomas) \u2014 severity low.\n\nReturn ONLY a JSON object listing flags:\n{\n  \"flags\": [\n    {\"finding\": \"IDH_status\", \"severity\": \"low|medium|high\",\n     \"concern\": \"one sentence\"},\n    ...\n  ]\n}\n\nIf nothing is concerning, return JSON: {\"flags\": []}. Use the word json\nin your reasoning if needed.\"\"\"\n\n\nclass ScenarioD_v2_QAReviewer(Component):\n    display_name = \"QA Reviewer\"\n    description = (\n        \"LLM agent. Reviews the WHO classification for missing required findings, \"\n        \"grade inconsistencies, and unsupported evidence. Emits flags.\"\n    )\n    icon = \"shield\"\n    name = \"QAReviewer S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"classification_data\",\n            display_name=\"Classification\",\n            input_types=[\"Data\"],\n            info=\"Connect the WHO Classifier's output.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=700, advanced=True),\n        StrInput(\n            name=\"severity_threshold\",\n            display_name=\"Min Severity To Surface\",\n            value=\"low\",\n            info=\"One of: low, medium, high.\",\n        ),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Make the reviewer stricter or shift its attention.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Reviewed\", name=\"reviewed\", method=\"run_review\")]\n\n    def run_review(self) -> Data:\n        from tools.scenario_d import who_criteria\n\n        d = self.classification_data.data\n        classification = d.get(\"classification\", {})\n        molecular_features = d.get(\"molecular_features\", [])\n        tumor_family = d.get(\"tumor_family\", \"\")\n\n        try:\n            who_entry = who_criteria.for_family(tumor_family)\n        except KeyError:\n            who_entry = {\n                \"blue_book\": \"Out-of-catalog\",\n                \"required_findings\": [],\n                \"grade_rules\": [],\n            }\n\n        payload = {\n            \"tumor_family\": tumor_family,\n            \"who_required_findings\": who_entry[\"required_findings\"],\n            \"who_grade_rules\": who_entry[\"grade_rules\"],\n            \"classification\": classification,\n            \"parsed_molecular_features\": molecular_features,\n        }\n\n        client = openai_client()\n        raw = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=json.dumps(payload, indent=2, default=str),\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            json_mode=True,\n            span_name=\"scenario_d.qa_reviewer\",\n        )\n        try:\n            parsed = json.loads(raw)\n        except json.JSONDecodeError as e:\n            raise ValueError(f\"QAReviewer did not return valid JSON: {raw!r}\") from e\n\n        flags = parsed.get(\"flags\", [])\n        if not isinstance(flags, list):\n            flags = []\n        order = {\"low\": 0, \"medium\": 1, \"high\": 2}\n        min_rank = order.get((self.severity_threshold or \"low\").lower(), 0)\n        flags = [f for f in flags if order.get(str(f.get(\"severity\", \"low\")).lower(), 0) >= min_rank]\n\n        return Data(data={\n            **d,\n            \"flags\": flags,\n            \"who_required_findings\": who_entry[\"required_findings\"],\n            \"guideline_blue_book\": who_entry[\"blue_book\"],\n        })\n",
+                "value": "\"\"\"Scenario D v2 \u2014 QAReviewer.\n\nProgrammatic + LLM review of the integrator's output. Programmatic\nchecks first (deterministic, no LLM cost):\n\n  - UNSUPPORTED rows: any evidence_trace row with basis=\"UNSUPPORTED\"\n    is a hard failure.\n  - Lane-discipline: any non-classifying variant (gene in the\n    extraction's prognostic-only list) mentioned in\n    final_integrated_diagnosis is flagged.\n  - Required findings: cross-check that the integrated report\n    actually addresses each required WHO finding for this tumor\n    family (per tools/scenario_d/who_criteria.py).\n  - Discordance handling: each discordance in the extractor's output\n    should be addressed in integrated_interpretation; otherwise flag.\n\nAfter the programmatic pass, a brief LLM critique adds free-text\nfindings the rules-based checks can't catch (e.g. wording that\noverstates certainty). The LLM call is optional and can be disabled\nvia the LLM Critique toggle in advanced settings.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    BoolInput,\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a QA reviewer for an integrated\npathology report assembled by another agent. You receive the integrated\nreport + the evidence trace + the extractor's structured findings.\nYou are NOT to rewrite the report; you only flag issues.\n\nLook for issues the deterministic rule-based checks won't catch:\n  - Overstated certainty (e.g. \"definitive\" where the morphology hedged).\n  - Implicit reasoning that doesn't appear in any source.\n  - Missing acknowledgment of stated component-level limitations.\n  - Smooth-over phrasings that hide a discordance.\n  - Trace rows whose `basis` doesn't fit the cited content.\n\nReturn ONLY a JSON object:\n{\n  \"flags\": [\n    {\"category\": \"overstatement|hidden_discordance|missing_limitation|\"\n                 \"trace_basis_mismatch|other\",\n     \"severity\": \"low|medium|high\",\n     \"concern\": \"<one sentence>\",\n     \"reference\": \"<sentence number, source_id, or 'general'>\"}\n  ]\n}\n\nIf nothing further is concerning beyond the deterministic flags, return\n{\"flags\": []}. Use the word \"json\" in your reasoning if needed.\"\"\"\n\n\ndef _programmatic_checks(d: dict) -> list[dict]:\n    \"\"\"Deterministic flags. Each flag carries severity + concern +\n    optional reference.\"\"\"\n    from tools.scenario_d import who_criteria\n\n    flags: list[dict] = []\n    integrated = d.get(\"integrated_report\", {}) or {}\n    trace = d.get(\"evidence_trace\", []) or []\n    extracted = d.get(\"extracted\", {}) or {}\n    tumor_family = d.get(\"tumor_family\", \"\")\n    prognostic = d.get(\"prognostic_variants\", []) or []\n\n    # 1. UNSUPPORTED trace rows\n    for row in trace:\n        if (row.get(\"basis\", \"\") or \"\").upper() == \"UNSUPPORTED\":\n            flags.append({\n                \"category\": \"unsupported_trace_row\",\n                \"severity\": \"high\",\n                \"concern\": f\"sentence {row.get('sentence_number', '?')} marked \"\n                           f\"UNSUPPORTED \u2014 no source evidence\",\n                \"reference\": f\"trace row {row.get('sentence_number', '?')}\",\n            })\n\n    # 2. Lane-discipline: scan final_integrated_diagnosis for any gene\n    # name that appears only in the prognostic_variants list.\n    dx_text = \" \".join(integrated.get(\"final_integrated_diagnosis\", []) or []).lower()\n    prog_genes = {(v.get(\"gene\") or \"\").strip() for v in prognostic}\n    prog_genes.discard(\"\")\n    for gene in prog_genes:\n        if gene.lower() in dx_text:\n            flags.append({\n                \"category\": \"lane_discipline\",\n                \"severity\": \"high\",\n                \"concern\": f\"non-classifying variant {gene!r} appears in the \"\n                           \"final integrated diagnosis line; it belongs in \"\n                           \"molecular summary / prognostic notes only\",\n                \"reference\": f\"gene {gene}\",\n            })\n\n    # 3. Required findings (per tumor family)\n    try:\n        criteria = who_criteria.for_family(tumor_family)\n    except KeyError:\n        criteria = None\n    if criteria:\n        required = criteria.get(\"required_findings\", [])\n        # Searchable blob: integrated report body + the extractor's per-source\n        # key_findings text (the report should address required findings even\n        # if it doesn't say the precise short-name token).\n        blob_parts = []\n        for k in (\"morphology_summary\", \"flow_or_ihc_summary\",\n                  \"cytogenetics_summary\", \"molecular_summary\",\n                  \"prognostic_predictive_notes\"):\n            blob_parts.append(integrated.get(k, \"\") or \"\")\n        blob_parts.append(\" \".join(integrated.get(\"integrated_interpretation\", []) or []))\n        blob_parts.append(\" \".join(integrated.get(\"final_integrated_diagnosis\", []) or []))\n        blob = \" \".join(blob_parts).lower()\n        # Heuristic tokens per required-finding name\n        REQ_TOKENS = {\n            \"IDH_status\":     [\"idh\"],\n            \"ATRX_status\":    [\"atrx\"],\n            \"MGMT_methylation\": [\"mgmt\"],\n            \"1p19q_status\":   [\"1p\", \"19q\", \"codel\"],\n            \"CDKN2A_status\":  [\"cdkn2a\", \"cdkn2b\"],\n            \"histologic_pattern\":   [\"histol\", \"morphol\", \"pattern\"],\n            \"molecular_subgroup\":   [\"subgroup\", \"wnt\", \"shh\", \"group 3\", \"group 4\"],\n            \"TP53_status\":          [\"tp53\"],\n            \"MYC_MYCN_status\":      [\"myc\"],\n            \"ER_status\":            [\"er \", \"estrogen\", \"er+\", \"er-\"],\n            \"PR_status\":            [\"pr \", \"progesterone\", \"pr+\", \"pr-\"],\n            \"HER2_status\":          [\"her2\", \"erbb2\"],\n            \"histologic_grade\":     [\"grade\", \"nottingham\"],\n            \"blast_burden_morphology\": [\"blast\"],\n            \"blast_burden_flow\":       [\"blast\"],\n            \"lineage_assignment\":      [\"lineage\", \"monocytic\", \"myeloid\", \"lymphoid\"],\n            \"classifying_genetic_abnormality\": [\"npm1\", \"cbfb\", \"runx1\", \"pml\", \"kmt2a\"],\n        }\n        for finding in required:\n            tokens = REQ_TOKENS.get(finding, [finding.replace(\"_\", \" \").lower()])\n            if not any(tok in blob for tok in tokens):\n                flags.append({\n                    \"category\": \"missing_required_finding\",\n                    \"severity\": \"medium\",\n                    \"concern\": f\"required finding {finding!r} for \"\n                               f\"{tumor_family} is not addressed in the report\",\n                    \"reference\": f\"required_finding:{finding}\",\n                })\n\n    # 4. Discordance handling\n    discordances = ((extracted.get(\"cross_report_observations\") or {})\n                    .get(\"discordances\") or [])\n    interp_blob = \" \".join(integrated.get(\"integrated_interpretation\", []) or []).lower()\n    for disc in discordances:\n        topic = (disc.get(\"topic\") or \"\").lower()\n        if not topic:\n            continue\n        # Cheap check: does the integrated interpretation mention any\n        # major word from the topic?\n        topic_words = [w for w in topic.split() if len(w) > 3]\n        if topic_words and not any(w in interp_blob for w in topic_words):\n            flags.append({\n                \"category\": \"discordance_not_addressed\",\n                \"severity\": \"medium\",\n                \"concern\": f\"discordance {disc.get('topic')!r} from the \"\n                           \"extractor was not explicitly addressed in the \"\n                           \"integrated interpretation\",\n                \"reference\": f\"discordance:{disc.get('topic')}\",\n            })\n\n    return flags\n\n\nclass ScenarioD_v2_QAReviewer(Component):\n    display_name = \"QA Reviewer\"\n    description = (\n        \"Runs deterministic checks (UNSUPPORTED trace rows, lane discipline on \"\n        \"non-classifying variants, required-findings coverage, discordance \"\n        \"handling) and an optional LLM critique. Emits flags.\"\n    )\n    icon = \"shield\"\n    name = \"QAReviewer S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"integrated\",\n            display_name=\"Integrated\",\n            input_types=[\"Data\"],\n            info=\"Connect the WHO Classifier (Integrator) output.\",\n        ),\n        BoolInput(\n            name=\"use_llm_critique\",\n            display_name=\"Add LLM Critique\",\n            value=False,\n            info=\"When on, runs an additional LLM pass for issues the \"\n                 \"deterministic checks miss (overstated certainty, \"\n                 \"smoothed-over discordances). Off by default to keep runs \"\n                 \"fast and free.\",\n        ),\n        StrInput(name=\"model\", display_name=\"Model\", value=\"openai/gpt-4o-mini\"),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=600, advanced=True),\n        StrInput(\n            name=\"severity_threshold\",\n            display_name=\"Min Severity To Surface\",\n            value=\"low\",\n            info=\"One of: low, medium, high.\",\n        ),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"LLM Critique System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. Make the critic stricter or shift its attention.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Reviewed\", name=\"reviewed\", method=\"run_review\")]\n\n    def run_review(self) -> Data:\n        d = self.integrated.data\n        flags = _programmatic_checks(d)\n\n        if self.use_llm_critique:\n            integrated = d.get(\"integrated_report\", {}) or {}\n            trace = d.get(\"evidence_trace\", []) or []\n            extracted = d.get(\"extracted\", {}) or {}\n            payload = {\n                \"integrated_report\": integrated,\n                \"evidence_trace\": trace,\n                \"extracted_summary\": {\n                    \"cross_report_observations\": extracted.get(\"cross_report_observations\", {}),\n                    \"molecular_variants_count\": len(extracted.get(\"molecular_variants\", []) or []),\n                },\n                \"deterministic_flags_already_raised\": flags,\n            }\n            client = openai_client()\n            try:\n                raw = chat_completion_text(\n                    client,\n                    model=self.model,\n                    system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n                    user_content=json.dumps(payload, indent=2, default=str),\n                    temperature=self.temperature,\n                    max_tokens=self.max_tokens,\n                    json_mode=True,\n                    span_name=\"scenario_d.qa_reviewer.llm_critique\",\n                )\n                parsed = json.loads(raw)\n                extra = parsed.get(\"flags\", [])\n                if isinstance(extra, list):\n                    flags.extend(extra)\n            except Exception as e:\n                flags.append({\n                    \"category\": \"llm_critique_failed\",\n                    \"severity\": \"low\",\n                    \"concern\": f\"LLM critique failed: {type(e).__name__}\",\n                    \"reference\": \"general\",\n                })\n\n        order = {\"low\": 0, \"medium\": 1, \"high\": 2}\n        min_rank = order.get((self.severity_threshold or \"low\").lower(), 0)\n        flags = [f for f in flags\n                 if order.get(str(f.get(\"severity\", \"low\")).lower(), 0) >= min_rank]\n\n        return Data(data={**d, \"flags\": flags})\n",
                 "fileTypes": [],
                 "file_path": "",
                 "password": false,
@@ -1539,7 +1347,7 @@
                 "placeholder": "",
                 "show": true,
                 "name": "max_tokens",
-                "value": 700,
+                "value": 600,
                 "display_name": "Max Tokens",
                 "advanced": true,
                 "dynamic": false,
@@ -1605,14 +1413,14 @@
                 "placeholder": "",
                 "show": true,
                 "name": "system_prompt",
-                "value": "You are a WHO-compliance QA reviewer. You\nreceive (a) the layered classification produced by another agent, (b)\nthe list of parsed molecular features, and (c) the WHO required-findings\ncatalog for the relevant tumor family. Spot-check, do not override.\n\nLook for:\n  - Missing required findings (severity high if a grade-defining marker\n    is absent \u2014 e.g. IDH status absent for a glioma report).\n  - Grade call inconsistent with the cited rationale (severity high if\n    the rationale describes grade-4 features but the call is grade 3,\n    or vice versa).\n  - Molecular features cited in the classification's \"evidence\" array\n    that are not present in molecular_features (severity medium \u2014\n    possible hallucination).\n  - Missing methylation status (e.g. MGMT for gliomas) \u2014 severity low.\n\nReturn ONLY a JSON object listing flags:\n{\n  \"flags\": [\n    {\"finding\": \"IDH_status\", \"severity\": \"low|medium|high\",\n     \"concern\": \"one sentence\"},\n    ...\n  ]\n}\n\nIf nothing is concerning, return JSON: {\"flags\": []}. Use the word json\nin your reasoning if needed.",
-                "display_name": "System Prompt",
+                "value": "You are a QA reviewer for an integrated\npathology report assembled by another agent. You receive the integrated\nreport + the evidence trace + the extractor's structured findings.\nYou are NOT to rewrite the report; you only flag issues.\n\nLook for issues the deterministic rule-based checks won't catch:\n  - Overstated certainty (e.g. \"definitive\" where the morphology hedged).\n  - Implicit reasoning that doesn't appear in any source.\n  - Missing acknowledgment of stated component-level limitations.\n  - Smooth-over phrasings that hide a discordance.\n  - Trace rows whose `basis` doesn't fit the cited content.\n\nReturn ONLY a JSON object:\n{\n  \"flags\": [\n    {\"category\": \"overstatement|hidden_discordance|missing_limitation|\"\n                 \"trace_basis_mismatch|other\",\n     \"severity\": \"low|medium|high\",\n     \"concern\": \"<one sentence>\",\n     \"reference\": \"<sentence number, source_id, or 'general'>\"}\n  ]\n}\n\nIf nothing further is concerning beyond the deterministic flags, return\n{\"flags\": []}. Use the word \"json\" in your reasoning if needed.",
+                "display_name": "LLM Critique System Prompt",
                 "advanced": false,
                 "input_types": [
                   "Message"
                 ],
                 "dynamic": false,
-                "info": "EDIT ME. Make the reviewer stricter or shift its attention.",
+                "info": "EDIT ME. Make the critic stricter or shift its attention.",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "copy_field": false,
@@ -1639,9 +1447,29 @@
                 "track_in_telemetry": true,
                 "type": "float",
                 "_input_type": "FloatInput"
+              },
+              "use_llm_critique": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "use_llm_critique",
+                "value": false,
+                "display_name": "Add LLM Critique",
+                "advanced": false,
+                "dynamic": false,
+                "info": "When on, runs an additional LLM pass for issues the deterministic checks miss (overstated certainty, smoothed-over discordances). Off by default to keep runs fast and free.",
+                "title_case": false,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "_input_type": "BoolInput"
               }
             },
-            "description": "LLM agent. Reviews the WHO classification for missing required findings, grade inconsistencies, and unsupported evidence. Emits flags.",
+            "description": "Runs deterministic checks (UNSUPPORTED trace rows, lane discipline on non-classifying variants, required-findings coverage, discordance handling) and an optional LLM critique. Emits flags.",
             "icon": "shield",
             "base_classes": [
               "JSON"
@@ -1671,7 +1499,8 @@
               }
             ],
             "field_order": [
-              "classification_data",
+              "integrated",
+              "use_llm_critique",
               "model",
               "temperature",
               "max_tokens",
@@ -1683,7 +1512,7 @@
             "edited": false,
             "metadata": {
               "module": "custom_components.qa_reviewer",
-              "code_hash": "b0f65c2fb053",
+              "code_hash": "91d37ecd6d4e",
               "dependencies": {
                 "total_dependencies": 2,
                 "dependencies": [
@@ -1704,14 +1533,14 @@
         }
       },
       {
-        "id": "ReportFormatter_S-D.V2-cb2055",
+        "id": "ReportFormatter_S-D.V2-72c34f",
         "type": "genericNode",
         "position": {
           "x": 2900,
           "y": 400
         },
         "data": {
-          "id": "ReportFormatter_S-D.V2-cb2055",
+          "id": "ReportFormatter_S-D.V2-72c34f",
           "type": "ReportFormatter S-D.V2",
           "node": {
             "template": {
@@ -1745,7 +1574,7 @@
                 "list": false,
                 "show": true,
                 "multiline": true,
-                "value": "\"\"\"Scenario D v2 \u2014 ReportFormatter.\n\nPure-Python renderer. Four output formats. Reads format override from\nupstream run_config so the chat-input directive (\"output as html\")\nrewires output without touching the node.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\nfrom typing import Any\n\nfrom langflow.custom import Component\nfrom langflow.io import HandleInput, MultilineInput, Output, StrInput\nfrom langflow.schema.message import Message\n\n\nVALID_FORMATS = {\"who_layered\", \"narrative\", \"json\", \"html\"}\n\n\ndef _layered_md(d: dict[str, Any]) -> str:\n    c = d.get(\"classification\", {})\n    flags = d.get(\"flags\", [])\n    out = []\n    extracted = d.get(\"extracted\", {})\n    demo = extracted.get(\"demographics\", {})\n    sample_id = d.get(\"sample_id\", \"\")\n    out.append(f\"# Integrated Diagnostic Report \u2014 {sample_id}\")\n    out.append(\"\")\n    out.append(\n        f\"**Patient:** {demo.get('patient_id','?')} | \"\n        f\"{demo.get('age','?')} {demo.get('sex','?')} | \"\n        f\"{demo.get('indication','')}\"\n    )\n    out.append(f\"**Specimen:** {extracted.get('specimen','')}\")\n    out.append(\"\")\n    out.append(\"## Integrated diagnosis (WHO layered)\")\n    out.append(\"\")\n    out.append(f\"- **Layer 1 \u2014 Integrated diagnosis:** {c.get('integrated_diagnosis','')}\")\n    out.append(f\"- **Layer 2 \u2014 Histologic diagnosis:** {c.get('histologic_diagnosis','')}\")\n    grade = c.get(\"who_grade\")\n    out.append(f\"- **Layer 3 \u2014 WHO grade:** {grade if grade is not None else 'n/a'}\")\n    mfeat = c.get(\"molecular_features\", [])\n    out.append(\n        \"- **Layer 4 \u2014 Molecular features:** \"\n        + (\", \".join(mfeat) if mfeat else \"none reported\")\n    )\n    out.append(\"\")\n    out.append(f\"**Guideline source:** {c.get('guideline_source','')}\")\n    out.append(\"\")\n    if c.get(\"rationale\"):\n        out.append(\"## Rationale\")\n        out.append(\"\")\n        out.append(c[\"rationale\"])\n        out.append(\"\")\n    if c.get(\"evidence\"):\n        out.append(\"## Evidence\")\n        out.append(\"\")\n        out.append(\"| Feature | Source |\")\n        out.append(\"|---|---|\")\n        for e in c[\"evidence\"]:\n            out.append(f\"| {e.get('feature','')} | {e.get('source','')} |\")\n        out.append(\"\")\n    if flags:\n        out.append(\"## QA flags\")\n        out.append(\"\")\n        for f in flags:\n            out.append(f\"- **{f.get('severity','low').upper()}** \u2014 {f.get('finding','')}: {f.get('concern','')}\")\n        out.append(\"\")\n    return \"\\n\".join(out)\n\n\ndef _narrative(d: dict[str, Any]) -> str:\n    c = d.get(\"classification\", {})\n    flags = d.get(\"flags\", [])\n    parts = []\n    parts.append(f\"Integrated diagnosis: {c.get('integrated_diagnosis','')}.\")\n    if c.get(\"rationale\"):\n        parts.append(c[\"rationale\"])\n    mfeat = c.get(\"molecular_features\", [])\n    if mfeat:\n        parts.append(\"Key molecular features: \" + \", \".join(mfeat) + \".\")\n    grade = c.get(\"who_grade\")\n    if grade is not None:\n        parts.append(f\"WHO grade: {grade}.\")\n    if c.get(\"guideline_source\"):\n        parts.append(f\"Per {c['guideline_source']}.\")\n    if flags:\n        parts.append(\n            \"QA notes: \"\n            + \"; \".join(\n                f\"[{f.get('severity','low')}] {f.get('finding','')}: {f.get('concern','')}\"\n                for f in flags\n            )\n        )\n    return \" \".join(parts)\n\n\ndef _json(d: dict[str, Any]) -> str:\n    extracted = d.get(\"extracted\", {})\n    return json.dumps({\n        \"sample_id\": d.get(\"sample_id\"),\n        \"tumor_family\": d.get(\"tumor_family\"),\n        \"patient\": extracted.get(\"demographics\", {}),\n        \"classification\": d.get(\"classification\", {}),\n        \"qa_flags\": d.get(\"flags\", []),\n        \"guideline_blue_book\": d.get(\"guideline_blue_book\", \"\"),\n    }, indent=2, default=str)\n\n\ndef _html(d: dict[str, Any]) -> str:\n    c = d.get(\"classification\", {})\n    extracted = d.get(\"extracted\", {})\n    demo = extracted.get(\"demographics\", {})\n    sample_id = d.get(\"sample_id\", \"\")\n    flags = d.get(\"flags\", [])\n\n    body = [\n        \"<!doctype html>\",\n        \"<html><head><meta charset='utf-8'><title>WHO Integrated Diagnosis</title>\",\n        \"<style>\"\n        \"body{font-family:system-ui,sans-serif;max-width:960px;margin:24px auto;padding:0 16px;color:#111}\"\n        \"h1{margin-bottom:0;color:#1a1a1a}h2{color:#444;margin-top:24px}\"\n        \".meta{color:#666;font-size:13px;margin-top:4px}\"\n        \".layer{margin:6px 0;padding:6px 12px;border-left:4px solid #4a90e2;background:#f6fafd}\"\n        \".layer b{color:#1a1a1a}\"\n        \".flag-low{background:#fffbe6;border-left-color:#e0a700}\"\n        \".flag-medium{background:#ffe9d1;border-left-color:#d97000}\"\n        \".flag-high{background:#ffd5d1;border-left-color:#c0392b}\"\n        \".flag{padding:6px 12px;margin:4px 0;border-left:4px solid #999}\"\n        \"table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}\"\n        \"th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}\"\n        \"th{background:#f4f4f4}\"\n        \"</style></head><body>\",\n        f\"<h1>Integrated Diagnostic Report</h1>\",\n        f\"<p class='meta'>Sample: <b>{sample_id}</b> &middot; Patient {demo.get('patient_id','?')} \"\n        f\"({demo.get('age','?')} {demo.get('sex','?')}) &middot; {demo.get('indication','')}</p>\",\n        f\"<p class='meta'>Specimen: {extracted.get('specimen','')}</p>\",\n        \"<h2>Integrated diagnosis (WHO layered)</h2>\",\n        f\"<div class='layer'><b>Layer 1 \u2014 Integrated diagnosis:</b> {c.get('integrated_diagnosis','')}</div>\",\n        f\"<div class='layer'><b>Layer 2 \u2014 Histologic diagnosis:</b> {c.get('histologic_diagnosis','')}</div>\",\n        f\"<div class='layer'><b>Layer 3 \u2014 WHO grade:</b> \"\n        f\"{c.get('who_grade') if c.get('who_grade') is not None else 'n/a'}</div>\",\n        \"<div class='layer'><b>Layer 4 \u2014 Molecular features:</b> \"\n        + (\", \".join(c.get(\"molecular_features\", [])) or \"none reported\") + \"</div>\",\n        f\"<p class='meta'>Guideline source: {c.get('guideline_source','')}</p>\",\n    ]\n    if c.get(\"rationale\"):\n        body.append(\"<h2>Rationale</h2>\")\n        body.append(f\"<p>{c['rationale']}</p>\")\n    if c.get(\"evidence\"):\n        body.append(\"<h2>Evidence</h2><table><tr><th>Feature</th><th>Source</th></tr>\")\n        for e in c[\"evidence\"]:\n            body.append(f\"<tr><td>{e.get('feature','')}</td><td>{e.get('source','')}</td></tr>\")\n        body.append(\"</table>\")\n    if flags:\n        body.append(\"<h2>QA flags</h2>\")\n        for f in flags:\n            sev = (f.get(\"severity\") or \"low\").lower()\n            body.append(\n                f\"<div class='flag flag-{sev}'><b>{sev.upper()}</b> \u2014 \"\n                f\"{f.get('finding','')}: {f.get('concern','')}</div>\"\n            )\n    body.append(\"</body></html>\")\n    return \"\\n\".join(body)\n\n\nclass ScenarioD_v2_ReportFormatter(Component):\n    display_name = \"Report Formatter\"\n    description = (\n        \"Pure-Python renderer. Outputs WHO-layered Markdown, narrative paragraph, \"\n        \"JSON, or HTML. Picks up `output_format` override from the chat directive \"\n        \"when Pipeline Config is connected upstream.\"\n    )\n    icon = \"file-text\"\n    name = \"ReportFormatter S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"reviewed\",\n            display_name=\"Reviewed\",\n            input_types=[\"Data\"],\n            info=\"Connect the QA Reviewer's output.\",\n        ),\n        StrInput(\n            name=\"format\",\n            display_name=\"Format\",\n            value=\"who_layered\",\n            info=\"One of: who_layered, narrative, json, html.\",\n        ),\n        MultilineInput(\n            name=\"header_note\",\n            display_name=\"Header Note (optional)\",\n            value=\"\",\n            advanced=True,\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Report\", name=\"report\", method=\"run_format\")]\n\n    def run_format(self) -> Message:\n        d = self.reviewed.data\n        run_config = d.get(\"run_config\", {})\n        fmt = (run_config.get(\"output_format\") or self.format or \"who_layered\").strip().lower()\n        if fmt not in VALID_FORMATS:\n            raise ValueError(f\"Format must be one of {sorted(VALID_FORMATS)}, got {fmt!r}\")\n\n        if fmt == \"who_layered\":\n            text = _layered_md(d)\n        elif fmt == \"narrative\":\n            text = _narrative(d)\n        elif fmt == \"json\":\n            text = _json(d)\n        else:\n            text = _html(d)\n\n        if self.header_note and fmt in {\"who_layered\", \"narrative\"}:\n            text = self.header_note.strip() + \"\\n\\n\" + text\n        elif self.header_note and fmt == \"html\":\n            text = text.replace(\"<body>\", f\"<body><p><em>{self.header_note}</em></p>\")\n\n        return Message(text=text)\n",
+                "value": "\"\"\"Scenario D v2 \u2014 ReportFormatter.\n\nPure-Python renderer for Omar's 11-section integrated report + Part B\nevidence trace. Four output formats: integrated (markdown), narrative\n(short paragraph), json (machine-readable), html. Reads format\noverride from upstream run_config so the chat directive picks the\noutput shape.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\nfrom typing import Any\n\nfrom langflow.custom import Component\nfrom langflow.io import HandleInput, MultilineInput, Output, StrInput\nfrom langflow.schema.message import Message\n\n\nVALID_FORMATS = {\"integrated\", \"narrative\", \"json\", \"html\"}\n\n\n# -------------------------------------------------------------------------\n# Helpers\n# -------------------------------------------------------------------------\n\ndef _component_studies_md(studies: list[dict]) -> str:\n    if not studies:\n        return \"_(no component studies reported)_\"\n    out = [\"| Source | Lab | Accession | Reported |\", \"|---|---|---|---|\"]\n    for s in studies:\n        out.append(\n            f\"| {s.get('source_id','')} | {s.get('lab','')} | \"\n            f\"{s.get('accession','')} | {s.get('report_date','')} |\"\n        )\n    return \"\\n\".join(out)\n\n\ndef _evidence_trace_md(trace: list[dict]) -> str:\n    if not trace:\n        return \"_(no evidence trace produced)_\"\n    out = [\"| # | Section | Sentence | Source(s) | Basis |\",\n           \"|---|---|---|---|---|\"]\n    for row in trace:\n        section = row.get(\"section\", \"\")\n        n = row.get(\"sentence_number\", \"\")\n        sent = (row.get(\"sentence\", \"\") or \"\").replace(\"|\", \"\\\\|\")\n        srcs = \", \".join(row.get(\"supporting_source_ids\", []) or [])\n        basis = row.get(\"basis\", \"\")\n        out.append(f\"| {n} | {section} | {sent} | {srcs} | {basis} |\")\n    return \"\\n\".join(out)\n\n\ndef _flags_md(flags: list[dict]) -> str:\n    if not flags:\n        return \"_(no QA flags raised)_\"\n    out = []\n    for f in flags:\n        sev = (f.get(\"severity\", \"low\") or \"low\").upper()\n        cat = f.get(\"category\", \"\")\n        out.append(f\"- **{sev}** [{cat}] \u2014 {f.get('concern','')}\"\n                   f\" _({f.get('reference','')})_\")\n    return \"\\n\".join(out)\n\n\n# -------------------------------------------------------------------------\n# Markdown integrated layout (Omar 11-section + Part B trace)\n# -------------------------------------------------------------------------\n\ndef _integrated_md(d: dict[str, Any]) -> str:\n    integrated = d.get(\"integrated_report\", {}) or {}\n    trace = d.get(\"evidence_trace\", []) or []\n    flags = d.get(\"flags\", []) or []\n    run_config = d.get(\"run_config\", {}) or {}\n    show_evidence = run_config.get(\"show_evidence\", True)\n    show_qa = run_config.get(\"show_qa\", True)\n\n    out = [f\"# Integrated Diagnostic Report \u2014 {d.get('case_id', '')}\", \"\"]\n    out.append(\"**Part A \u2014 Integrated Report**\")\n    out.append(\"\")\n    out.append(\"## 1. Patient and specimen identification\")\n    out.append(integrated.get(\"patient_specimen_id\", \"\") or \"_(not provided)_\")\n    out.append(\"\")\n    out.append(\"## 2. Component studies reviewed\")\n    out.append(_component_studies_md(integrated.get(\"component_studies\", []) or []))\n    out.append(\"\")\n    out.append(\"## 3. Clinical context\")\n    out.append(integrated.get(\"clinical_context\", \"\") or \"_(not provided)_\")\n    out.append(\"\")\n    out.append(\"## 4. Morphology summary\")\n    out.append(integrated.get(\"morphology_summary\", \"\") or \"_(not applicable)_\")\n    out.append(\"\")\n    out.append(\"## 5. Flow / IHC summary\")\n    out.append(integrated.get(\"flow_or_ihc_summary\", \"\") or \"_(not applicable)_\")\n    out.append(\"\")\n    out.append(\"## 6. Cytogenetics summary\")\n    out.append(integrated.get(\"cytogenetics_summary\", \"\") or \"_(not applicable)_\")\n    out.append(\"\")\n    out.append(\"## 7. Molecular summary\")\n    out.append(integrated.get(\"molecular_summary\", \"\") or \"_(not applicable)_\")\n    out.append(\"\")\n    out.append(\"## 8. Integrated interpretation\")\n    for i, s in enumerate(integrated.get(\"integrated_interpretation\", []) or [], 1):\n        out.append(f\"{i}. {s}\")\n    out.append(\"\")\n    out.append(\"## 9. Final integrated diagnosis\")\n    for i, s in enumerate(integrated.get(\"final_integrated_diagnosis\", []) or [], 1):\n        out.append(f\"{i}. {s}\")\n    out.append(\"\")\n    out.append(\"## 10. Prognostic and predictive notes\")\n    out.append(integrated.get(\"prognostic_predictive_notes\", \"\") or \"_(none)_\")\n    out.append(\"\")\n    out.append(\"## 11. Limitations / pending studies\")\n    out.append(integrated.get(\"limitations_pending\", \"\") or \"_(none)_\")\n    out.append(\"\")\n\n    if show_evidence:\n        out.append(\"---\")\n        out.append(\"**Part B \u2014 Evidence Trace (sections 8 and 9)**\")\n        out.append(\"\")\n        out.append(_evidence_trace_md(trace))\n        out.append(\"\")\n\n    if show_qa:\n        out.append(\"---\")\n        out.append(\"## QA Flags\")\n        out.append(\"\")\n        out.append(_flags_md(flags))\n\n    return \"\\n\".join(out)\n\n\ndef _narrative(d: dict[str, Any]) -> str:\n    integrated = d.get(\"integrated_report\", {}) or {}\n    parts = []\n    parts.append(integrated.get(\"clinical_context\", \"\").strip())\n    dx_lines = integrated.get(\"final_integrated_diagnosis\", []) or []\n    if dx_lines:\n        parts.append(\"Final integrated diagnosis: \" + \" \".join(dx_lines))\n    interp = integrated.get(\"integrated_interpretation\", []) or []\n    if interp:\n        parts.append(\" \".join(interp))\n    pnotes = integrated.get(\"prognostic_predictive_notes\", \"\")\n    if pnotes:\n        parts.append(\"Prognostic / predictive notes: \" + pnotes)\n    return \"\\n\\n\".join(p for p in parts if p)\n\n\ndef _json(d: dict[str, Any]) -> str:\n    return json.dumps({\n        \"case_id\": d.get(\"case_id\"),\n        \"tumor_family\": d.get(\"tumor_family\"),\n        \"integrated_report\": d.get(\"integrated_report\", {}),\n        \"evidence_trace\": d.get(\"evidence_trace\", []),\n        \"qa_flags\": d.get(\"flags\", []),\n    }, indent=2, default=str)\n\n\ndef _html(d: dict[str, Any]) -> str:\n    integrated = d.get(\"integrated_report\", {}) or {}\n    trace = d.get(\"evidence_trace\", []) or []\n    flags = d.get(\"flags\", []) or []\n    run_config = d.get(\"run_config\", {}) or {}\n    show_evidence = run_config.get(\"show_evidence\", True)\n    show_qa = run_config.get(\"show_qa\", True)\n\n    body = [\n        \"<!doctype html>\",\n        \"<html><head><meta charset='utf-8'><title>Integrated Diagnostic Report</title>\",\n        \"<style>\"\n        \"body{font-family:system-ui,sans-serif;max-width:1080px;margin:24px auto;\"\n        \"padding:0 16px;color:#111}\"\n        \"h1{margin-bottom:0;color:#1a1a1a}h2{color:#444;margin-top:24px}\"\n        \".meta{color:#666;font-size:13px;margin-top:4px}\"\n        \".section{margin-top:16px}\"\n        \".dx li{font-weight:bold}\"\n        \"table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}\"\n        \"th,td{border:1px solid #ddd;padding:6px 8px;text-align:left;vertical-align:top}\"\n        \"th{background:#f4f4f4}\"\n        \".flag-low{background:#fffbe6}.flag-medium{background:#ffe9d1}\"\n        \".flag-high{background:#ffd5d1}\"\n        \".flag{padding:6px 12px;margin:4px 0;border-left:4px solid #999}\"\n        \"</style></head><body>\",\n        f\"<h1>Integrated Diagnostic Report</h1>\",\n        f\"<p class='meta'>Case: <b>{d.get('case_id','')}</b> \u00b7 \"\n        f\"Tumor family: <b>{d.get('tumor_family','')}</b></p>\",\n        \"<h2>1. Patient and specimen identification</h2>\",\n        f\"<p>{integrated.get('patient_specimen_id', '') or '<i>(not provided)</i>'}</p>\",\n        \"<h2>2. Component studies reviewed</h2>\",\n        \"<table><tr><th>Source</th><th>Lab</th><th>Accession</th><th>Reported</th></tr>\",\n    ]\n    for s in integrated.get(\"component_studies\", []) or []:\n        body.append(\n            f\"<tr><td>{s.get('source_id','')}</td><td>{s.get('lab','')}</td>\"\n            f\"<td>{s.get('accession','')}</td><td>{s.get('report_date','')}</td></tr>\"\n        )\n    body.append(\"</table>\")\n    for n, title, key in [\n        (3, \"Clinical context\", \"clinical_context\"),\n        (4, \"Morphology summary\", \"morphology_summary\"),\n        (5, \"Flow / IHC summary\", \"flow_or_ihc_summary\"),\n        (6, \"Cytogenetics summary\", \"cytogenetics_summary\"),\n        (7, \"Molecular summary\", \"molecular_summary\"),\n    ]:\n        body.append(f\"<h2>{n}. {title}</h2>\")\n        body.append(f\"<p>{integrated.get(key, '') or '<i>(not applicable)</i>'}</p>\")\n    body.append(\"<h2>8. Integrated interpretation</h2>\")\n    body.append(\"<ol>\")\n    for s in integrated.get(\"integrated_interpretation\", []) or []:\n        body.append(f\"<li>{s}</li>\")\n    body.append(\"</ol>\")\n    body.append(\"<h2>9. Final integrated diagnosis</h2>\")\n    body.append(\"<ol class='dx'>\")\n    for s in integrated.get(\"final_integrated_diagnosis\", []) or []:\n        body.append(f\"<li>{s}</li>\")\n    body.append(\"</ol>\")\n    body.append(\"<h2>10. Prognostic and predictive notes</h2>\")\n    body.append(f\"<p>{integrated.get('prognostic_predictive_notes', '') or '<i>(none)</i>'}</p>\")\n    body.append(\"<h2>11. Limitations / pending studies</h2>\")\n    body.append(f\"<p>{integrated.get('limitations_pending', '') or '<i>(none)</i>'}</p>\")\n\n    if show_evidence:\n        body.append(\"<h2>Part B \u2014 Evidence Trace</h2>\")\n        body.append(\"<table><tr><th>#</th><th>Section</th><th>Sentence</th>\"\n                    \"<th>Source(s)</th><th>Basis</th></tr>\")\n        for row in trace:\n            srcs = \", \".join(row.get(\"supporting_source_ids\", []) or [])\n            body.append(\n                f\"<tr><td>{row.get('sentence_number','')}</td>\"\n                f\"<td>{row.get('section','')}</td>\"\n                f\"<td>{row.get('sentence','')}</td>\"\n                f\"<td>{srcs}</td><td>{row.get('basis','')}</td></tr>\"\n            )\n        body.append(\"</table>\")\n\n    if show_qa:\n        body.append(\"<h2>QA Flags</h2>\")\n        if not flags:\n            body.append(\"<p><i>No QA flags raised.</i></p>\")\n        else:\n            for f in flags:\n                sev = (f.get(\"severity\", \"low\") or \"low\").lower()\n                body.append(\n                    f\"<div class='flag flag-{sev}'><b>{sev.upper()}</b> \"\n                    f\"[{f.get('category','')}] \u2014 {f.get('concern','')} \"\n                    f\"<i>({f.get('reference','')})</i></div>\"\n                )\n\n    body.append(\"</body></html>\")\n    return \"\\n\".join(body)\n\n\nclass ScenarioD_v2_ReportFormatter(Component):\n    display_name = \"Report Formatter\"\n    description = (\n        \"Pure-Python renderer for Omar's 11-section integrated report + Part B \"\n        \"evidence trace. Formats: integrated (markdown), narrative, json, html. \"\n        \"Reads output_format / show_evidence / show_qa overrides from the chat \"\n        \"directive when Pipeline Config is connected upstream.\"\n    )\n    icon = \"file-text\"\n    name = \"ReportFormatter S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"reviewed\",\n            display_name=\"Reviewed\",\n            input_types=[\"Data\"],\n            info=\"Connect the QA Reviewer's output.\",\n        ),\n        StrInput(\n            name=\"format\",\n            display_name=\"Format\",\n            value=\"integrated\",\n            info=\"One of: integrated, narrative, json, html.\",\n        ),\n        MultilineInput(\n            name=\"header_note\",\n            display_name=\"Header Note (optional)\",\n            value=\"\",\n            advanced=True,\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Report\", name=\"report\", method=\"run_format\")]\n\n    def run_format(self) -> Message:\n        d = self.reviewed.data\n        run_config = d.get(\"run_config\", {}) or {}\n        fmt = (run_config.get(\"output_format\") or self.format or \"integrated\").strip().lower()\n        if fmt not in VALID_FORMATS:\n            raise ValueError(f\"Format must be one of {sorted(VALID_FORMATS)}, got {fmt!r}\")\n\n        if fmt == \"integrated\":\n            text = _integrated_md(d)\n        elif fmt == \"narrative\":\n            text = _narrative(d)\n        elif fmt == \"json\":\n            text = _json(d)\n        else:\n            text = _html(d)\n\n        if self.header_note and fmt in {\"integrated\", \"narrative\"}:\n            text = self.header_note.strip() + \"\\n\\n\" + text\n        elif self.header_note and fmt == \"html\":\n            text = text.replace(\"<body>\", f\"<body><p><em>{self.header_note}</em></p>\")\n\n        return Message(text=text)\n",
                 "fileTypes": [],
                 "file_path": "",
                 "password": false,
@@ -1767,11 +1596,11 @@
                 "placeholder": "",
                 "show": true,
                 "name": "format",
-                "value": "who_layered",
+                "value": "integrated",
                 "display_name": "Format",
                 "advanced": false,
                 "dynamic": false,
-                "info": "One of: who_layered, narrative, json, html.",
+                "info": "One of: integrated, narrative, json, html.",
                 "title_case": false,
                 "track_in_telemetry": false,
                 "type": "str",
@@ -1807,7 +1636,7 @@
                 "_input_type": "MultilineInput"
               }
             },
-            "description": "Pure-Python renderer. Outputs WHO-layered Markdown, narrative paragraph, JSON, or HTML. Picks up `output_format` override from the chat directive when Pipeline Config is connected upstream.",
+            "description": "Pure-Python renderer for Omar's 11-section integrated report + Part B evidence trace. Formats: integrated (markdown), narrative, json, html. Reads output_format / show_evidence / show_qa overrides from the chat directive when Pipeline Config is connected upstream.",
             "icon": "file-text",
             "base_classes": [
               "Message"
@@ -1846,7 +1675,7 @@
             "edited": false,
             "metadata": {
               "module": "custom_components.report_formatter",
-              "code_hash": "a5cff67d9ced",
+              "code_hash": "886f9da63ba0",
               "dependencies": {
                 "total_dependencies": 1,
                 "dependencies": [
@@ -1863,14 +1692,14 @@
         }
       },
       {
-        "id": "ChatOutput-3de978",
+        "id": "ChatOutput-5d6968",
         "type": "genericNode",
         "position": {
           "x": 3400,
           "y": 400
         },
         "data": {
-          "id": "ChatOutput-3de978",
+          "id": "ChatOutput-5d6968",
           "type": "ChatOutput",
           "node": {
             "base_classes": [
@@ -2158,14 +1987,14 @@
     ],
     "edges": [
       {
-        "source": "ChatInput-720391",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-720391\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "PipelineConfig_S-D.V2-67c761",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-67c761\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "ChatInput-9008ee",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-9008ee\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "PipelineConfig_S-D.V2-211cb9",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-211cb9\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ChatInput",
-            "id": "ChatInput-720391",
+            "id": "ChatInput-9008ee",
             "name": "message",
             "output_types": [
               "Message"
@@ -2173,27 +2002,27 @@
           },
           "targetHandle": {
             "fieldName": "user_message",
-            "id": "PipelineConfig_S-D.V2-67c761",
+            "id": "PipelineConfig_S-D.V2-211cb9",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__ChatInput-720391{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-720391\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-PipelineConfig_S-D.V2-67c761{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-67c761\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__ChatInput-9008ee{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-9008ee\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-PipelineConfig_S-D.V2-211cb9{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-211cb9\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PipelineConfig_S-D.V2-67c761",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-67c761\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "PDFIntake_S-D.V2-3e1fd0",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PipelineConfig_S-D.V2-211cb9",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-211cb9\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "PDFIntake_S-D.V2-71e2db",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-71e2db\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PipelineConfig S-D.V2",
-            "id": "PipelineConfig_S-D.V2-67c761",
+            "id": "PipelineConfig_S-D.V2-211cb9",
             "name": "run_config",
             "output_types": [
               "Data"
@@ -2201,83 +2030,83 @@
           },
           "targetHandle": {
             "fieldName": "run_config",
-            "id": "PDFIntake_S-D.V2-3e1fd0",
+            "id": "PDFIntake_S-D.V2-71e2db",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PipelineConfig_S-D.V2-67c761{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-67c761\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-PDFIntake_S-D.V2-3e1fd0{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PipelineConfig_S-D.V2-211cb9{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-211cb9\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-PDFIntake_S-D.V2-71e2db{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-71e2db\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PDFIntake_S-D.V2-3e1fd0",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "MolecularParser_S-D.V2-8eb18e",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-8eb18e\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PDFIntake_S-D.V2-71e2db",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-71e2db\u0153,\u0153name\u0153:\u0153extraction\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "MolecularParser_S-D.V2-794698",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153extraction\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-794698\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PDFIntake S-D.V2",
-            "id": "PDFIntake_S-D.V2-3e1fd0",
-            "name": "intake",
+            "id": "PDFIntake_S-D.V2-71e2db",
+            "name": "extraction",
             "output_types": [
               "Data"
             ]
           },
           "targetHandle": {
-            "fieldName": "intake",
-            "id": "MolecularParser_S-D.V2-8eb18e",
+            "fieldName": "extraction",
+            "id": "MolecularParser_S-D.V2-794698",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PDFIntake_S-D.V2-3e1fd0{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-MolecularParser_S-D.V2-8eb18e{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-8eb18e\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PDFIntake_S-D.V2-71e2db{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-71e2db\u0153,\u0153name\u0153:\u0153extraction\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-MolecularParser_S-D.V2-794698{\u0153fieldName\u0153:\u0153extraction\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-794698\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PDFIntake_S-D.V2-3e1fd0",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "HistologySynthesizer_S-D.V2-ea9765",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-ea9765\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PDFIntake_S-D.V2-71e2db",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-71e2db\u0153,\u0153name\u0153:\u0153extraction\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "HistologySynthesizer_S-D.V2-2e8427",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153extraction\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-2e8427\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PDFIntake S-D.V2",
-            "id": "PDFIntake_S-D.V2-3e1fd0",
-            "name": "intake",
+            "id": "PDFIntake_S-D.V2-71e2db",
+            "name": "extraction",
             "output_types": [
               "Data"
             ]
           },
           "targetHandle": {
-            "fieldName": "intake",
-            "id": "HistologySynthesizer_S-D.V2-ea9765",
+            "fieldName": "extraction",
+            "id": "HistologySynthesizer_S-D.V2-2e8427",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PDFIntake_S-D.V2-3e1fd0{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-3e1fd0\u0153,\u0153name\u0153:\u0153intake\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-HistologySynthesizer_S-D.V2-ea9765{\u0153fieldName\u0153:\u0153intake\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-ea9765\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PDFIntake_S-D.V2-71e2db{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-71e2db\u0153,\u0153name\u0153:\u0153extraction\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-HistologySynthesizer_S-D.V2-2e8427{\u0153fieldName\u0153:\u0153extraction\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-2e8427\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "MolecularParser_S-D.V2-8eb18e",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-8eb18e\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "WHOClassifier_S-D.V2-f9c649",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "MolecularParser_S-D.V2-794698",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-794698\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "WHOClassifier_S-D.V2-f74cd3",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f74cd3\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "MolecularParser S-D.V2",
-            "id": "MolecularParser_S-D.V2-8eb18e",
+            "id": "MolecularParser_S-D.V2-794698",
             "name": "molecular",
             "output_types": [
               "Data"
@@ -2285,27 +2114,27 @@
           },
           "targetHandle": {
             "fieldName": "molecular",
-            "id": "WHOClassifier_S-D.V2-f9c649",
+            "id": "WHOClassifier_S-D.V2-f74cd3",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__MolecularParser_S-D.V2-8eb18e{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-8eb18e\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-WHOClassifier_S-D.V2-f9c649{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__MolecularParser_S-D.V2-794698{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-794698\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-WHOClassifier_S-D.V2-f74cd3{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f74cd3\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "HistologySynthesizer_S-D.V2-ea9765",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153HistologySynthesizer S-D.V2\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-ea9765\u0153,\u0153name\u0153:\u0153synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "WHOClassifier_S-D.V2-f9c649",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153histology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "HistologySynthesizer_S-D.V2-2e8427",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153HistologySynthesizer S-D.V2\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-2e8427\u0153,\u0153name\u0153:\u0153synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "WHOClassifier_S-D.V2-f74cd3",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153histology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f74cd3\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "HistologySynthesizer S-D.V2",
-            "id": "HistologySynthesizer_S-D.V2-ea9765",
+            "id": "HistologySynthesizer_S-D.V2-2e8427",
             "name": "synthesis",
             "output_types": [
               "Message"
@@ -2313,55 +2142,55 @@
           },
           "targetHandle": {
             "fieldName": "histology_synthesis",
-            "id": "WHOClassifier_S-D.V2-f9c649",
+            "id": "WHOClassifier_S-D.V2-f74cd3",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__HistologySynthesizer_S-D.V2-ea9765{\u0153dataType\u0153:\u0153HistologySynthesizer S-D.V2\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-ea9765\u0153,\u0153name\u0153:\u0153synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-f9c649{\u0153fieldName\u0153:\u0153histology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__HistologySynthesizer_S-D.V2-2e8427{\u0153dataType\u0153:\u0153HistologySynthesizer S-D.V2\u0153,\u0153id\u0153:\u0153HistologySynthesizer_S-D.V2-2e8427\u0153,\u0153name\u0153:\u0153synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-f74cd3{\u0153fieldName\u0153:\u0153histology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f74cd3\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "WHOClassifier_S-D.V2-f9c649",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153name\u0153:\u0153classification\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "QAReviewer_S-D.V2-ae7bf3",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153classification_data\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-ae7bf3\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "WHOClassifier_S-D.V2-f74cd3",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f74cd3\u0153,\u0153name\u0153:\u0153integrated\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "QAReviewer_S-D.V2-b26d44",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153integrated\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b26d44\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "WHOClassifier S-D.V2",
-            "id": "WHOClassifier_S-D.V2-f9c649",
-            "name": "classification",
+            "id": "WHOClassifier_S-D.V2-f74cd3",
+            "name": "integrated",
             "output_types": [
               "Data"
             ]
           },
           "targetHandle": {
-            "fieldName": "classification_data",
-            "id": "QAReviewer_S-D.V2-ae7bf3",
+            "fieldName": "integrated",
+            "id": "QAReviewer_S-D.V2-b26d44",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__WHOClassifier_S-D.V2-f9c649{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f9c649\u0153,\u0153name\u0153:\u0153classification\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-QAReviewer_S-D.V2-ae7bf3{\u0153fieldName\u0153:\u0153classification_data\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-ae7bf3\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__WHOClassifier_S-D.V2-f74cd3{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-f74cd3\u0153,\u0153name\u0153:\u0153integrated\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-QAReviewer_S-D.V2-b26d44{\u0153fieldName\u0153:\u0153integrated\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b26d44\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "QAReviewer_S-D.V2-ae7bf3",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-ae7bf3\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "ReportFormatter_S-D.V2-cb2055",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-cb2055\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "QAReviewer_S-D.V2-b26d44",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b26d44\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "ReportFormatter_S-D.V2-72c34f",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-72c34f\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "QAReviewer S-D.V2",
-            "id": "QAReviewer_S-D.V2-ae7bf3",
+            "id": "QAReviewer_S-D.V2-b26d44",
             "name": "reviewed",
             "output_types": [
               "Data"
@@ -2369,27 +2198,27 @@
           },
           "targetHandle": {
             "fieldName": "reviewed",
-            "id": "ReportFormatter_S-D.V2-cb2055",
+            "id": "ReportFormatter_S-D.V2-72c34f",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__QAReviewer_S-D.V2-ae7bf3{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-ae7bf3\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-ReportFormatter_S-D.V2-cb2055{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-cb2055\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__QAReviewer_S-D.V2-b26d44{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-b26d44\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-ReportFormatter_S-D.V2-72c34f{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-72c34f\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "ReportFormatter_S-D.V2-cb2055",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-cb2055\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "ChatOutput-3de978",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3de978\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "ReportFormatter_S-D.V2-72c34f",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-72c34f\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "ChatOutput-5d6968",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-5d6968\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ReportFormatter S-D.V2",
-            "id": "ReportFormatter_S-D.V2-cb2055",
+            "id": "ReportFormatter_S-D.V2-72c34f",
             "name": "report",
             "output_types": [
               "Message"
@@ -2397,14 +2226,14 @@
           },
           "targetHandle": {
             "fieldName": "input_value",
-            "id": "ChatOutput-3de978",
+            "id": "ChatOutput-5d6968",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__ReportFormatter_S-D.V2-cb2055{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-cb2055\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-3de978{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3de978\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__ReportFormatter_S-D.V2-72c34f{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-72c34f\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-5d6968{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-5d6968\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false

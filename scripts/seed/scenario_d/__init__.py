@@ -27,13 +27,15 @@ import csv
 import json
 from pathlib import Path
 
-from .cases import case_aml, case_glioma
+from .cases import case_aml, case_breast, case_glioma, case_medulloblastoma
 
 
 # Register each case here. Adding a new case = one import + one entry.
 CASES = [
     case_aml,
     case_glioma,
+    case_medulloblastoma,
+    case_breast,
 ]
 
 
@@ -124,12 +126,28 @@ def run(out_dir: Path, force: bool = False) -> None:
                 _dump_raw_text(pdf_path, txt_path)
                 print(f"  wrote {meta['case_id']}/{txt_path.name} ({txt_path.stat().st_size:,} bytes)")
 
-        # Ground-truth JSON used by tests only.
+        # Ground-truth JSON used by tests only. Combines case identity
+        # + planted features + the integrator-side ground_truth payload
+        # so a single file is sufficient to verify a model run.
         gt_path = case_dir / "extracted_ground_truth.json"
         if gt_path.exists() and not force:
             print(f"  skip {meta['case_id']}/extracted_ground_truth.json (exists; use --force)")
         else:
-            gt_path.write_text(json.dumps(meta["ground_truth"], indent=2) + "\n")
+            payload = {
+                "case_id": meta["case_id"],
+                "tumor_family": meta["tumor_family"],
+                "guideline": meta["guideline"],
+                "expected_integrated_diagnosis": meta["expected_integrated_diagnosis"],
+                "pdfs": [
+                    {"filename": p["filename"], "display_name": p["display_name"],
+                     "lab": p["lab"], "accession": p["accession"],
+                     "report_date": p["report_date"], "source_id": p["source_id"]}
+                    for p in meta["pdfs"]
+                ],
+                "planted_features": meta["planted_features"],
+                **meta["ground_truth"],
+            }
+            gt_path.write_text(json.dumps(payload, indent=2) + "\n")
             print(f"  wrote {meta['case_id']}/extracted_ground_truth.json")
 
     _write_ground_truth_csv(out_dir)

@@ -15,7 +15,7 @@ The workflows are:
 1. **Scenario A — Variant Tournament** — picking the most clinically actionable variants from a sequencing report.
 2. **Scenario B — Longitudinal Ghost** — reconciling a current pathology request against years of patient chart notes to spot contradictions.
 3. **Scenario C — Digital Thread** — routing the morning case load to pathologists, balancing subspecialty, instrument capacity, and reader fatigue.
-4. **Scenario D — Integrated Report → WHO** — parsing three integrated pathology PDFs that arrive in three different real-world reporting formats (academic-medical-center prose, reference-lab molecular dashboard, hybrid surgical-pathology + companion-diagnostics) and emitting a WHO-classification-compliant layered diagnosis from each.
+4. **Scenario D — Integrated Report → WHO** — given a patient with several separately-issued component reports (morphology, flow cytometry, cytogenetics, molecular sequencing — from different labs on different days), reconciling them into one WHO-classification-compliant integrated diagnosis with a per-sentence evidence trace back to the source PDFs.
 
 Each takes ~20 minutes of hands-on time.
 
@@ -68,11 +68,11 @@ Your account is private. Other attendees cannot see your edits, and your edits c
 
 ### Scenario D — Integrated Report → WHO
 
-**The clinical problem.** Modern integrated pathology reports come back from reference labs as multi-page PDFs that combine narrative text, immunohistochemistry tables, genomic findings, structural variants, embedded H&E and IHC photomicrographs, and a free-text pathologist comment block. They arrive in wildly different formats — an academic medical center's integrated diagnostic report is prose-heavy with sections in ALL CAPS; a reference lab's molecular profiling report is table-heavy with Tier I/II/III classifications and methylation-classifier dashboards; a hybrid surgical-pathology-plus-companion-diagnostics report uses synoptic CAP-style checklists alongside Allred-score panels and recurrence-risk genomic blocks. The information is clinically rich but it is not structured the way downstream institutional reporting systems need it. A pathologist who receives one of these still has to read it carefully and translate the relevant pieces into the standardized layered diagnosis their own institution issues — typically following the current World Health Organization classification (CNS5 for brain tumors, Breast 5th edition for breast carcinomas, and so on). No new clinical reasoning is added in that step; it is mostly structured re-encoding from an unstructured artifact.
+**The clinical problem.** Modern oncologic diagnosis often rests on combining several separately-issued reports for the same patient. A new bone marrow workup comes back as a morphology report from one pathologist, a flow cytometry report from another lab, a cytogenetics report a week later, and a 54-gene molecular panel from an outside reference laboratory two weeks after the case was first signed out. Each of those reports stands alone. None of them on its own is the diagnosis. The morphology report may hedge on lineage. The cytogenetics report may be entirely normal and almost look reassuring. The mutation that actually defines the disease may be sitting alone in the molecular report. A clinician reading these one at a time can miss how they fit. An integrated diagnosis solves that — by stating, in one document, what the combination of all four reports proves, with every claim traceable to the report that supports it.
 
-**What the workflow does.** The three fabricated samples deliberately use three different reporting styles so you can see the workflow generalize across formats. A **PDF Intake** agent reads a raw text dump of the chosen report — produced by a generic PDF text extractor, so it includes all the realistic noise: repeating page headers and footers, tables flattened into space-separated rows, addenda appended after sign-out, abbreviations without expansion. The agent uses an editable system prompt to extract a clean structured object: demographics, specimen, histology text, IHC profile, molecular findings, pathologist comments, addendum. Optionally, the same node runs a vision model over the embedded H&E and IHC images to produce short visual descriptions. A **Molecular Parser** normalizes the molecular section into a flat list of records. A **Histology Synthesizer** combines the H&E narrative, the IHC profile, and the image descriptions into a short morphologic synthesis paragraph. A **WHO Classifier** applies the appropriate WHO 5th-edition rules to produce a layered integrated diagnosis (integrated, histologic, grade, molecular). A **QA Reviewer** checks the result against a catalog of required findings for the relevant tumor family and flags anything missing. A **Report Formatter** renders the final report in WHO-layered Markdown, narrative, JSON, or HTML.
+**What the workflow does.** Four fabricated multi-report cases are shipped with Scenario D: an AML case with four component reports, an adult diffuse glioma case with three, a pediatric medulloblastoma case with three, and a breast invasive carcinoma case with four. Each component report is styled to look like it came from a different laboratory information system — different fonts, different letterheads, different conventions, different terminology. Type the case name in the chat input ("run the aml case" or "run the breast case") and the workflow ingests **all** of the component PDFs for that case in a single pass. A **PDF Intake** agent does the headline document-AI work: it reads the raw text from all component reports together, tags every finding with its source ID (MORPH, FLOW, CYTO, MOLEC, NEURO, METH, SURG, RREC, GERM — depending on the case), copies a verbatim phrase from the source to prove the finding is grounded, and produces a structured JSON with three top-level cross-report observations: **concordances** (things two or more reports agree on), **discordances** (apparent conflicts, each with a resolution and the reason it holds), and **single-source findings** (decisive findings that appear in only one report and are invisible to the others). It also flags each molecular variant with a **classifying** boolean: true for variants that define the disease entity (NPM1 in AML, IDH1 in glioma, PTCH1 in SHH-medulloblastoma), false for variants that are real and prognostically important but do not by themselves classify the disease (DNMT3A in AML, TP53 in IDH-mutant astrocytoma, PIK3CA in breast carcinoma). A **Molecular Parser** splits the variants into classifying and prognostic buckets so the integrator can apply lane discipline. A **Histology Synthesizer** distills the morphology- and IHC-bearing components into one short morphologic-synthesis paragraph. A **WHO Classifier (Integrator)** then composes the final report in eleven sections — patient and specimen identification, the list of component studies reviewed, clinical context, four per-modality summaries, the integrated interpretation (a tight diagnostic argument), the final integrated diagnosis (stated in WHO/ICC language), prognostic and predictive notes, and limitations — **plus a Part B evidence trace** that maps every sentence of the interpretation and the diagnosis to its supporting source(s) and the basis for that support (direct_finding, concordance, discordance_resolution, single_source_finding, classification_rule). A **QA Reviewer** runs deterministic checks for UNSUPPORTED trace rows, for non-classifying variants that drifted into the diagnosis line (a "lane discipline" failure), for required findings missing from the report, and for discordances the integrator silently smoothed over. A **Report Formatter** renders the eleven-section report and the evidence trace as Markdown, narrative, JSON, or HTML.
 
-**Why this matters.** Scenario D demonstrates two capabilities the first three scenarios do not exercise: **structured extraction from a heterogeneous document** (the same workflow has to handle a prose-heavy academic report, a table-heavy reference-lab report, and a synoptic-checklist breast report) and the use of a **multimodal vision model** on embedded images. It has two editable levers — the PDF Intake extraction prompt (how the document AI maps messy text to structured fields) and the WHO Classifier prompt (which guideline rules apply) — and you can see them ripple through to the final report independently.
+**Why this matters.** The integrated diagnosis is one of the oldest unsolved workflow problems in pathology informatics. Each scenario D case is built around real pedagogical features with known correct handling: a blast-count discordance in the AML case (18% morphology vs 22% flow), a lineage hedge that flow resolves, a single-source NPM1 mutation that defines the disease, and a deliberately planted non-classifying DNMT3A R882H that a model has to keep out of the diagnosis line. The glioma case plants a single-source 1p/19q FISH result (excludes oligodendroglioma), a single-source MGMT methylation status (decisive for therapy), and a TP53 lane-discipline trap. The medulloblastoma case demonstrates four-way concordance for SHH activation across morphology, IHC, molecular, and methylation. The breast case requires the integrator to combine a surgical-pathology biomarker panel (ER/PR/HER2 from IHC) with a molecular companion-diagnostic (PIK3CA) and a 70-gene recurrence-risk assay and a germline panel that arrives an addendum-week later — and to put each finding in the right section of the final report. Scenario D has two editable levers in series — the **PDF Intake extraction system prompt** (rewrite how the document AI maps source PDFs to structured findings) and the **WHO Classifier integrator system prompt** (rewrite how the integrator composes the final report and the evidence trace). Edit either and watch the cascade.
 
 ---
 
@@ -148,18 +148,19 @@ For each scenario, there are also **chat-input directives** — short English ph
 
 | Node | Field | What it does |
 |---|---|---|
-| Pipeline Config | System Prompt | Controls which user directives are accepted. |
-| PDF Intake | Sample ID | Which fabricated report to load. One of `sample_1` (academic-medical-center glioma report), `sample_2` (reference-lab medulloblastoma molecular profile), `sample_3` (hybrid breast surgical-pathology + companion-diagnostics). |
-| PDF Intake | Extraction System Prompt | **The first editable lever.** The instructions the document-AI extractor uses to map the messy raw PDF text into structured fields. Edit this to change what the extractor pulls out, how it handles addenda, or how it resolves tables that flattened into single-line strings. |
-| PDF Intake | Run Vision Call On Embedded Images | When on, the embedded H&E and IHC placeholders are sent to a vision model for description. Off by default to keep runs fast. |
-| PDF Intake | Vision System Prompt | What the vision model is asked to describe in each image. |
-| PDF Intake | Extraction Model / Vision Model | Per-task model selection. Default `openai/gpt-4o-mini` for the text extraction, `openai/gpt-4o` for the vision pass. Different tasks can use different models — that flexibility is the lesson. |
-| Molecular Parser | System Prompt | The schema and taxonomy for the normalized molecular records. |
-| Histology Synthesizer | System Prompt | How the morphology paragraph is composed from H&E + IHC + images. |
-| WHO Classifier | System Prompt | **The second editable lever.** The WHO 5th-edition rules the classifier applies. Add a new tumor family here, tighten a grade threshold, or change the layered-diagnosis output shape. |
+| Pipeline Config | System Prompt | Controls which chat-input directives are accepted (case selection + output knobs). |
+| PDF Intake (Stage 1) | Case ID | Which integrated case to load. One of `case_aml` (AML, 4 component reports), `case_glioma` (adult diffuse glioma, 3 reports), `case_medulloblastoma` (pediatric, 3 reports), `case_breast` (invasive carcinoma NST, 4 reports). |
+| PDF Intake (Stage 1) | Extraction System Prompt | **The first editable lever.** The instructions the document-AI extractor uses to read all component PDFs together and produce the structured JSON: per-source key_findings with verbatim support, concordances, discordances with their resolution and basis, single-source findings, and the **classifying** boolean on each molecular variant. Rewriting this prompt is the most powerful thing you can do — every other downstream node feeds off its output. |
+| PDF Intake (Stage 1) | Extraction Model | The LLM that does the multi-document extraction. Default `openai/gpt-4o`. Multi-PDF reasoning is harder than the simpler downstream steps; use a strong model here. |
+| Molecular Parser | _(no system prompt)_ | Pure-Python pass that splits the variants list into **classifying** and **prognostic** buckets so the integrator can apply lane discipline. The split itself is driven by the booleans the extractor set in Stage 1. Edit the extractor's prompt to change the split. |
+| Histology Synthesizer | System Prompt | How the morphologic synthesis paragraph is composed across all morphology- and IHC-bearing components. |
+| WHO Classifier (Integrator, Stage 2) | System Prompt | **The second editable lever.** The instructions the integrator uses to compose the final eleven-section report and the per-sentence Part B evidence trace, with rules about using only what is in the extraction, addressing every discordance out loud, naming the single-source findings, keeping non-classifying variants in their lane, and tagging UNSUPPORTED sentences. |
+| WHO Classifier (Integrator, Stage 2) | Model | Default `openai/gpt-4o`. The integration step has to respect all of the above rules simultaneously — keep this on a strong reasoning model. |
+| QA Reviewer | Add LLM Critique | When off (default) only deterministic checks run (UNSUPPORTED trace rows, non-classifying variants in the diagnosis line, missing required findings, undiscussed discordances). When on, an additional LLM critique looks for overstated certainty, hidden discordances, missing-limitation acknowledgements. |
 | QA Reviewer | Min Severity to Surface | low, medium, or high. |
-| QA Reviewer | System Prompt | What completeness checks the reviewer runs against the WHO criteria catalog. |
-| Report Formatter | Format | who_layered, narrative, json, or html. |
+| QA Reviewer | LLM Critique System Prompt | What the optional LLM critique watches for. |
+| Report Formatter | Format | integrated (markdown with Part A + Part B trace), narrative, json, or html. |
+| Report Formatter | _(chat directive flags)_ | The chat input also supports `show_evidence: false` to hide the Part B trace, and `show_qa: false` to hide the QA flags section. |
 
 ---
 
@@ -236,27 +237,35 @@ For our Heme service line review — pull only Hematopathology cases, fatigue th
 ### Scenario D prompts
 
 ```
-Run sample one. Layered output. I want to see how the WHO Classifier composes the integrated diagnosis when the morphology shows mitoses but no microvascular proliferation or necrosis — does it land at grade 3 or grade 4 for an IDH-mutant astrocytoma?
+Run the aml case. Integrated format. I want to see whether the integrator handles the planted blast-count discordance correctly — 18% on the morphology smear and 22% on the flow gate. A model that quietly picks one number, or argues the case hinges on crossing 20%, has missed the point. Check the Part B trace for the discordance-resolution row.
 ```
 
 ```
-Sample two with vision on. Render as html. I want to see the embedded H&E and IHC placeholders described by the vision model alongside the layered diagnosis, because the SHH activation is the call we need to defend.
+The aml case again, integrated format, but watch the diagnosis line specifically. DNMT3A R882H is real and Tier II but it does not classify the disease. If the model writes DNMT3A into the final diagnosis line you'll see a high-severity lane-discipline flag from the QA Reviewer. That is the case's lane-discipline trap.
 ```
 
 ```
-The breast case, sample three, narrative format. Write the diagnosis as a clinical paragraph a referring oncologist could read aloud at tumor board — name the entity, the Nottingham grade, the receptor status, and the PIK3CA finding as an actionable footnote.
+Run the glioma case as html. The integrator must address three single-source findings explicitly: 1p/19q intact (only on neurosurgical pathology FISH), MGMT methylation status (only on the molecular NGS report), and the methylation classifier output. The evidence trace should map each of those to its single source.
 ```
 
 ```
-Sample one with vision off, json output. I want the structured machine-readable form so I can show how this output drops into a structured-reporting pipeline downstream — no markdown, no prose.
+Run the medulloblastoma case in narrative format. The four-way SHH-activation concordance is the case's strongest signal: GAB1+/YAP1+/β-catenin cytoplasmic by IHC plus PTCH1 LOF plus SHH RNA centroid plus MB-SHH-3 methylation class. The integrator should say so plainly — not just claim "SHH-activated."
 ```
 
 ```
-Sample three again. Same layered format. But this time I'll edit the WHO Classifier's system prompt before running — I want to see what happens to the grade call if I tighten the Nottingham cutoff for grade 3 from eight to seven. Compare the layer-3 output before and after.
+The breast case, integrated format. Confirm the integrator places PIK3CA H1047R in the molecular summary and the predictive-biomarker notes only, NOT in the diagnosis line. That is the breast case's lane-discipline trap (PIK3CA is actionable, not classifying).
 ```
 
 ```
-Run sample two. Layered format. Before running, edit the PDF Intake's Extraction System Prompt — add a rule telling the extractor to record the methylation classifier's calibrated score as a separate field (not just lumped in with "status"). Re-run and watch how the downstream WHO Classifier picks up the cleaner signal in its rationale.
+Run the glioma case integrated. Before running, edit the WHO Classifier's System Prompt and change "grade 3 requires mitotic activity" to "grade 3 requires at least 5 mitoses per 10 HPF" — tighter than the published CNS5 wording. Re-run. Watch the layer-3 grade call in section 9 and the rationale in section 8. The case histology lists "up to 4 per 10 HPF" so the model should now hedge.
+```
+
+```
+Run the aml case, integrated. Before running, edit the PDF Intake Extraction System Prompt and add a rule saying any monocyte-related finding from FLOW must be recorded with category="lineage" even if the source uses a different word. Re-run and inspect the per-source key_findings under FLOW. This shows that the extractor's prompt drives every downstream node.
+```
+
+```
+Run the medulloblastoma case as json. I want the structured output (including the full evidence trace as an array of objects) so I can paste it into a spreadsheet and verify, row by row, that every sentence in the interpretation traces to a real source.
 ```
 
 ---
@@ -268,10 +277,10 @@ The workshop runs better when everyone respects a few "do not touch" rules. You 
 - **Do not** drag nodes off the canvas or use the delete key on a node.
 - **Do not** disconnect the wires between nodes. Each connection carries data the next agent needs.
 - **Do not** edit fields labeled **Base URL**, **API Key**, or **Data Directory** — these point to the workshop's shared services and shared sample data.
-- **Model fields** carry sensible defaults — `openai/gpt-4o-mini` on most agent nodes, and `openai/gpt-4o` on the two nodes in Scenario D that need vision or harder reasoning (the PDF Intake's vision call and the WHO Classifier). You can swap to another OpenRouter-routed model if you want to experiment, but anything outside the workshop's allow-list will be rejected by the proxy.
+- **Model fields** carry sensible defaults — `openai/gpt-4o-mini` on most agent nodes, and `openai/gpt-4o` on the two Scenario D nodes that need stronger reasoning (the PDF Intake Stage 1 extractor over four PDFs, and the WHO Classifier Stage 2 integrator). You can swap to another OpenRouter-routed model if you want to experiment, but anything outside the workshop's allow-list will be rejected by the proxy.
 - **Do not** drag new components from the left sidebar onto the canvas. The workflow assumes only the components already wired.
 - **Do not** click **Share**, **Export**, or any of the icons in the top-right corner. Your flow is auto-saved on the server; you do not need to back it up.
-- **Do not** click **+ New Flow**. Use the three flows already in your project.
+- **Do not** click **+ New Flow**. Use the four flows already in your project.
 - **Do feel free** to edit any **System Prompt**, any **Temperature**, and any number-typed field like Fatigue Threshold, Max Cases, AF Threshold, or Top K. Those are exactly what the workshop is for.
 
 ---
@@ -284,7 +293,7 @@ You will have around two and a half hours of room time. A useful pacing is:
 - Minutes 10–40: Scenario C hands-on. Try the fatigue threshold change and at least two of the chat-input prompts. Watch how the routing shifts.
 - Minutes 40–75: Scenario A. Try the BRCA1-only and phenopacket-output variants. Notice how the Judge's rationale changes when you edit its system prompt.
 - Minutes 75–105: Scenario B. Find the tamoxifen ghost. Then disable the SDoH branch and run again to see what falls away.
-- Minutes 105–135: Scenario D. Run all three samples once each. Then edit the WHO Classifier's system prompt — add a new tumor family or tighten a grade rule — and re-run to see the layered diagnosis shift. Optionally turn on the vision pass to see the embedded H&E and IHC images described.
+- Minutes 105–135: Scenario D. Run all four multi-PDF cases at least once (`run the aml case`, `run the glioma case`, `run the medulloblastoma case`, `run the breast case`). Then pick one and edit a system prompt — either the PDF Intake extractor or the WHO Classifier integrator — and re-run. Compare the Part B evidence trace before and after. Watch the QA Reviewer's lane-discipline flags.
 - Minutes 135–150: Discussion and questions. Bring the rough edges you noticed.
 
 ---

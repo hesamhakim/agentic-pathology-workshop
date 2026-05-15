@@ -1,0 +1,67 @@
+
+=== PAGE 1 ===
+
+Helix Genomic Reference CAP-accredited / CLIA-certified reference laboratory
+210 Innovation Way, Cambridge Park, MA 02142
+Laboratory
+CLIA 22D7733881 (cid:127) Lab Director: Ranganathan, Vimal S., MD, PhD
+PEDIATRIC CNS TUMOR PROFILE — NGS + RNA SIGNATURE (172-GENE) — FINAL REPORT
+PATIENT SPECIMEN REQUESTED BY
+WALKER, AIDEN T. Reference accession HX-NGS-CNS-018367 Children's Medical Center of the Lakes
+MRN MRN-7720193 | DOB 2017-11-18 Client accession PED-26-N-00882 N. Halpern, MD
+8 y / Male Frozen tumor + FFPE block B3 Received 2026-03-16
+Collected 2026-03-12 Reported 2026-03-26
+CLINICAL HISTORY (PROVIDED BY ORDERING SITE)
+Previously well 8-year-old boy with three-week history of progressive morning headaches, ataxic gait, and one episode of emesis. MRI
+brain showed a 3.1 cm midline cerebellar vermis mass with obstructive hydrocephalus. No prior CNS history. No personal or family
+history consistent with Gorlin syndrome (no basal cell carcinomas, no rib or jaw anomalies, no palmar pits). Underwent posterior fossa
+craniotomy with subtotal resection on 2026-03-12. External ventricular drain placed peri-operatively.
+RESULT SUMMARY
+POSITIVE — PTCH1 nonsense variant p.(Arg691*) detected (Tier I, classifying for SHH activation); TP53 and SUFU wild-type by
+Sanger confirmation; RNA expression signature centroid: MB, SHH-activated; MYC and MYCN diploid (no amplification).
+DETECTED SEQUENCE VARIANTS
+Gene Variant (HGVS) Consequence VAF Tier
+PTCH1 NM_000264.5:c.2071C>T Nonsense, premature stop; 49% I
+p.(Arg691*) loss-of-function in SHH negative
+regulator
+Tier I = strong clinical / classifying significance. PTCH1 loss-of-function activates the SHH pathway and is one of the definitional events of SHH-activated
+medulloblastoma.
+WILD-TYPE CONFIRMATIONS (PROGNOSTICALLY IMPORTANT)
+Gene Method Result Significance
+TP53 NGS panel + Sanger confirmation (exons WILD-TYPE In SHH-activated MB, TP53 status stratifies favorable (WT) vs
+4-10) adverse (mut) risk. This case is TP53 wild-type.
+SUFU NGS panel; orthogonal MLPA for large WILD-TYPE Alternative SHH-activator excluded.
+deletions
+COPY-NUMBER ANALYSIS (FROM PANEL DATA)
+Locus Copy state Interpretation
+MYC (8q24.21) Diploid (2 copies) NO amplification. Excludes Group 3 high-risk MYC-amp subset.
+MYCN (2p24.3) Diploid NO amplification.
+GLI2 (2q14.2) Diploid NO amplification.
+Chromosome 17 Diploid No i(17q) (a Group 3/4 signature).
+Chromosome 10 Diploid No -10 (not relevant for MB classification).
+RNA EXPRESSION-BASED SUBGROUP CENTROID
+Centroid Correlation Call
+MB, SHH-activated 0.91 MATCH
+MB, WNT-activated 0.04 no
+MB, Group 3 0.03 no
+MB, Group 4 0.02 no
+The expression-based call is consistent with the methylation classifier result (reported separately, accession BTMRS-26-M-1014).
+INTERPRETATION
+This pediatric CNS panel identifies a PTCH1 p.(Arg691*) loss-of-function variant (VAF 49%), a definitional event for SHH-activated
+medulloblastoma, together with a confirmatory SHH-activated RNA expression signature. TP53 is wild-type (Sanger confirmed);
+SUFU is wild-type. There is no MYC or MYCN amplification. The constellation supports an integrated diagnosis of medulloblastoma,
+SHH-activated and TP53-wildtype per WHO CNS5 (2021). TP53 wild-type status stratifies this case into the favorable molecular risk
+category within SHH-activated medulloblastoma (the prognostically adverse SHH-activated and TP53-mutant entity is excluded).
+
+=== PAGE 2 ===
+
+Correlation with morphology, IHC pattern, and the methylation classifier result is recommended for the final integrated diagnosis.
+METHODOLOGY & LIMITATIONS
+Targeted NGS of 172 CNS-tumor-associated genes performed on tumor DNA extracted from frozen tissue and FFPE block (B3). Mean target coverage 1,020x; minimum
+250x. Analytical sensitivity approximately 5% VAF for SNVs and small indels. RNA expression centroid analysis performed on RNA from the same specimen using a
+285-gene MB-centroid panel. Copy-number analysis derived from per-gene normalized read depth. The assay does not reliably detect chromothripsis, complex
+rearrangements, or methylation events (reported separately via Illumina EPIC array). Helix Genomic Reference Laboratory validated this laboratory-developed test; it has
+not been cleared or approved by the FDA.
+Electronically signed: Ranganathan, Vimal S., MD, PhD, Laboratory Director, and Park, R., PhD, Variant Scientist — 2026-03-26. Results released to ordering institution
+for integration into the combined diagnostic report.
+Reference accession HX-NGS-CNS-018367 | Client PED-26-N-00882 | MRN-7720193 | Page 1 of 1

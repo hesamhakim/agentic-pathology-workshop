@@ -1,0 +1,111 @@
+{
+  "case_id": "case_breast",
+  "tumor_family": "breast",
+  "guideline": "WHO Breast Tumours 5e (2019)",
+  "expected_integrated_diagnosis": "Invasive breast carcinoma of no special type, Nottingham grade 2, ER+/PR+/HER2-negative, PIK3CA-mutant",
+  "pdfs": [
+    {
+      "filename": "01_surgical_pathology.pdf",
+      "display_name": "Breast surgical pathology + biomarker IHC",
+      "lab": "Westhaven Cancer Institute",
+      "accession": "WCI-26-S-04115",
+      "report_date": "2026-04-29",
+      "source_id": "SURG"
+    },
+    {
+      "filename": "02_molecular_profiling.pdf",
+      "display_name": "Breast tumor molecular profile (hotspot + ERBB2 CN)",
+      "lab": "Westhaven Cancer Institute \u2014 Molecular Diagnostics",
+      "accession": "WCI-26-MOL-08812",
+      "report_date": "2026-05-02",
+      "source_id": "MOLEC"
+    },
+    {
+      "filename": "03_recurrence_risk_panel.pdf",
+      "display_name": "70-gene recurrence-risk profile",
+      "lab": "Genomic Recurrence-Risk Service (70-gene profile)",
+      "accession": "GRRS-26-RR-00731",
+      "report_date": "2026-05-09",
+      "source_id": "RREC"
+    },
+    {
+      "filename": "04_germline_panel.pdf",
+      "display_name": "Hereditary breast / ovarian germline panel (12-gene)",
+      "lab": "Atlas Hereditary Cancer Genetics",
+      "accession": "ATLAS-26-G-06224",
+      "report_date": "2026-05-13",
+      "source_id": "GERM"
+    }
+  ],
+  "planted_features": [
+    "single_source_ER_PR_HER2 (surgical IHC only; classifying for the entity)",
+    "single_source_PIK3CA (molecular only; actionable but NOT classifying)",
+    "single_source_70_gene_risk (recurrence-risk lab only; informs chemo decision)",
+    "single_source_germline_status (germline lab only; arrives after surg sign-out)",
+    "concordance_HER2_negative (surg IHC 1+ + molec ERBB2 diploid)",
+    "lane_discipline_PIK3CA_not_classifying (Tier I actionable, but molecular/predictive lane)"
+  ],
+  "integrated_diagnosis": "Invasive breast carcinoma of no special type, Nottingham grade 2, ER+/PR+/HER2-negative, PIK3CA-mutant",
+  "histologic_diagnosis": "Invasive carcinoma, no special type",
+  "who_grade": 2,
+  "guideline_source": "WHO Breast Tumours 5e (2019)",
+  "required_molecular_features": [
+    "ER_status",
+    "PR_status",
+    "HER2_status",
+    "PIK3CA",
+    "germline_BRCA"
+  ],
+  "classifying_variants": [],
+  "non_classifying_variants_reported": [
+    "PIK3CA H1047R"
+  ],
+  "expected_discordances": [],
+  "expected_concordances": [
+    {
+      "topic": "HER2 negative",
+      "supporting": [
+        "SURG (IHC 1+)",
+        "MOLEC (ERBB2 diploid CN 2.1)"
+      ]
+    }
+  ],
+  "expected_single_source_findings": [
+    {
+      "finding": "ER+/PR+/HER2-negative biomarker panel",
+      "only_source_id": "SURG",
+      "invisible_to": [
+        "MOLEC",
+        "RREC",
+        "GERM"
+      ]
+    },
+    {
+      "finding": "PIK3CA p.(His1047Arg) (actionable)",
+      "only_source_id": "MOLEC",
+      "invisible_to": [
+        "SURG",
+        "RREC",
+        "GERM"
+      ]
+    },
+    {
+      "finding": "70-gene Low Risk recurrence call",
+      "only_source_id": "RREC",
+      "invisible_to": [
+        "SURG",
+        "MOLEC",
+        "GERM"
+      ]
+    },
+    {
+      "finding": "Germline panel NEGATIVE",
+      "only_source_id": "GERM",
+      "invisible_to": [
+        "SURG",
+        "MOLEC",
+        "RREC"
+      ]
+    }
+  ]
+}

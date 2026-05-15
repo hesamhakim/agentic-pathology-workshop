@@ -1,14 +1,19 @@
-"""Scenario D v2 — WHOClassifier.
+"""Scenario D v2 — WHOClassifier (Stage 2 integrator).
 
-THE main reasoner. Receives:
-  - molecular features (Data, from MolecularParser; also carries the
-    intake / clinical context through `extracted`)
-  - morphologic synthesis (Message, from HistologySynthesizer)
+Omar's Stage 2 prompt, adapted to our pipeline. Receives the Stage 1
+extractor's structured JSON plus the morphologic synthesis paragraph
+and emits:
 
-Emits the layered WHO diagnosis as a JSON Data payload. The system
-prompt below encodes WHO CNS5 + WHO Breast 5e rules — this is the
-"edit me" lever participants change to demonstrate how a guideline
-change ripples through to the report.
+  Part A (integrated_report):  11-section structured report.
+  Part B (evidence_trace):     one row per sentence in the
+                               integrated interpretation and final
+                               diagnosis, mapped to its supporting
+                               source_id(s) and a `basis`.
+
+The integrator may use ONLY information present in the extracted JSON.
+Any sentence in the interpretation or diagnosis without a traceable
+support is a pipeline failure and is marked UNSUPPORTED by the QA
+reviewer downstream.
 """
 
 from __future__ import annotations
@@ -22,63 +27,109 @@ from langflow.schema.data import Data
 from tools.scenario_d.v2_helpers import chat_completion_text, openai_client
 
 
-DEFAULT_SYSTEM_PROMPT = """You are the WHO integrated-diagnosis classifier
-for an agentic pathology workflow. Apply the current WHO 5th-edition rules
-appropriate to the tumor family and produce a layered diagnosis.
+DEFAULT_SYSTEM_PROMPT = """You are the INTEGRATION stage of a two-stage
+pipeline. You receive a structured JSON extraction of multiple
+component pathology reports for one diagnostic episode and a short
+morphologic synthesis paragraph from a parallel agent. The extraction
+already contains per-source findings, concordances, discordances with
+their resolutions, single-source findings, and the molecular variants
+flagged as classifying vs prognostic. Your job is to synthesize that
+into a single integrated hematopathology / pathology report PLUS an
+evidence trace mapping every interpretation and diagnosis sentence to
+its supporting source(s).
 
-Tumor families this prompt currently encodes:
+You act as the one responsible diagnostician signing the combined
+report. Integrated reporting is synthesis, not assembly. Do not staple
+the component reports together — explain how the pieces fit.
 
-[glioma]  — WHO CNS5 (2021).
-  - Astrocytoma, IDH-mutant: grade 2-4. Grade 3 requires mitotic activity.
-    Grade 4 requires microvascular proliferation OR necrosis OR CDKN2A/B
-    homozygous deletion.
-  - Oligodendroglioma, IDH-mutant and 1p/19q-codeleted: grade 2 or 3.
-  - Glioblastoma, IDH-wildtype: requires EGFR amp, +7/-10, OR TERT
-    promoter mutation in an IDH-wildtype diffuse astrocytic glioma.
-  - MGMT promoter methylation status MUST appear in molecular_features
-    for the report to be complete.
+OUTPUT shape — a SINGLE JSON object with two top-level keys:
 
-[medulloblastoma]  — WHO CNS5 (2021).
-  - All medulloblastomas are CNS WHO grade 4.
-  - Required: histologic pattern + molecular subgroup
-    (WNT-activated / SHH-activated TP53-wt / SHH-activated TP53-mut /
-     non-WNT-non-SHH Group 3 / non-WNT-non-SHH Group 4).
-  - TP53 status MUST be reported for SHH-activated cases.
-  - MYC / MYCN amplification flags high-risk biology.
-
-[breast]  — WHO Breast Tumours 5e (2019).
-  - Invasive carcinoma of no special type uses Nottingham grading
-    (tubule formation + nuclear pleomorphism + mitoses, each 1-3, sum
-     3-9). Grade 1 = 3-5, grade 2 = 6-7, grade 3 = 8-9.
-  - ER, PR, HER2 status MUST be reported.
-  - HER2 IHC 0 or 1+ negative; 2+ requires FISH; 3+ positive.
-
-Return ONLY a JSON object:
 {
-  "integrated_diagnosis": "...",
-  "histologic_diagnosis": "...",
-  "who_grade": <integer or null>,
-  "molecular_features": ["IDH1 R132H", ...],   <-- short labels only
-  "guideline_source": "WHO CNS5 (2021)",
-  "rationale": "2-3 sentence justification tying morphology + molecular to grade",
-  "evidence": [
-    {"feature": "IDH1 R132H", "source": "snv_indel"},
-    ...
+  "integrated_report": {
+    "patient_specimen_id":    "<one short sentence>",
+    "component_studies":      [{"source_id": "...", "lab": "...",
+                                 "accession": "...", "report_date": "..."}],
+    "clinical_context":       "<one short paragraph>",
+    "morphology_summary":     "<paragraph>",
+    "flow_or_ihc_summary":    "<paragraph; may be empty if not applicable>",
+    "cytogenetics_summary":   "<paragraph; may be empty>",
+    "molecular_summary":      "<paragraph>",
+    "integrated_interpretation": [
+      "Sentence 1.", "Sentence 2.", ...
+    ],
+    "final_integrated_diagnosis": [
+      "Sentence 1.", "Sentence 2.", ...
+    ],
+    "prognostic_predictive_notes": "<paragraph>",
+    "limitations_pending": "<paragraph>"
+  },
+  "evidence_trace": [
+    {"section": "integrated_interpretation" | "final_integrated_diagnosis",
+     "sentence_number": <int>,
+     "sentence": "<exact sentence text>",
+     "supporting_source_ids": ["...", ...],
+     "basis": "direct_finding" | "concordance" | "discordance_resolution"
+              | "single_source_finding" | "classification_rule" | "UNSUPPORTED"}
   ]
 }
 
-If the tumor family isn't in the list above, return your best WHO call
-but set "guideline_source" to "Out-of-catalog — manual review required"
-and explain in rationale.
+RULES
 
-No commentary, no markdown. Use the word json in your reasoning if needed."""
+1. USE ONLY WHAT IS IN THE EXTRACTION. Every clinical claim in
+   integrated_interpretation and final_integrated_diagnosis must trace
+   to a finding, a concordance, a discordance resolution, a
+   single-source finding, or a recognized classification rule that
+   the extractor already carries (e.g. a discordance resolution_basis
+   that names "20% blast threshold does not apply when a defining
+   genetic abnormality is present"). Do NOT import outside facts.
+
+2. RESOLVE THE DISCORDANCES OUT LOUD. Each discordance in the
+   extraction must be addressed explicitly in the interpretation.
+   Name the conflicting numbers or assessments, state the resolution,
+   and state why it holds. Do not silently pick one number.
+
+3. NAME THE SINGLE-SOURCE FINDINGS. For any finding the extraction
+   marks as single-source, say so plainly in the interpretation: this
+   finding was detectable only on the named source and was invisible
+   to the others, and here is what it changes. This is the central
+   argument for integrated reporting.
+
+4. KEEP NON-CLASSIFYING VARIANTS IN THEIR LANE. A variant with
+   classifying=false (e.g. DNMT3A in AML; TP53 in IDH-mutant
+   astrocytoma; PIK3CA in invasive breast carcinoma) is reported in
+   molecular_summary and prognostic_predictive_notes. It must NOT
+   appear in final_integrated_diagnosis and must NOT be used to
+   assign the disease entity. If you find yourself using it to
+   classify, stop — that is the error this case is designed to catch.
+
+5. DIAGNOSIS IN CLASSIFICATION TERMS. Final diagnosis should read the
+   way a signed-out report would state it, in WHO/ICC language,
+   reflecting the defining genetic abnormality, the lineage / grade
+   established by morphology + IHC where relevant, and an adverse
+   co-mutation only where it belongs (the prognostic notes line, not
+   the diagnosis line).
+
+6. CARRY LIMITATIONS FORWARD. If the extraction flagged uncertain
+   extractions or component-level stated limitations, reflect them in
+   limitations_pending rather than papering over them.
+
+7. EVIDENCE TRACE INTEGRITY. Every sentence you place in
+   integrated_interpretation and final_integrated_diagnosis must have
+   a row in evidence_trace whose `sentence` matches it verbatim.
+   If a sentence has no support, either remove it or mark its trace
+   row basis=UNSUPPORTED. Any UNSUPPORTED row in the final output
+   counts as a pipeline failure for scoring.
+
+Return ONLY the JSON object. Use the word "json" in your reasoning
+if needed."""
 
 
 class ScenarioD_v2_WHOClassifier(Component):
-    display_name = "WHO Classifier"
+    display_name = "WHO Classifier (Integrator)"
     description = (
-        "LLM agent. Applies WHO 5th-edition rules from the system prompt to produce "
-        "a layered integrated diagnosis. THIS IS THE EDITABLE LEVER."
+        "Stage 2 integrator. Reads the multi-source extracted JSON + the "
+        "morphologic synthesis and emits the integrated report (11 sections) "
+        "PLUS a per-sentence evidence trace. Implements Omar's Stage 2 design."
     )
     icon = "book-open"
     name = "WHOClassifier S-D.V2"
@@ -86,9 +137,9 @@ class ScenarioD_v2_WHOClassifier(Component):
     inputs = [
         HandleInput(
             name="molecular",
-            display_name="Molecular Features",
+            display_name="Molecular (post-parser)",
             input_types=["Data"],
-            info="Connect Molecular Parser. Carries through intake/clinical context.",
+            info="Connect Molecular Parser (carries extracted + variant split).",
         ),
         HandleInput(
             name="histology_synthesis",
@@ -96,38 +147,42 @@ class ScenarioD_v2_WHOClassifier(Component):
             input_types=["Message"],
             info="Connect Histology Synthesizer.",
         ),
-        StrInput(name="model", display_name="Model", value="openai/gpt-4o"),
+        StrInput(name="model", display_name="Model", value="openai/gpt-4o",
+                 info="Use a strong reasoning model here — the integration step "
+                      "must respect all of Omar's rules simultaneously."),
         FloatInput(name="temperature", display_name="Temperature", value=0.0),
-        IntInput(name="max_tokens", display_name="Max Tokens", value=1500, advanced=True),
+        IntInput(name="max_tokens", display_name="Max Tokens", value=3500, advanced=True),
         MultilineInput(
             name="system_prompt",
             display_name="System Prompt",
             value=DEFAULT_SYSTEM_PROMPT,
             info=(
-                "EDIT ME. Add a new tumor family, tighten grade thresholds, or change "
-                "the layered-diagnosis output shape. This is the centerpiece of the demo."
+                "EDIT ME. Change how the integrator structures the report, "
+                "what counts as a valid evidence basis, or which lane "
+                "discipline rules it enforces."
             ),
         ),
     ]
 
-    outputs = [Output(display_name="Classification", name="classification", method="run_classify")]
+    outputs = [Output(display_name="Integrated", name="integrated",
+                      method="run_integrate")]
 
-    def run_classify(self) -> Data:
+    def run_integrate(self) -> Data:
         d = self.molecular.data
         extracted = d.get("extracted", {})
         synthesis = self.histology_synthesis.text if self.histology_synthesis else ""
 
         payload = {
             "tumor_family": d.get("tumor_family"),
-            "clinical_history": extracted.get("clinical_history", ""),
-            "specimen": extracted.get("specimen", ""),
+            "case_id": d.get("case_id"),
             "morphologic_synthesis": synthesis,
-            "molecular_features": d.get("molecular_features", []),
-            "pathologist_comments": extracted.get("pathologist_comments", ""),
+            "classifying_variants": d.get("classifying_variants", []),
+            "prognostic_variants": d.get("prognostic_variants", []),
+            "extraction": extracted,
         }
 
         client = openai_client()
-        raw = chat_completion_text(
+        raw_llm = chat_completion_text(
             client,
             model=self.model,
             system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,
@@ -135,16 +190,23 @@ class ScenarioD_v2_WHOClassifier(Component):
             temperature=self.temperature,
             max_tokens=self.max_tokens,
             json_mode=True,
-            span_name="scenario_d.who_classifier",
+            span_name="scenario_d.who_classifier.stage2_integrate",
         )
         try:
-            parsed = json.loads(raw)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"WHOClassifier did not return valid JSON: {raw!r}") from e
+            parsed = json.loads(raw_llm)
+            if not isinstance(parsed, dict):
+                raise ValueError("integrator did not return a JSON object")
+        except Exception as e:
+            parsed = {
+                "integrated_report": {},
+                "evidence_trace": [],
+                "_integrator_error": f"{type(e).__name__}: {e}",
+            }
 
         return Data(data={
             **d,
-            "classification": parsed,
+            "integrated_report": parsed.get("integrated_report", {}),
+            "evidence_trace": parsed.get("evidence_trace", []),
+            "integrator_raw_llm": raw_llm,
             "morphologic_synthesis": synthesis,
-            "classifier_raw_llm": raw,
         })

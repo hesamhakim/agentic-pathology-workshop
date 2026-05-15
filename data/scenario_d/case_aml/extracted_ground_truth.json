@@ -1,4 +1,48 @@
 {
+  "case_id": "case_aml",
+  "tumor_family": "aml",
+  "guideline": "WHO Haematolymphoid 5e (2022) / ICC 2022",
+  "expected_integrated_diagnosis": "Acute myeloid leukemia with mutated NPM1, with monocytic differentiation",
+  "pdfs": [
+    {
+      "filename": "01_bone_marrow_morphology.pdf",
+      "display_name": "Bone marrow aspirate and core biopsy morphology",
+      "lab": "Riverbend Regional Medical Center",
+      "accession": "S26-BM-01187",
+      "report_date": "2026-04-24",
+      "source_id": "MORPH"
+    },
+    {
+      "filename": "02_flow_cytometry.pdf",
+      "display_name": "Flow cytometry immunophenotyping",
+      "lab": "Riverbend Regional Medical Center",
+      "accession": "FC-26-003942",
+      "report_date": "2026-04-23",
+      "source_id": "FLOW"
+    },
+    {
+      "filename": "03_cytogenetics_fish.pdf",
+      "display_name": "Cytogenetics + FISH panel",
+      "lab": "Riverbend Regional Medical Center",
+      "accession": "CG-26-00871",
+      "report_date": "2026-04-29",
+      "source_id": "CYTO"
+    },
+    {
+      "filename": "04_molecular_ngs.pdf",
+      "display_name": "Myeloid NGS panel (54-gene)",
+      "lab": "Meridian Molecular Diagnostics",
+      "accession": "MMD-26-NGS-22150",
+      "report_date": "2026-05-04",
+      "source_id": "MOLEC"
+    }
+  ],
+  "planted_features": [
+    "blast_count_discordance (18% morphology vs 22% flow)",
+    "lineage_hedge_resolved_by_flow (morphology hedges; flow proves monocytic)",
+    "single_source_classifying_NPM1_FLT3 (in molecular only; karyotype/FISH normal)",
+    "lane_discipline_DNMT3A_not_classifying (Tier II, prognostic only)"
+  ],
   "integrated_diagnosis": "Acute myeloid leukemia with mutated NPM1, with monocytic differentiation",
   "histologic_diagnosis": "AML with monocytic differentiation (per morphology + flow)",
   "who_grade": null,

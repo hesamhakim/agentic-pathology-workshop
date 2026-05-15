@@ -1,4 +1,42 @@
 {
+  "case_id": "case_glioma",
+  "tumor_family": "glioma",
+  "guideline": "WHO CNS5 (2021)",
+  "expected_integrated_diagnosis": "Astrocytoma, IDH-mutant, CNS WHO grade 3",
+  "pdfs": [
+    {
+      "filename": "01_neurosurgical_pathology.pdf",
+      "display_name": "Neurosurgical pathology (morphology + IHC + 1p/19q FISH)",
+      "lab": "Northshore University Hospital",
+      "accession": "SP-26-N-04412",
+      "report_date": "2026-04-08",
+      "source_id": "NEURO"
+    },
+    {
+      "filename": "02_molecular_ngs.pdf",
+      "display_name": "CNS tumor NGS panel (172-gene) + MGMT",
+      "lab": "Helix Genomic Reference Laboratory",
+      "accession": "HX-NGS-CNS-018244",
+      "report_date": "2026-04-22",
+      "source_id": "MOLEC"
+    },
+    {
+      "filename": "03_methylation_classifier.pdf",
+      "display_name": "Methylation classifier (CNS tumor classifier v12.5)",
+      "lab": "Brain Tumor Methylation Reference Service",
+      "accession": "BTMRS-26-M-0907",
+      "report_date": "2026-04-29",
+      "source_id": "METH"
+    }
+  ],
+  "planted_features": [
+    "single_source_1p19q_intact (only on neuropath FISH; rules out oligodendroglioma)",
+    "single_source_MGMT_methylation_status (only on molecular)",
+    "single_source_methylation_class (only on methylation classifier; confirms astrocytoma IDH-mutant)",
+    "concordance_IDH1_R132H (IHC on neuropath + sequence variant on molecular)",
+    "lane_discipline_TP53_not_classifying (Tier II, prognostic only)",
+    "negative_finding_CDKN2A_not_deleted (not a grade-4 driver; must not be hallucinated)"
+  ],
   "integrated_diagnosis": "Astrocytoma, IDH-mutant, CNS WHO grade 3",
   "histologic_diagnosis": "Diffuse astrocytic glioma",
   "who_grade": 3,

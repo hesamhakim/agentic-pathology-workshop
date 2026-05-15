@@ -1,10 +1,15 @@
 """Scenario D v2 — HistologySynthesizer (parallel branch).
 
-LLM agent that combines the H&E narrative, IHC profile, and (if
-available) the image descriptions into a single short morphologic
-synthesis paragraph. Output is a Message so it flows into the WHO
-Classifier the same way Scenario A's EvidenceAdvisor flows into the
-Tournament Judge.
+LLM agent that distills the morphology- and IHC-bearing components of
+the extracted payload into a single short morphologic synthesis
+paragraph that the WHO Classifier folds into its prompt. Mirrors the
+Evidence Advisor pattern in Scenario A.
+
+For multi-PDF cases the morphology / IHC content can be spread across
+two component reports (e.g. AML has morphology and flow each
+contributing). This component pulls all morphology- and lineage-
+relevant summaries from the extractor's per-source `components`
+blocks and writes one coherent paragraph.
 """
 
 from __future__ import annotations
@@ -19,35 +24,41 @@ from tools.scenario_d.v2_helpers import chat_completion_text, openai_client
 
 
 DEFAULT_SYSTEM_PROMPT = """You are a pathology morphology synthesizer.
-Given a free-text H&E description, an IHC profile (marker -> result), and
-optional vision-derived image descriptions, write ONE paragraph (4-6
-sentences) summarizing the key morphologic and immunohistochemical
-features in a form a WHO classifier downstream will use.
+You receive the morphology- and immunophenotype-bearing component
+summaries from a multi-source diagnostic episode. Write ONE paragraph
+(4-7 sentences) summarizing the key morphologic and immunohistochemical
+features for a WHO classifier downstream.
 
 Cover, in order:
-  1. Cell type and architecture (e.g. "diffuse astrocytic proliferation").
-  2. Cytologic atypia and mitotic activity (use HPF counts when given).
-  3. Presence or absence of grade-defining features (necrosis, MVP,
-     vascular proliferation, anaplasia).
-  4. Key IHC findings most relevant to the suspected entity.
-  5. Any image-level cue that reinforces (or undercuts) the call.
+  1. Specimen type and overall architecture (e.g. "densely cellular
+     embryonal tumor of the cerebellar vermis").
+  2. Cytologic atypia, mitotic activity, and any grade-defining
+     features (necrosis, MVP, anaplasia).
+  3. Key IHC / immunophenotype findings most relevant to the
+     suspected entity, including any pattern that resolves a lineage
+     hedge stated in another component.
+  4. Whether any morphologic feature is single-source (one report
+     names it, others cannot see it).
 
-Be concrete. Use the report's own numerics. No hedging."""
+Be concrete. Use the reports' own numerics. Do not invent findings.
+Do not assign a grade or call the integrated diagnosis — those are
+the integrator's job."""
 
 
 class ScenarioD_v2_HistologySynthesizer(Component):
     display_name = "Histology Synthesizer"
     description = (
-        "LLM agent. Combines H&E narrative, IHC profile, and image descriptions into a "
-        "single 4-6 sentence morphologic synthesis paragraph for the WHO classifier."
+        "LLM agent. Distills the morphology- and IHC-bearing component "
+        "summaries from the multi-source extraction into a single 4-7 "
+        "sentence morphologic synthesis paragraph for the WHO classifier."
     )
     icon = "microscope"
     name = "HistologySynthesizer S-D.V2"
 
     inputs = [
         HandleInput(
-            name="intake",
-            display_name="Intake",
+            name="extraction",
+            display_name="Extraction",
             input_types=["Data"],
             info="Connect the PDF Intake's output.",
         ),
@@ -65,13 +76,29 @@ class ScenarioD_v2_HistologySynthesizer(Component):
     outputs = [Output(display_name="Morphologic Synthesis", name="synthesis", method="run_synth")]
 
     def run_synth(self) -> Message:
-        d = self.intake.data
+        d = self.extraction.data
         extracted = d.get("extracted", {})
+        components = extracted.get("components", {}) or {}
+        # Surface only the morphology- and IHC-relevant components; the
+        # extractor tags each per-source block, so feed them all and let
+        # the LLM pick.
         payload = {
             "tumor_family": d.get("tumor_family"),
-            "histology_text": extracted.get("histology_text", ""),
-            "ihc_profile": extracted.get("ihc_profile", []),
-            "image_descriptions": d.get("image_descriptions", []),
+            "specimen": extracted.get("specimen", {}),
+            "components_with_morphology_or_ihc": {
+                sid: {
+                    "summary": (c or {}).get("summary", ""),
+                    "key_findings": (c or {}).get("key_findings", []),
+                    "stated_limitations": (c or {}).get("stated_limitations", ""),
+                }
+                for sid, c in components.items()
+            },
+            "concordances": (extracted.get("cross_report_observations", {}) or {})
+                .get("concordances", []),
+            "discordances": (extracted.get("cross_report_observations", {}) or {})
+                .get("discordances", []),
+            "single_source_findings": (extracted.get("cross_report_observations", {}) or {})
+                .get("single_source_findings", []),
         }
 
         client = openai_client()
