@@ -66,7 +66,17 @@ def get_component(all_components: dict, category: str, name: str) -> dict:
     return all_components[category][name]
 
 
-def make_node(template: dict, component_name: str, position: tuple[float, float]) -> dict:
+def make_node(template: dict, component_name: str, position: tuple[float, float],
+              field_overrides: dict | None = None) -> dict:
+    """Create a node, optionally overriding fields on the template's
+    fields dict (useful for e.g. silent_errors on a File node)."""
+    import copy
+    tpl = copy.deepcopy(template)
+    if field_overrides:
+        fields = tpl.setdefault("template", {})
+        for k, v in field_overrides.items():
+            if k in fields and isinstance(fields[k], dict):
+                fields[k]["value"] = v
     node_id = f"{component_name.replace(' ', '_')}-{secrets.token_hex(3)}"
     return {
         "id": node_id,
@@ -75,7 +85,7 @@ def make_node(template: dict, component_name: str, position: tuple[float, float]
         "data": {
             "id": node_id,
             "type": component_name,
-            "node": template,
+            "node": tpl,
             "showNode": True,
         },
     }
@@ -151,11 +161,18 @@ def main() -> int:
 
         # Four file nodes stacked vertically on the left, chat input below,
         # one chatbot in the middle, chat output on the right.
+        # File nodes are made forgiving (silent_errors + ignore_unspecified)
+        # so attendees can run the flow without attaching files (plain
+        # chat); the chatbot handles empty file Messages gracefully.
+        file_overrides = {
+            "silent_errors": True,
+            "ignore_unspecified_files": True,
+        }
         n_chatin = make_node(chat_in,    "ChatInput",   (50, 950))
-        n_file1  = make_node(file_tpl,   "File",        (50, 100))
-        n_file2  = make_node(file_tpl,   "File",        (50, 320))
-        n_file3  = make_node(file_tpl,   "File",        (50, 540))
-        n_file4  = make_node(file_tpl,   "File",        (50, 760))
+        n_file1  = make_node(file_tpl,   "File",        (50, 100), file_overrides)
+        n_file2  = make_node(file_tpl,   "File",        (50, 320), file_overrides)
+        n_file3  = make_node(file_tpl,   "File",        (50, 540), file_overrides)
+        n_file4  = make_node(file_tpl,   "File",        (50, 760), file_overrides)
         n_chatbot = make_node(chatbot,   "GeneralChatbot",         (700, 500))
         n_chatout = make_node(chat_out,  "ChatOutput",  (1300, 500))
 

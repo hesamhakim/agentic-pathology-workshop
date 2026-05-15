@@ -4,14 +4,14 @@
   "data": {
     "nodes": [
       {
-        "id": "File-a13a21",
+        "id": "File-dc5595",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 100
         },
         "data": {
-          "id": "File-a13a21",
+          "id": "File-dc5595",
           "type": "File",
           "node": {
             "base_classes": [
@@ -368,7 +368,7 @@
                 "trace_as_metadata": true,
                 "track_in_telemetry": true,
                 "type": "bool",
-                "value": false
+                "value": true
               },
               "ignore_unsupported_extensions": {
                 "_input_type": "BoolInput",
@@ -655,7 +655,7 @@
                 "trace_as_metadata": true,
                 "track_in_telemetry": true,
                 "type": "bool",
-                "value": false
+                "value": true
               },
               "storage_location": {
                 "_input_type": "SortableListInput",
@@ -724,14 +724,14 @@
         }
       },
       {
-        "id": "File-c7acb2",
+        "id": "File-294715",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 320
         },
         "data": {
-          "id": "File-c7acb2",
+          "id": "File-294715",
           "type": "File",
           "node": {
             "base_classes": [
@@ -1088,7 +1088,7 @@
                 "trace_as_metadata": true,
                 "track_in_telemetry": true,
                 "type": "bool",
-                "value": false
+                "value": true
               },
               "ignore_unsupported_extensions": {
                 "_input_type": "BoolInput",
@@ -1375,7 +1375,7 @@
                 "trace_as_metadata": true,
                 "track_in_telemetry": true,
                 "type": "bool",
-                "value": false
+                "value": true
               },
               "storage_location": {
                 "_input_type": "SortableListInput",
@@ -1444,14 +1444,14 @@
         }
       },
       {
-        "id": "File-26aa73",
+        "id": "File-bba682",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 540
         },
         "data": {
-          "id": "File-26aa73",
+          "id": "File-bba682",
           "type": "File",
           "node": {
             "base_classes": [
@@ -1808,7 +1808,7 @@
                 "trace_as_metadata": true,
                 "track_in_telemetry": true,
                 "type": "bool",
-                "value": false
+                "value": true
               },
               "ignore_unsupported_extensions": {
                 "_input_type": "BoolInput",
@@ -2095,7 +2095,7 @@
                 "trace_as_metadata": true,
                 "track_in_telemetry": true,
                 "type": "bool",
-                "value": false
+                "value": true
               },
               "storage_location": {
                 "_input_type": "SortableListInput",
@@ -2164,14 +2164,14 @@
         }
       },
       {
-        "id": "File-4f4d01",
+        "id": "File-b99ae4",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 760
         },
         "data": {
-          "id": "File-4f4d01",
+          "id": "File-b99ae4",
           "type": "File",
           "node": {
             "base_classes": [
@@ -2528,7 +2528,7 @@
                 "trace_as_metadata": true,
                 "track_in_telemetry": true,
                 "type": "bool",
-                "value": false
+                "value": true
               },
               "ignore_unsupported_extensions": {
                 "_input_type": "BoolInput",
@@ -2815,7 +2815,7 @@
                 "trace_as_metadata": true,
                 "track_in_telemetry": true,
                 "type": "bool",
-                "value": false
+                "value": true
               },
               "storage_location": {
                 "_input_type": "SortableListInput",
@@ -2884,14 +2884,14 @@
         }
       },
       {
-        "id": "ChatInput-37c3c5",
+        "id": "ChatInput-55e295",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 950
         },
         "data": {
-          "id": "ChatInput-37c3c5",
+          "id": "ChatInput-55e295",
           "type": "ChatInput",
           "node": {
             "base_classes": [
@@ -3171,14 +3171,14 @@
         }
       },
       {
-        "id": "GeneralChatbot-b54856",
+        "id": "GeneralChatbot-29e870",
         "type": "genericNode",
         "position": {
           "x": 700,
           "y": 500
         },
         "data": {
-          "id": "GeneralChatbot-b54856",
+          "id": "GeneralChatbot-29e870",
           "type": "GeneralChatbot",
           "node": {
             "template": {
@@ -3468,14 +3468,14 @@
         }
       },
       {
-        "id": "ChatOutput-a6eddb",
+        "id": "ChatOutput-070277",
         "type": "genericNode",
         "position": {
           "x": 1300,
           "y": 500
         },
         "data": {
-          "id": "ChatOutput-a6eddb",
+          "id": "ChatOutput-070277",
           "type": "ChatOutput",
           "node": {
             "base_classes": [
@@ -3763,14 +3763,14 @@
     ],
     "edges": [
       {
-        "source": "File-a13a21",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-a13a21\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "GeneralChatbot-b54856",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153file1\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "File-dc5595",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-dc5595\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "GeneralChatbot-29e870",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153file1\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "File",
-            "id": "File-a13a21",
+            "id": "File-dc5595",
             "name": "message",
             "output_types": [
               "Message"
@@ -3778,27 +3778,27 @@
           },
           "targetHandle": {
             "fieldName": "file1",
-            "id": "GeneralChatbot-b54856",
+            "id": "GeneralChatbot-29e870",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__File-a13a21{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-a13a21\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-b54856{\u0153fieldName\u0153:\u0153file1\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__File-dc5595{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-dc5595\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-29e870{\u0153fieldName\u0153:\u0153file1\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "File-c7acb2",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-c7acb2\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "GeneralChatbot-b54856",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153file2\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "File-294715",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-294715\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "GeneralChatbot-29e870",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153file2\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "File",
-            "id": "File-c7acb2",
+            "id": "File-294715",
             "name": "message",
             "output_types": [
               "Message"
@@ -3806,27 +3806,27 @@
           },
           "targetHandle": {
             "fieldName": "file2",
-            "id": "GeneralChatbot-b54856",
+            "id": "GeneralChatbot-29e870",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__File-c7acb2{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-c7acb2\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-b54856{\u0153fieldName\u0153:\u0153file2\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__File-294715{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-294715\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-29e870{\u0153fieldName\u0153:\u0153file2\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "File-26aa73",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-26aa73\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "GeneralChatbot-b54856",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153file3\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "File-bba682",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-bba682\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "GeneralChatbot-29e870",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153file3\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "File",
-            "id": "File-26aa73",
+            "id": "File-bba682",
             "name": "message",
             "output_types": [
               "Message"
@@ -3834,27 +3834,27 @@
           },
           "targetHandle": {
             "fieldName": "file3",
-            "id": "GeneralChatbot-b54856",
+            "id": "GeneralChatbot-29e870",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__File-26aa73{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-26aa73\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-b54856{\u0153fieldName\u0153:\u0153file3\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__File-bba682{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-bba682\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-29e870{\u0153fieldName\u0153:\u0153file3\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "File-4f4d01",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-4f4d01\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "GeneralChatbot-b54856",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153file4\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "File-b99ae4",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-b99ae4\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "GeneralChatbot-29e870",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153file4\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "File",
-            "id": "File-4f4d01",
+            "id": "File-b99ae4",
             "name": "message",
             "output_types": [
               "Message"
@@ -3862,27 +3862,27 @@
           },
           "targetHandle": {
             "fieldName": "file4",
-            "id": "GeneralChatbot-b54856",
+            "id": "GeneralChatbot-29e870",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__File-4f4d01{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-4f4d01\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-b54856{\u0153fieldName\u0153:\u0153file4\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__File-b99ae4{\u0153dataType\u0153:\u0153File\u0153,\u0153id\u0153:\u0153File-b99ae4\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-29e870{\u0153fieldName\u0153:\u0153file4\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "ChatInput-37c3c5",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-37c3c5\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "GeneralChatbot-b54856",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "ChatInput-55e295",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-55e295\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "GeneralChatbot-29e870",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ChatInput",
-            "id": "ChatInput-37c3c5",
+            "id": "ChatInput-55e295",
             "name": "message",
             "output_types": [
               "Message"
@@ -3890,27 +3890,27 @@
           },
           "targetHandle": {
             "fieldName": "user_message",
-            "id": "GeneralChatbot-b54856",
+            "id": "GeneralChatbot-29e870",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__ChatInput-37c3c5{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-37c3c5\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-b54856{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__ChatInput-55e295{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-55e295\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-29e870{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "GeneralChatbot-b54856",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153GeneralChatbot\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153name\u0153:\u0153reply\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "ChatOutput-a6eddb",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-a6eddb\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "GeneralChatbot-29e870",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153GeneralChatbot\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153name\u0153:\u0153reply\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "ChatOutput-070277",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-070277\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "GeneralChatbot",
-            "id": "GeneralChatbot-b54856",
+            "id": "GeneralChatbot-29e870",
             "name": "reply",
             "output_types": [
               "Message"
@@ -3918,14 +3918,14 @@
           },
           "targetHandle": {
             "fieldName": "input_value",
-            "id": "ChatOutput-a6eddb",
+            "id": "ChatOutput-070277",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__GeneralChatbot-b54856{\u0153dataType\u0153:\u0153GeneralChatbot\u0153,\u0153id\u0153:\u0153GeneralChatbot-b54856\u0153,\u0153name\u0153:\u0153reply\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-a6eddb{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-a6eddb\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__GeneralChatbot-29e870{\u0153dataType\u0153:\u0153GeneralChatbot\u0153,\u0153id\u0153:\u0153GeneralChatbot-29e870\u0153,\u0153name\u0153:\u0153reply\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-070277{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-070277\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
