@@ -1,24 +1,31 @@
 """Scenario Zero — General Chatbot.
 
-A deliberately generic single-LLM-call chatbot. The user types a
-question into chat input, optionally attaches up to four files, and
-gets one answer back. No domain specialization, no multi-stage
-processing, no structured output, no enforced rules. Exactly the
-shape of a typical "upload PDFs, ask questions" chat assistant.
+A truly generic single-LLM-call chatbot that mirrors the UX of a
+typical ChatGPT / Gemini / Claude conversation: one chat panel, a
+paperclip button for attaching zero, one, or many files. Attendees
+attach whatever they want (or nothing) and ask whatever they want.
 
-The workshop uses this as the warm-up exercise: attendees apply the
-chatbot to whatever they want (in the suggested exercise: upload
-Omar's four AML component PDFs and ask for an integrated diagnostic
-report) and then compare the output to Scenario D's purpose-built
-seven-component agentic workflow on the same input. The point is to
-make the difference between "general chat tool" and "agentic
-workflow with workflow-design guarantees" concrete.
+The component takes a single Message input from a Chat Input node and
+inspects the Message's `.files` attribute for any attached files. For
+each attached file it parses the content using LangFlow's own
+file-parsing utilities (PDF via pypdf, DOCX, plain text, markdown,
+CSV, etc.), concatenates the file contents to the user's text, and
+makes one LLM call.
 
-The component sits in the api_scenario_zero category so it lives
-alongside api_scenario_a..d in the LangFlow component sidebar.
+The workshop uses this as the warm-up baseline. Attendees attach the
+four Omar AML PDFs (or just one, or none) and ask plain-English
+questions. Then they compare to Scenario D's seven-component workflow
+on the same input to see what workflow design buys you over a single
+chat call.
+
+Sits in api_scenario_zero so it lives alongside api_scenario_a..d in
+the LangFlow component sidebar.
 """
 
 from __future__ import annotations
+
+import os
+from pathlib import Path
 
 from langflow.custom import Component
 from langflow.io import (
@@ -41,22 +48,101 @@ user's questions accurately and concisely. If the user asks something
 that cannot be answered from the provided files, say so plainly. Do
 not invent facts. Match the user's tone and depth of detail."""
 
+# Per-file truncation cap to keep prompt sizes manageable when an
+# attendee attaches a very large document. Default ~30k chars per file
+# is enough for a typical multi-page pathology PDF.
+MAX_CHARS_PER_FILE = 30_000
 
-def _file_block(label: str, text: str) -> str:
-    text = (text or "").strip()
+PDF_EXTS = {".pdf"}
+DOCX_EXTS = {".docx"}
+TEXT_EXTS = {".txt", ".md", ".markdown", ".csv", ".json", ".yaml", ".yml",
+             ".xml", ".html", ".htm", ".rst", ".log", ".tsv"}
+
+
+def _resolve_path(file_ref) -> str | None:
+    """LangFlow's Message.files entries may be (a) raw path strings,
+    (b) Image objects with .path, or (c) flow-relative paths under the
+    LangFlow file store. Resolve to an absolute path that exists, or
+    return None if we can't find the file."""
+    if file_ref is None:
+        return None
+    if hasattr(file_ref, "path"):
+        candidate = file_ref.path
+    else:
+        candidate = str(file_ref)
+    if not candidate:
+        return None
+    if os.path.isabs(candidate) and os.path.exists(candidate):
+        return candidate
+    # Try resolving under LangFlow's configured storage location.
+    for base in [
+        os.environ.get("LANGFLOW_CONFIG_DIR", ""),
+        "/app/data",
+        "/app/.langflow",
+        str(Path.home() / ".langflow"),
+    ]:
+        if not base:
+            continue
+        candidate_full = Path(base) / candidate
+        if candidate_full.exists():
+            return str(candidate_full)
+        # Try a few subdirectories where attachments commonly land
+        for sub in ("uploads", "flows", "files"):
+            candidate_sub = Path(base) / sub / candidate
+            if candidate_sub.exists():
+                return str(candidate_sub)
+    # Fallback: maybe it's relative to cwd
+    if os.path.exists(candidate):
+        return os.path.abspath(candidate)
+    return None
+
+
+def _read_one_file(file_ref) -> tuple[str, str]:
+    """Return (display_name, parsed_text) for one attachment. If we
+    cannot parse or find the file, return (name, '') and the caller
+    will skip the empty block."""
+    try:
+        from lfx.base.data.utils import (
+            parse_pdf_to_text,
+            read_docx_file,
+            read_text_file,
+        )
+    except ImportError as e:
+        return ("import-failed", f"(could not import parser: {e})")
+
+    abs_path = _resolve_path(file_ref)
+    name = Path(getattr(file_ref, "path", str(file_ref))).name or "attachment"
+    if not abs_path:
+        return (name, f"(file not found: {file_ref})")
+    suffix = Path(abs_path).suffix.lower()
+    try:
+        if suffix in PDF_EXTS:
+            text = parse_pdf_to_text(abs_path)
+        elif suffix in DOCX_EXTS:
+            text = read_docx_file(abs_path)
+        elif suffix in TEXT_EXTS or suffix == "":
+            text = read_text_file(abs_path)
+        else:
+            # Best-effort: try reading as text; if it's binary garbage,
+            # the model will get a noisy block.
+            text = read_text_file(abs_path)
+    except Exception as e:
+        return (name, f"(parse error: {type(e).__name__}: {e})")
     if not text:
-        return ""
-    return f"\n\n========== {label} ==========\n\n{text}\n"
+        return (name, "")
+    if len(text) > MAX_CHARS_PER_FILE:
+        text = text[:MAX_CHARS_PER_FILE] + "\n\n[... file truncated ...]"
+    return (name, text)
 
 
 class ScenarioZero_GeneralChatbot(Component):
     display_name = "General Chatbot"
     description = (
-        "A general-purpose chatbot. Takes a user message and up to four "
-        "attached files, concatenates them, and makes one LLM call. No "
-        "domain specialization, no multi-stage processing, no enforced "
-        "rules. The deliberate 'general chat tool' baseline that contrasts "
-        "with the workshop's purpose-built agentic workflows."
+        "A general-purpose chatbot. Reads the user message from a Chat Input "
+        "and parses any files the user attached via the Playground paperclip "
+        "button. Zero, one, or many attachments — same flow. Makes one LLM "
+        "call and replies. The deliberate 'general chat tool' baseline that "
+        "contrasts with the workshop's purpose-built agentic workflows."
     )
     icon = "message-square"
     name = "GeneralChatbot"
@@ -66,33 +152,9 @@ class ScenarioZero_GeneralChatbot(Component):
             name="user_message",
             display_name="User Message",
             input_types=["Message"],
-            info="Connect a Chat Input here. The user types whatever they want.",
-        ),
-        HandleInput(
-            name="file1",
-            display_name="File 1 (optional)",
-            input_types=["Message"],
-            required=False,
-            info="Optionally connect a File node. The chatbot will read the "
-                 "file's parsed text as context.",
-        ),
-        HandleInput(
-            name="file2",
-            display_name="File 2 (optional)",
-            input_types=["Message"],
-            required=False,
-        ),
-        HandleInput(
-            name="file3",
-            display_name="File 3 (optional)",
-            input_types=["Message"],
-            required=False,
-        ),
-        HandleInput(
-            name="file4",
-            display_name="File 4 (optional)",
-            input_types=["Message"],
-            required=False,
+            info="Connect a Chat Input node. The user types in Playground, "
+                 "optionally attaches files using the paperclip button, "
+                 "and presses send.",
         ),
         StrInput(
             name="model",
@@ -119,32 +181,35 @@ class ScenarioZero_GeneralChatbot(Component):
     outputs = [Output(display_name="Reply", name="reply", method="run_chat")]
 
     def run_chat(self) -> Message:
-        user_text = (self.user_message.text or "").strip() if self.user_message else ""
-        if not user_text:
+        if not self.user_message:
+            return Message(text="(no input received)")
+        user_text = (getattr(self.user_message, "text", "") or "").strip()
+        attached = list(getattr(self.user_message, "files", None) or [])
+
+        if not user_text and not attached:
             return Message(text=(
-                "(no question received — type something into the chat input "
-                "and press send)"
+                "(type a question — and optionally attach one or more files "
+                "via the paperclip button in Playground — then press send)"
             ))
 
-        def _text_of(handle) -> str:
-            if handle is None:
-                return ""
-            return getattr(handle, "text", "") or ""
+        # Parse any attachments and assemble a single prompt
+        file_blocks: list[str] = []
+        for i, file_ref in enumerate(attached, start=1):
+            name, text = _read_one_file(file_ref)
+            if not text:
+                continue
+            file_blocks.append(
+                f"\n\n========== ATTACHED FILE {i}: {name} ==========\n\n{text}\n"
+            )
 
-        attached: list[str] = []
-        for i, handle in enumerate([self.file1, self.file2, self.file3, self.file4], start=1):
-            block = _file_block(f"ATTACHED FILE {i}", _text_of(handle))
-            if block:
-                attached.append(block)
-
-        if attached:
+        if file_blocks:
             user_content = (
                 f"{user_text}\n\n"
-                f"--- Attached files follow ---" + "".join(attached)
+                f"--- Attached files follow ---" + "".join(file_blocks)
             )
         else:
-            # No files connected — behave like a plain chatbot
-            user_content = user_text
+            # Plain chat, no usable attachments
+            user_content = user_text or "(empty message)"
 
         client = openai_client()
         text = chat_completion_text(

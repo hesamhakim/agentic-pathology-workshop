@@ -2,20 +2,15 @@
 """Build the 0_general_chatbot flow programmatically.
 
 A deliberately generic chatbot — the warm-up baseline for the workshop's
-pedagogical contrast. Layout:
+pedagogical contrast. Simplest possible flow shape:
 
-  File1 (optional) ─┐
-  File2 (optional) ─┤
-  File3 (optional) ─┼─→ GeneralChatbot ──→ ChatOutput
-  File4 (optional) ─┤
-  ChatInput ────────┘
+  ChatInput ──→ GeneralChatbot ──→ ChatOutput
 
-The chatbot has no domain specialization. Attendees upload whatever
-files they want, type whatever question they want, and get one
-LLM-generated answer back. The suggested workshop exercise — upload
-Omar's four AML PDFs and ask for an integrated diagnostic report —
-then sets up the side-by-side comparison with Scenario D's
-seven-component agentic workflow on the same input.
+Attendees attach zero, one, or many files in Playground via the
+paperclip button, type any question, and get one LLM-generated reply
+back. The GeneralChatbot custom component reads any attachments off
+the incoming Message.files and parses them in-process using LangFlow's
+own pdf / docx / text utilities. No File nodes on the canvas.
 
 Mirrors scripts/build_scenario_d_v2_flow.py — same edge encoding,
 upload-and-save pattern.
@@ -152,41 +147,25 @@ def main() -> int:
 
         cat_zero = "api_scenario_zero"
         cat_io = "input_output"
-        cat_files = "files_and_knowledge"
 
         chat_in = get_component(all_components, cat_io, "ChatInput")
-        file_tpl = get_component(all_components, cat_files, "File")
         chatbot = get_component(all_components, cat_zero, "GeneralChatbot")
         chat_out = get_component(all_components, cat_io, "ChatOutput")
 
-        # Four file nodes stacked vertically on the left, chat input below,
-        # one chatbot in the middle, chat output on the right.
-        # File nodes are made forgiving (silent_errors + ignore_unspecified)
-        # so attendees can run the flow without attaching files (plain
-        # chat); the chatbot handles empty file Messages gracefully.
-        file_overrides = {
-            "silent_errors": True,
-            "ignore_unspecified_files": True,
-        }
-        n_chatin = make_node(chat_in,    "ChatInput",   (50, 950))
-        n_file1  = make_node(file_tpl,   "File",        (50, 100), file_overrides)
-        n_file2  = make_node(file_tpl,   "File",        (50, 320), file_overrides)
-        n_file3  = make_node(file_tpl,   "File",        (50, 540), file_overrides)
-        n_file4  = make_node(file_tpl,   "File",        (50, 760), file_overrides)
-        n_chatbot = make_node(chatbot,   "GeneralChatbot",         (700, 500))
-        n_chatout = make_node(chat_out,  "ChatOutput",  (1300, 500))
+        # ChatInput on the left, chatbot in the middle, chat output on
+        # the right. Attendees use Playground's paperclip button to
+        # attach zero, one, or many files inline with their chat
+        # message — same UX as ChatGPT or Gemini.
+        n_chatin  = make_node(chat_in,   "ChatInput",       (50,  300))
+        n_chatbot = make_node(chatbot,   "GeneralChatbot",  (550, 300))
+        n_chatout = make_node(chat_out,  "ChatOutput",      (1100, 300))
 
-        nodes = [n_file1, n_file2, n_file3, n_file4, n_chatin, n_chatbot, n_chatout]
+        nodes = [n_chatin, n_chatbot, n_chatout]
 
         edges = [
-            # 4× File -> NaiveChatbot.fileN (Message)
-            make_edge(n_file1, "message", ["Message"], n_chatbot, "file1", ["Message"]),
-            make_edge(n_file2, "message", ["Message"], n_chatbot, "file2", ["Message"]),
-            make_edge(n_file3, "message", ["Message"], n_chatbot, "file3", ["Message"]),
-            make_edge(n_file4, "message", ["Message"], n_chatbot, "file4", ["Message"]),
-            # ChatInput -> NaiveChatbot.user_message (Message)
+            # ChatInput -> GeneralChatbot.user_message (Message)
             make_edge(n_chatin, "message", ["Message"], n_chatbot, "user_message", ["Message"]),
-            # NaiveChatbot -> ChatOutput (Message)
+            # GeneralChatbot -> ChatOutput (Message)
             make_edge(n_chatbot, "reply", ["Message"], n_chatout, "input_value", ["Message"]),
         ]
 
