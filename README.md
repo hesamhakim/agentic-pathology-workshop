@@ -43,7 +43,7 @@ The proxy is what makes the build-your-own exercise frictionless — attendees p
 ## Authors
 
 - **[Hesam Hakim Javadi, Ph.D.](https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092)** — Medical College of Wisconsin. Workshop infrastructure, LangFlow components, slides, handbook.
-- **Srikar Chamala, Ph.D.** — Children's Hospital of Los Angeles.
+- **[Srikar Chamala, Ph.D.](https://www.chla.org/profile/srikar-chamala-phd)** — Children's Hospital of Los Angeles.
 - **Omar Baba, MD** — Clinical Pathologist, Pathologist Informaticist, Henry Ford Health System. AML case design, planted pedagogical features, Stage 1 and Stage 2 system prompts (see [`docs/Integrated_report_demo_Omar/`](docs/Integrated_report_demo_Omar/)).
 
 ## License
