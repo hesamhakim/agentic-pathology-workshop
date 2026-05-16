@@ -4,7 +4,7 @@ A 45-minute hands-on workshop showing what an *agentic workflow* does that a cha
 
 **Attendees, start here:** [📘 Open the handbook](https://hesamhakim.github.io/agentic-pathology-workshop/docs/attendee_handbook.html) · [📊 Open the slide deck](https://hesamhakim.github.io/agentic-pathology-workshop/docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html) · Workshop VM: [pi-2026-workshop.javadilab.org](https://pi-2026-workshop.javadilab.org)
 
-Fifty attendees, each with their own LangFlow account on a shared workshop VM, work through three flows in sequence. Same four PDFs go in. Three very different outputs come out. The point is the gap between them.
+All attendees, each with their own LangFlow account on a shared workshop VM, work through three flows in sequence. Same four PDFs go in. Three very different outputs come out. The point is the gap between them.
 
 ## What attendees do
 
