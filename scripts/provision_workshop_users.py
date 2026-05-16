@@ -37,6 +37,7 @@ BUILD_SCRIPTS = [
     REPO / "scripts" / "build_scenario_b_v2_flow.py",
     REPO / "scripts" / "build_scenario_c_v2_flow.py",
     REPO / "scripts" / "build_scenario_d_v2_flow.py",
+    REPO / "scripts" / "build_research_buddy_flow.py",
 ]
 
 
