@@ -1,8 +1,45 @@
-# Agentic Pathology Workshop — API Summit 2026
+<div align="center">
 
-A 45-minute hands-on workshop showing what an *agentic workflow* does that a chatbot can't. Built for pathology informatics, with a real-feeling AML case as the example.
+<a href="https://www.pathologyinformatics.org/pi-summit-2026">
+  <img src="docs/assets/logos/api_summit_2026.png" alt="Association for Pathology Informatics — API Summit 2026" height="90"/>
+</a>
 
-**Attendees, start here:** [📘 Open the handbook](https://hesamhakim.github.io/agentic-pathology-workshop/docs/attendee_handbook.html) · [📊 Open the slide deck](https://hesamhakim.github.io/agentic-pathology-workshop/docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html) · Workshop VM: [pi-2026-workshop.javadilab.org](https://pi-2026-workshop.javadilab.org)
+# Agentic Pathology Workshop
+
+*A 45-minute hands-on workshop showing what an agentic workflow does that a chatbot can't.*
+
+</div>
+
+---
+
+<table>
+<tr>
+<td align="center" width="33%">
+
+**📘 [Open the handbook](https://hesamhakim.github.io/agentic-pathology-workshop/docs/attendee_handbook.html)**
+
+Everything in one page —
+PDFs, prompts, copy buttons
+
+</td>
+<td align="center" width="33%">
+
+**📊 [Open the slide deck](https://hesamhakim.github.io/agentic-pathology-workshop/docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html)**
+
+25 slides, standalone HTML
+
+</td>
+<td align="center" width="33%">
+
+**🖥️ [Workshop VM](https://pi-2026-workshop.javadilab.org)**
+
+`pi-user-NNN` accounts, pre-provisioned
+
+</td>
+</tr>
+</table>
+
+---
 
 All attendees, each with their own LangFlow account on a shared workshop VM, work through three flows in sequence. Same four PDFs go in. Three very different outputs come out. The point is the gap between them.
 
@@ -42,9 +79,37 @@ The proxy is what makes the build-your-own exercise frictionless — attendees p
 
 ## Authors
 
-- **[Hesam Hakim Javadi, Ph.D.](https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092)** — Medical College of Wisconsin. Workshop infrastructure, LangFlow components, slides, handbook.
-- **[Srikar Chamala, Ph.D.](https://www.chla.org/profile/srikar-chamala-phd)** — Children's Hospital of Los Angeles.
-- **Omar Baba, MD** — Clinical Pathologist, Pathologist Informaticist, Henry Ford Health System. AML case design, planted pedagogical features, Stage 1 and Stage 2 system prompts (see [`docs/Integrated_report_demo_Omar/`](docs/Integrated_report_demo_Omar/)).
+<table>
+<tr>
+<td align="center" width="33%" valign="top">
+  <a href="https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092">
+    <img src="docs/assets/logos/mcw.svg" alt="Medical College of Wisconsin" height="100"/>
+  </a>
+  <br/><br/>
+  <strong><a href="https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092">Hesam Hakim Javadi, Ph.D.</a></strong><br/>
+  <sub>Medical College of Wisconsin</sub>
+  <br/><br/>
+  <sub>Workshop infrastructure, LangFlow components, slides, handbook.</sub>
+</td>
+<td align="center" width="33%" valign="top">
+  <a href="https://www.chla.org/profile/srikar-chamala-phd">
+    <img src="docs/assets/logos/chla.svg" alt="Children's Hospital Los Angeles" height="100"/>
+  </a>
+  <br/><br/>
+  <strong><a href="https://www.chla.org/profile/srikar-chamala-phd">Srikar Chamala, Ph.D.</a></strong><br/>
+  <sub>Children's Hospital of Los Angeles</sub>
+  <br/><br/>
+  <sub>&nbsp;</sub>
+</td>
+<td align="center" width="33%" valign="top">
+  <br/><br/><br/>
+  <strong>Omar Baba, MD</strong><br/>
+  <sub>Henry Ford Health System</sub>
+  <br/><br/>
+  <sub>AML case design, planted pedagogical features, Stage 1 and Stage 2 system prompts. See <a href="docs/Integrated_report_demo_Omar/">docs/Integrated_report_demo_Omar/</a>.</sub>
+</td>
+</tr>
+</table>
 
 ## License
 
