@@ -1,0 +1,4086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Agentic AI for Integrated Pathology Reporting — API Summit 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<template id="__bundler_thumbnail">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#1f3864"/>
+  <rect x="0" y="0" width="400" height="8" fill="#b06f00"/>
+  <!-- stack of report card glyphs at center, with 30% padding -->
+  <g transform="translate(120 90)">
+    <rect x="0" y="0" width="60" height="80" rx="6" fill="#fff" opacity="0.95"/>
+    <rect x="8" y="12" width="44" height="4" rx="2" fill="#1f3864" opacity="0.6"/>
+    <rect x="8" y="22" width="28" height="3" rx="1.5" fill="#1f3864" opacity="0.3"/>
+    <rect x="8" y="30" width="36" height="3" rx="1.5" fill="#1f3864" opacity="0.3"/>
+    <rect x="70" y="-10" width="60" height="80" rx="6" fill="#fff4e0"/>
+    <rect x="78" y="2" width="44" height="4" rx="2" fill="#b06f00"/>
+    <rect x="78" y="12" width="28" height="3" rx="1.5" fill="#b06f00" opacity="0.4"/>
+    <rect x="78" y="20" width="36" height="3" rx="1.5" fill="#b06f00" opacity="0.4"/>
+    <rect x="140" y="0" width="60" height="80" rx="6" fill="#fff"/>
+    <rect x="148" y="12" width="44" height="4" rx="2" fill="#1f6b1f"/>
+    <rect x="148" y="22" width="28" height="3" rx="1.5" fill="#1f6b1f" opacity="0.4"/>
+  </g>
+  <text x="200" y="240" text-anchor="middle" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#ffffff">Agentic AI · Pathology</text>
+  <text x="200" y="265" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#b06f00" letter-spacing="2">API SUMMIT 2026</text>
+</svg>
+</template>
+
+<script type="application/json" id="speaker-notes">
+[
+  "Welcome. 45 minutes total — about 20 minutes of slides, then hands-on time on the workshop VM, then a brief side-by-side discussion at the end.",
+  "45 minutes total. The bulk of the time is on the agentic workflow — slides plus live demo plus a brief hands-on edit. The chatbot warm-up is intentionally short — everyone already knows how a chat panel works. The agentic workflow is what's new, specifically the components inside it and what each one's job is.",
+  "Real pattern in modern oncologic diagnosis. Reports come back over days, from different labs, and someone has to integrate them.",
+  "Agentic workflow is not 'more AI.' It's less AI in any given step, and more structure around the overall process.",
+  "Not 'agentic is always better.' Single LLM call is the right tool for many things. The interesting cases are when the requirements list the bottom four rows.",
+  "Note the cytogenetics line is normal. Everything that classifies the disease will sit in the molecular report alone — that's the central tension.",
+  "These are planted in the case on purpose. Each has a known correct handling. We'll grade output against these later.",
+  "Allow ~15 minutes for this. Don't dwell — the goal is to feel what's missing, not to refine the chatbot. The agentic workflow is what the rest of the deck is about.",
+  "Same case. Same four PDFs. Same model. Now we'll see the boxes the work has been split into — and why each one needed to be its own box.",
+  "Seven components plus the standard ChatInput / ChatOutput bookends. Every box is a stage with a single responsibility. We'll walk through each one — what it does and why it had to be its own component.",
+  "Don't dwell on every box yet. The two that matter — and the two you can edit — are PDF Intake (Stage 1) and WHO Classifier (Stage 2). The rest is glue. We'll walk through each in turn.",
+  "This is THE architectural shift. The chatbot does everything in one prompt. The agentic workflow does the work in two stages, with a structured handoff in between. That handoff is what makes the per-sentence trace possible.",
+  "If you want to apply this pattern to your own work: stock nodes get you ~10% of the way. The interesting work is in writing the custom components — they're each 100-300 lines of Python. We'll look at one in detail in two slides.",
+  "Smallest component but a useful pattern: route plain English to strict JSON via a small LLM. We use the same pattern in three other workflows in the repo.",
+  "Three things to notice here. One — it's multimodal: the prompt asks the model to look at the embedded images, not just OCRed text. Two — the output shape is rigidly schema-conformant: we get the same JSON every run. Three — the system prompt is editable in this textarea right here. We'll re-run with an edit later in the deck.",
+  "These are the two parallel branches you see on the canvas. They're not glamorous. They exist because the integrator's job gets dramatically easier when its input is already split and pre-composed.",
+  "This is the prompt that makes the per-sentence trace possible. I'll switch to LangFlow now and show you where this textarea is on the canvas. Editing this prompt changes the report's shape, the section ordering, and the trace's behavior.",
+  "Notice the QA Reviewer is mostly deterministic. We don't use an LLM to check the LLM unless we have to — programmatic rules over our own schema are cheaper, faster, and easier to trust.",
+  "I'll demo this live now — click on the WHO Classifier node, point at the right-side panel, and show the model dropdown, temperature slider, and the System Prompt textarea.",
+  "This is the moment when 'agentic workflow' becomes concrete. A single line of prompt change ripples through the entire pipeline. The output is structurally different, the trace updates automatically. Encourage attendees to try their own edits — change the section ordering, tighten a lane-discipline rule, add a sanity-check sentence.",
+  "Same model. Same input. The difference is workflow design — and that workflow design lives in the seven components we just walked through.",
+  "Open up for questions on the pathology workflow. Then we pivot to a short hands-on build — the smallest possible agent — before the side-by-side discussion at the end.",
+  "Brief pivot. The first 22 slides were about reading and reasoning about an existing complex workflow. Now we flip — you build one from scratch. Smallest possible agent, all stock nodes, no Python.",
+  "Research Buddy is intentionally tiny — one Agent node with two tools attached. The third test prompt is the showpiece: the agent decides on its own to call Wikipedia twice (once per city) before invoking the Calculator. That decision-making is the difference between a workflow and an agent.",
+  "Encourage attendees to wire it from memory first, only importing Research_Buddy.json if they get stuck. The wiring is the part that builds intuition. Once it runs, try one of the prompts from the previous slide."
+]
+</script>
+
+</head>
+<body>
+
+<!-- ============================================================
+     Reusable SVG icon symbols
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+      <path d="M14 3v5h5"/>
+      <path d="M9 13h6M9 17h6M9 9h2"/>
+    </symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>
+    </symbol>
+    <symbol id="i-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.5 3a2.5 2.5 0 0 0-2.5 2.5v.2A3 3 0 0 0 4 8.5v.5A3 3 0 0 0 4 14a3 3 0 0 0 3 3 2.5 2.5 0 0 0 5 0V5.5A2.5 2.5 0 0 0 9.5 3z"/>
+      <path d="M14.5 3A2.5 2.5 0 0 1 17 5.5v.2A3 3 0 0 1 20 8.5v.5A3 3 0 0 1 20 14a3 3 0 0 1-3 3 2.5 2.5 0 0 1-5 0"/>
+    </symbol>
+    <symbol id="i-cog" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.21 16.96l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9 1.65 1.65 0 0 0 4.27 7.18l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.36.16.66.42.87.74"/>
+    </symbol>
+    <symbol id="i-check-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <path d="M9 12l2 2 4-4"/>
+    </symbol>
+    <symbol id="i-format" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      <path d="M3 9h18M7 14h6M7 17h10"/>
+    </symbol>
+    <symbol id="i-split" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 3v6M6 9c0 3 3 3 6 3s6 0 6 3v6"/>
+      <path d="M6 9c0 3-3 3-6 6"/>
+      <path d="M18 3v6M18 15v6"/>
+      <path d="M6 21v-3"/>
+    </symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </symbol>
+    <symbol id="i-flow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="3" width="6" height="6" rx="1"/>
+      <rect x="16" y="3" width="6" height="6" rx="1"/>
+      <rect x="9" y="15" width="6" height="6" rx="1"/>
+      <path d="M5 9v3h14V9M12 12v3"/>
+    </symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14M13 6l6 6-6 6"/>
+    </symbol>
+    <symbol id="i-microscope" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 18h12M9 18v-3a3 3 0 0 1 3-3v0a3 3 0 0 1 3 3v3"/>
+      <path d="M10 3l4 4-3 3-4-4z"/>
+      <circle cx="14" cy="11" r="3"/>
+    </symbol>
+    <symbol id="i-dna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8 3c0 5 8 5 8 10s-8 5-8 10"/>
+      <path d="M16 3c0 5-8 5-8 10s8 5 8 10"/>
+      <path d="M9 7h6M9 11h6M9 17h6M9 13h6"/>
+    </symbol>
+    <symbol id="i-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 12h4l2-6 4 12 2-6h6"/>
+    </symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 3v6L4 18a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-5-9V3"/>
+      <path d="M9 3h6M7 14h10"/>
+    </symbol>
+    <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <circle cx="12" cy="12" r="5"/>
+      <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.3 3.86l-8.07 14a2 2 0 0 0 1.73 3h16.14a2 2 0 0 0 1.73-3l-8.07-14a2 2 0 0 0-3.46 0z"/>
+      <path d="M12 9v4M12 17h.01"/>
+    </symbol>
+    <symbol id="i-counter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      <path d="M7 9h10M7 13h6M7 17h4"/>
+    </symbol>
+    <symbol id="i-mist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 8h12M5 12h14M3 16h12M9 20h10"/>
+    </symbol>
+    <symbol id="i-patient" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="7" r="4"/>
+      <path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>
+    </symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="6" y="4" width="12" height="18" rx="2"/>
+      <path d="M9 4h6v3H9z"/>
+      <path d="M9 12h6M9 16h4"/>
+    </symbol>
+    <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/>
+      <path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>
+    </symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12l5 5L20 6"/>
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 6l12 12M18 6L6 18"/>
+    </symbol>
+    <symbol id="i-stack" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 7l9-4 9 4-9 4z"/>
+      <path d="M3 12l9 4 9-4M3 17l9 4 9-4"/>
+    </symbol>
+    <symbol id="i-braces" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 3c-3 0-3 3-3 4v3c0 1-1 2-3 2 2 0 3 1 3 2v3c0 1 0 4 3 4"/>
+      <path d="M15 3c3 0 3 3 3 4v3c0 1 1 2 3 2-2 0-3 1-3 2v3c0 1 0 4-3 4"/>
+    </symbol>
+    <symbol id="i-cursor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 4l7 16 2-7 7-2z"/>
+    </symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4H4v16h16v-7"/>
+      <path d="M18 2l4 4-10 10h-4v-4z"/>
+    </symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+    </symbol>
+    <symbol id="i-calc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2"/>
+      <rect x="7" y="5" width="10" height="4" rx="1"/>
+      <circle cx="8" cy="13" r="0.6" fill="currentColor"/>
+      <circle cx="12" cy="13" r="0.6" fill="currentColor"/>
+      <circle cx="16" cy="13" r="0.6" fill="currentColor"/>
+      <circle cx="8" cy="17" r="0.6" fill="currentColor"/>
+      <circle cx="12" cy="17" r="0.6" fill="currentColor"/>
+      <circle cx="16" cy="17" r="0.6" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 4v15a2 2 0 0 1 2-2h13V3H6a2 2 0 0 0-2 2z"/>
+      <path d="M4 19a2 2 0 0 0 2 2h13"/>
+      <path d="M8 7h8M8 11h6"/>
+    </symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="8" width="16" height="12" rx="3"/>
+      <path d="M12 4v4M9 4h6"/>
+      <circle cx="9" cy="14" r="1.2" fill="currentColor"/>
+      <circle cx="15" cy="14" r="1.2" fill="currentColor"/>
+      <path d="M2 13v2M22 13v2"/>
+    </symbol>
+    <symbol id="i-tool" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.7 6.3a3 3 0 0 0-4.2 4.2l-7.4 7.4a1.5 1.5 0 1 0 2.1 2.1l7.4-7.4a3 3 0 0 0 4.2-4.2l-2 2-2-2 2-2z"/>
+    </symbol>
+    <symbol id="i-import" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v12M7 10l5 5 5-5"/>
+      <path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- Slides will be inserted here -->
+<deck-stage>
+
+  <!-- =========================================================
+       SLIDE 1 — Title
+       ========================================================= -->
+  <section data-screen-label="01 Title" class="slide-title">
+    <div class="title-illo" aria-hidden="true">
+      <svg viewBox="0 0 600 240" width="600" height="240">
+        <!-- four overlapping report cards behind the title -->
+        <g transform="translate(40 40)" opacity="0.85">
+          <rect x="0" y="0" width="120" height="160" rx="10" fill="#fff" stroke="#d4dff2" stroke-width="2"/>
+          <rect x="14" y="20" width="92" height="6" rx="3" fill="#3b6bb8" opacity=".5"/>
+          <rect x="14" y="36" width="60" height="4" rx="2" fill="#3b6bb8" opacity=".2"/>
+          <rect x="14" y="50" width="80" height="4" rx="2" fill="#3b6bb8" opacity=".2"/>
+          <rect x="14" y="64" width="72" height="4" rx="2" fill="#3b6bb8" opacity=".2"/>
+        </g>
+        <g transform="translate(150 24)">
+          <rect x="0" y="0" width="120" height="160" rx="10" fill="#fff" stroke="#f1d9a8" stroke-width="2"/>
+          <rect x="14" y="20" width="92" height="6" rx="3" fill="#b06f00" opacity=".5"/>
+          <rect x="14" y="36" width="60" height="4" rx="2" fill="#b06f00" opacity=".2"/>
+          <rect x="14" y="50" width="80" height="4" rx="2" fill="#b06f00" opacity=".2"/>
+          <rect x="14" y="64" width="72" height="4" rx="2" fill="#b06f00" opacity=".2"/>
+        </g>
+        <g transform="translate(260 40)">
+          <rect x="0" y="0" width="120" height="160" rx="10" fill="#fff" stroke="#c5dcc5" stroke-width="2"/>
+          <rect x="14" y="20" width="92" height="6" rx="3" fill="#1f6b1f" opacity=".5"/>
+          <rect x="14" y="36" width="60" height="4" rx="2" fill="#1f6b1f" opacity=".2"/>
+          <rect x="14" y="50" width="80" height="4" rx="2" fill="#1f6b1f" opacity=".2"/>
+        </g>
+        <g transform="translate(370 24)">
+          <rect x="0" y="0" width="120" height="160" rx="10" fill="#fff" stroke="#d4dff2" stroke-width="2"/>
+          <rect x="14" y="20" width="92" height="6" rx="3" fill="#1f3864" opacity=".6"/>
+          <rect x="14" y="36" width="60" height="4" rx="2" fill="#1f3864" opacity=".2"/>
+          <rect x="14" y="50" width="80" height="4" rx="2" fill="#1f3864" opacity=".2"/>
+          <rect x="14" y="64" width="72" height="4" rx="2" fill="#1f3864" opacity=".2"/>
+        </g>
+        <!-- patient silhouette behind cards -->
+        <g transform="translate(280 70)" opacity="0.16">
+          <circle cx="0" cy="0" r="28" fill="#1f3864"/>
+          <path d="M-50 80 a50 50 0 0 1 100 0" fill="#1f3864"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="title-block">
+      <div class="kicker">Workshop · 45 minutes · pathology informatics track</div>
+      <h1 class="hero">Agentic AI for<br/>Integrated Pathology Reporting</h1>
+      <div class="hero-rule"></div>
+      <div class="hero-sub">A purpose-built workflow for multi-source clinical synthesis</div>
+    </div>
+
+    <div class="title-foot">
+      <div class="title-foot-l">
+        <div class="logo-mark" aria-hidden="true">
+          <svg width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="20" fill="none" stroke="#1f3864" stroke-width="2"/><path d="M12 21 L18 27 L30 15" fill="none" stroke="#b06f00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="venue">API Summit 2026 · Pathology Informatics Track</div>
+          <div class="org">Javadi Lab</div>
+        </div>
+      </div>
+      <div class="title-foot-r">
+        <span class="codepill">D_integrated_report_to_who</span>
+      </div>
+    </div>
+
+    <div class="progress"><span class="on"></span><span></span><span></span><span></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 2 — Agenda / What you'll do today
+       ========================================================= -->
+  <section data-screen-label="02 Agenda">
+    <div class="kicker">Workshop · 45 minutes</div>
+    <h1 class="title">What you'll do today</h1>
+    <div class="title-rule"></div>
+
+    <div class="agenda">
+      <div class="agenda-row">
+        <div class="agenda-num"><span>1</span></div>
+        <div class="agenda-body">
+          <div class="agenda-head"><strong>Concept</strong> — agentic ≠ chat</div>
+          <div class="agenda-sub">A side-by-side framing of the two shapes an LLM call can take.</div>
+        </div>
+        <div class="agenda-meta">
+          <div class="agenda-mins">5 min</div>
+          <div class="agenda-loc">this deck</div>
+        </div>
+      </div>
+
+      <div class="agenda-row">
+        <div class="agenda-num"><span>2</span></div>
+        <div class="agenda-body">
+          <div class="agenda-head"><strong>The case</strong> — one patient, four reports</div>
+          <div class="agenda-sub">A real AML workup that needs all four PDFs combined.</div>
+        </div>
+        <div class="agenda-meta">
+          <div class="agenda-mins">3 min</div>
+          <div class="agenda-loc">this deck</div>
+        </div>
+      </div>
+
+      <div class="agenda-row">
+        <div class="agenda-num"><span>3</span></div>
+        <div class="agenda-body">
+          <div class="agenda-head"><strong>Try it as a chatbot first</strong> — quick warm-up</div>
+          <div class="agenda-sub">Drag four PDFs into a chat panel. See what comes back.</div>
+        </div>
+        <div class="agenda-meta">
+          <div class="agenda-mins">5 min</div>
+          <div class="agenda-loc"><span class="codepill sm">0_general_chatbot</span></div>
+        </div>
+      </div>
+
+      <div class="agenda-row featured">
+        <div class="agenda-num amber"><span>4</span></div>
+        <div class="agenda-body">
+          <div class="agenda-head"><strong>The agentic workflow</strong> — canvas + components, what each one does</div>
+          <div class="agenda-sub">Where this deck spends the most time. Live demo + hands-on prompt edit.</div>
+        </div>
+        <div class="agenda-meta">
+          <div class="agenda-mins amber">20 min</div>
+          <div class="agenda-loc"><span class="codepill sm">D_integrated_report_to_who</span></div>
+        </div>
+      </div>
+
+      <div class="agenda-row featured">
+        <div class="agenda-num amber"><span>5</span></div>
+        <div class="agenda-body">
+          <div class="agenda-head"><strong>Build your own</strong> — 5 nodes, 4 wires, smallest possible agent</div>
+          <div class="agenda-sub">Standard LangFlow components only. No custom code. Live wiring.</div>
+        </div>
+        <div class="agenda-meta">
+          <div class="agenda-mins amber">8 min</div>
+          <div class="agenda-loc"><span class="codepill sm">Research_Buddy</span></div>
+        </div>
+      </div>
+
+      <div class="agenda-row">
+        <div class="agenda-num"><span>6</span></div>
+        <div class="agenda-body">
+          <div class="agenda-head"><strong>Side-by-side + discussion</strong></div>
+          <div class="agenda-sub">Compare what you got from the chatbot vs the agentic workflow.</div>
+        </div>
+        <div class="agenda-meta">
+          <div class="agenda-mins">4 min</div>
+          <div class="agenda-loc">all together</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="signin-callout">
+      <div class="signin-mark"><svg width="28" height="28"><use href="#i-link"/></svg></div>
+      <div class="signin-text">
+        <div class="signin-head">Sign in to the workshop VM</div>
+        <div class="signin-body">
+          <span class="codepill">https://pi-2026-workshop.javadilab.org</span>
+          &nbsp;&middot;&nbsp;username <span class="codepill">pi-user-NNN</span>
+          &nbsp;&middot;&nbsp;password as just announced
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">02<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span></span><span></span><span></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 3 — Clinical problem
+       ========================================================= -->
+  <section data-screen-label="03 Clinical problem">
+    <div class="kicker">The clinical problem in one slide</div>
+    <h1 class="title">Imagine you just got these four reports for one patient.</h1>
+    <div class="title-rule"></div>
+
+    <div class="problem-grid">
+      <div class="problem-text">
+        <div class="problem-stmt">
+          <div class="stmt-bar amber"></div>
+          <div class="stmt-text"><strong>Morphology</strong> says one thing.</div>
+        </div>
+        <div class="problem-stmt">
+          <div class="stmt-bar amber"></div>
+          <div class="stmt-text"><strong>Flow</strong> says another.</div>
+        </div>
+        <div class="problem-stmt">
+          <div class="stmt-bar gray"></div>
+          <div class="stmt-text"><strong>Cytogenetics</strong> looks unremarkable.</div>
+        </div>
+        <div class="problem-stmt">
+          <div class="stmt-bar green"></div>
+          <div class="stmt-text"><strong>Molecular</strong> has a finding the other three can't see.</div>
+        </div>
+
+        <div class="problem-conclusion">
+          The diagnosis depends on <em>combining all four.</em>
+          <span class="emph">No single report is sufficient.</span>
+        </div>
+      </div>
+
+      <div class="problem-illo">
+        <svg viewBox="0 0 700 700" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+          <!-- soft halo -->
+          <circle cx="350" cy="350" r="270" fill="#f4f6fa"/>
+          <circle cx="350" cy="350" r="200" fill="#eaf0fa"/>
+
+          <!-- patient silhouette in center -->
+          <g transform="translate(350 340)">
+            <circle cx="0" cy="-70" r="58" fill="#1f3864"/>
+            <path d="M-110 80 Q-110 -20 0 -20 Q110 -20 110 80 L110 130 L-110 130 Z" fill="#1f3864"/>
+          </g>
+
+          <!-- four report cards -->
+          <!-- top -->
+          <g transform="translate(290 30)">
+            <rect width="120" height="150" rx="14" fill="#fff" stroke="#f1d9a8" stroke-width="2.5"/>
+            <rect x="14" y="20" width="92" height="8" rx="3" fill="#b06f00"/>
+            <rect x="14" y="38" width="60" height="5" rx="2" fill="#b06f00" opacity=".25"/>
+            <rect x="14" y="50" width="80" height="5" rx="2" fill="#b06f00" opacity=".25"/>
+            <rect x="14" y="62" width="72" height="5" rx="2" fill="#b06f00" opacity=".25"/>
+            <text x="60" y="115" font-family="Inter" font-size="16" font-weight="600" text-anchor="middle" fill="#b06f00">Morphology</text>
+          </g>
+          <!-- right -->
+          <g transform="translate(530 290)">
+            <rect width="120" height="150" rx="14" fill="#fff" stroke="#f1d9a8" stroke-width="2.5"/>
+            <rect x="14" y="20" width="92" height="8" rx="3" fill="#b06f00"/>
+            <rect x="14" y="38" width="60" height="5" rx="2" fill="#b06f00" opacity=".25"/>
+            <rect x="14" y="50" width="80" height="5" rx="2" fill="#b06f00" opacity=".25"/>
+            <rect x="14" y="62" width="72" height="5" rx="2" fill="#b06f00" opacity=".25"/>
+            <text x="60" y="115" font-family="Inter" font-size="16" font-weight="600" text-anchor="middle" fill="#b06f00">Flow</text>
+          </g>
+          <!-- bottom -->
+          <g transform="translate(290 520)">
+            <rect width="120" height="150" rx="14" fill="#fff" stroke="#dadde4" stroke-width="2.5"/>
+            <rect x="14" y="20" width="92" height="8" rx="3" fill="#666"/>
+            <rect x="14" y="38" width="60" height="5" rx="2" fill="#666" opacity=".25"/>
+            <rect x="14" y="50" width="80" height="5" rx="2" fill="#666" opacity=".25"/>
+            <rect x="14" y="62" width="72" height="5" rx="2" fill="#666" opacity=".25"/>
+            <text x="60" y="115" font-family="Inter" font-size="16" font-weight="600" text-anchor="middle" fill="#666">Cytogenetics</text>
+          </g>
+          <!-- left -->
+          <g transform="translate(50 290)">
+            <rect width="120" height="150" rx="14" fill="#fff" stroke="#c5dcc5" stroke-width="2.5"/>
+            <rect x="14" y="20" width="92" height="8" rx="3" fill="#1f6b1f"/>
+            <rect x="14" y="38" width="60" height="5" rx="2" fill="#1f6b1f" opacity=".25"/>
+            <rect x="14" y="50" width="80" height="5" rx="2" fill="#1f6b1f" opacity=".25"/>
+            <rect x="14" y="62" width="72" height="5" rx="2" fill="#1f6b1f" opacity=".25"/>
+            <text x="60" y="115" font-family="Inter" font-size="16" font-weight="600" text-anchor="middle" fill="#1f6b1f">Molecular</text>
+          </g>
+
+          <!-- thin connecting lines -->
+          <g stroke="#c8d0dc" stroke-width="2" stroke-dasharray="4 5" fill="none">
+            <path d="M350 200 L350 260"/>
+            <path d="M530 365 L420 365"/>
+            <path d="M350 510 L350 460"/>
+            <path d="M170 365 L280 365"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">03<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 4 — Two ways to use an LLM
+       ========================================================= -->
+  <section data-screen-label="04 Two ways">
+    <div class="kicker">The concept, in one image</div>
+    <h1 class="title">Two ways to use an LLM</h1>
+    <div class="title-rule"></div>
+
+    <div class="two-ways">
+      <!-- LEFT: Single LLM call -->
+      <div class="way way-chat">
+        <div class="way-cap">
+          <div class="way-cap-eyebrow">Left</div>
+          <div class="way-cap-title">Single LLM call</div>
+          <div class="way-cap-sub">ChatGPT &middot; Gemini &middot; Claude &middot; Copilot</div>
+        </div>
+        <div class="way-illo">
+          <!-- chat bubble → brain → reply bubble -->
+          <div class="chat-row">
+            <div class="bubble user">
+              <div class="bubble-dot"></div>
+              <div class="bubble-dot"></div>
+              <div class="bubble-dot"></div>
+            </div>
+            <div class="chat-arrow"><svg width="36" height="36"><use href="#i-arrow-right"/></svg></div>
+            <div class="brain-circle">
+              <svg width="48" height="48"><use href="#i-brain"/></svg>
+            </div>
+            <div class="chat-arrow"><svg width="36" height="36"><use href="#i-arrow-right"/></svg></div>
+            <div class="bubble reply">
+              <div class="bubble-line"></div>
+              <div class="bubble-line w70"></div>
+              <div class="bubble-line w85"></div>
+              <div class="bubble-line w50"></div>
+            </div>
+          </div>
+          <div class="way-foot">one prompt &middot; one model &middot; one reply</div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="way-divider"></div>
+
+      <!-- RIGHT: Agentic workflow -->
+      <div class="way way-agentic">
+        <div class="way-cap">
+          <div class="way-cap-eyebrow amber">Right</div>
+          <div class="way-cap-title">Agentic workflow</div>
+          <div class="way-cap-sub">directed graph of LLM + deterministic steps</div>
+        </div>
+        <div class="way-illo">
+          <div class="graph-row">
+            <div class="g-node g-input"><svg width="22" height="22"><use href="#i-doc"/></svg></div>
+            <div class="g-edge"></div>
+            <div class="g-node g-llm amber"><svg width="22" height="22"><use href="#i-brain"/></svg></div>
+            <div class="g-edge"></div>
+            <div class="g-branch">
+              <div class="g-node g-py"><svg width="20" height="20"><use href="#i-split"/></svg></div>
+              <div class="g-node g-llm"><svg width="20" height="20"><use href="#i-sparkle"/></svg></div>
+            </div>
+            <div class="g-edge"></div>
+            <div class="g-node g-llm amber"><svg width="22" height="22"><use href="#i-brain"/></svg></div>
+            <div class="g-edge"></div>
+            <div class="g-node g-qa"><svg width="22" height="22"><use href="#i-check-shield"/></svg></div>
+            <div class="g-edge"></div>
+            <div class="g-node g-out"><svg width="22" height="22"><use href="#i-format"/></svg></div>
+          </div>
+          <div class="way-foot">several stages &middot; structured handoffs &middot; auditable output</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ways-footnote">
+      <em>Same model. Different shape. Today we'll feel the difference.</em>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">04<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 5 — When to reach for which
+       ========================================================= -->
+  <section data-screen-label="05 When to reach">
+    <div class="kicker">One-slide decision rubric</div>
+    <h1 class="title">When to reach for an agentic workflow</h1>
+    <div class="title-rule"></div>
+
+    <div class="when-table">
+      <div class="when-row when-head">
+        <div class="when-task">Task shape</div>
+        <div class="when-col">Single LLM call</div>
+        <div class="when-col amber-h">Agentic workflow</div>
+      </div>
+      <div class="when-row">
+        <div class="when-task">Conversational Q&amp;A</div>
+        <div class="when-col"><span class="yes">✓ great</span></div>
+        <div class="when-col"><span class="meh">overkill</span></div>
+      </div>
+      <div class="when-row">
+        <div class="when-task">One-off creative writing</div>
+        <div class="when-col"><span class="yes">✓ great</span></div>
+        <div class="when-col"><span class="meh">overkill</span></div>
+      </div>
+      <div class="when-row hi">
+        <div class="when-task">High-stakes synthesis from multiple sources</div>
+        <div class="when-col"><span class="risk">⚠ risky</span></div>
+        <div class="when-col"><span class="yes">✓ right tool</span></div>
+      </div>
+      <div class="when-row hi">
+        <div class="when-task">Output must be auditable / structured</div>
+        <div class="when-col"><span class="no">✗ no</span></div>
+        <div class="when-col"><span class="yes">✓ yes</span></div>
+      </div>
+      <div class="when-row hi">
+        <div class="when-task">Same task, same output expected every time</div>
+        <div class="when-col"><span class="meh">variable</span></div>
+        <div class="when-col"><span class="yes">✓ deterministic where it can be</span></div>
+      </div>
+      <div class="when-row hi">
+        <div class="when-task">Failure modes are known and avoidable</div>
+        <div class="when-col"><span class="meh">hope for the best</span></div>
+        <div class="when-col"><span class="yes">✓ enforced in QA</span></div>
+      </div>
+    </div>
+
+    <div class="when-caption">
+      <span class="when-cap-bar"></span>
+      Today's case study sits firmly in the <strong>bottom four rows.</strong>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">05<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 6 — Today's patient and the four reports
+       ========================================================= -->
+  <section data-screen-label="06 The case">
+    <div class="kicker">Today's case</div>
+    <h1 class="title">One patient. New bone marrow workup. Four reports — different labs, different days.</h1>
+
+    <div class="case-grid">
+      <!-- LEFT: patient detail -->
+      <div class="case-patient">
+        <div class="patient-card">
+          <div class="patient-head">
+            <div class="patient-ico"><svg width="34" height="34"><use href="#i-patient"/></svg></div>
+            <div>
+              <div class="patient-eyebrow">Patient</div>
+              <div class="patient-name">Adult male, 58y</div>
+            </div>
+          </div>
+          <div class="patient-divider"></div>
+          <div class="patient-vitals">
+            <div class="vital">
+              <span class="vital-label">Presentation</span>
+              <span class="vital-val">Leukocytosis, anemia, thrombocytopenia</span>
+            </div>
+            <div class="vital">
+              <span class="vital-label">Peripheral blasts</span>
+              <span class="vital-val"><span class="big-num">41%</span></span>
+            </div>
+            <div class="vital">
+              <span class="vital-label">Workup</span>
+              <span class="vital-val">New bone marrow, multi-modality</span>
+            </div>
+          </div>
+        </div>
+        <div class="case-footnote">
+          All four PDFs are in <span class="codepill">data/scenario_d/case_aml/</span> in the workshop repo and on the facilitator's USB drive.
+        </div>
+      </div>
+
+      <!-- RIGHT: four reports -->
+      <div class="case-reports">
+        <div class="rep-card">
+          <div class="rep-ico amber"><svg width="28" height="28"><use href="#i-microscope"/></svg></div>
+          <div class="rep-body">
+            <div class="rep-title">Bone marrow morphology</div>
+            <div class="rep-file">01_…_morphology.pdf</div>
+            <div class="rep-desc">manual blast count · cytochemistry · hedge on lineage</div>
+          </div>
+        </div>
+        <div class="rep-card">
+          <div class="rep-ico amber"><svg width="28" height="28"><use href="#i-pulse"/></svg></div>
+          <div class="rep-body">
+            <div class="rep-title">Flow cytometry</div>
+            <div class="rep-file">02_…_flow.pdf</div>
+            <div class="rep-desc">gated blast % · immunophenotype · lineage resolution</div>
+          </div>
+        </div>
+        <div class="rep-card">
+          <div class="rep-ico gray"><svg width="28" height="28"><use href="#i-flask"/></svg></div>
+          <div class="rep-body">
+            <div class="rep-title">Cytogenetics + FISH</div>
+            <div class="rep-file">03_…_cyto_fish.pdf</div>
+            <div class="rep-desc">karyotype · AML panel — <strong class="muted">here: normal</strong></div>
+          </div>
+        </div>
+        <div class="rep-card classifier">
+          <div class="rep-ico green"><svg width="28" height="28"><use href="#i-dna"/></svg></div>
+          <div class="rep-body">
+            <div class="rep-title">Molecular NGS (54-gene)</div>
+            <div class="rep-file">04_…_molecular.pdf</div>
+            <div class="rep-desc">SNV/indel · FLT3-ITD · prognostic variants</div>
+          </div>
+          <div class="rep-tag">classifier sits here</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">06<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 7 — Four things the model must get right
+       ========================================================= -->
+  <section data-screen-label="07 Four things">
+    <div class="kicker">What the case is designed to test</div>
+    <h1 class="title">Four things any model has to get right</h1>
+    <div class="title-rule"></div>
+
+    <div class="four-grid">
+      <div class="four-card">
+        <div class="four-stripe amber"></div>
+        <div class="four-body">
+          <div class="four-head">
+            <div class="four-ico amber"><svg width="30" height="30"><use href="#i-counter"/></svg></div>
+            <div>
+              <div class="four-tag">Discordance</div>
+              <div class="four-pair"><span>MORPH</span> ↔ <span>FLOW</span></div>
+            </div>
+          </div>
+          <div class="four-text">
+            Morphology says <strong>18% blasts</strong>. Flow says <strong>22%</strong>.<br/>
+            The model must <strong>reconcile</strong> — not silently pick one number.
+          </div>
+        </div>
+      </div>
+
+      <div class="four-card">
+        <div class="four-stripe amber"></div>
+        <div class="four-body">
+          <div class="four-head">
+            <div class="four-ico amber"><svg width="30" height="30"><use href="#i-mist"/></svg></div>
+            <div>
+              <div class="four-tag">Hedge resolution</div>
+              <div class="four-pair"><span>MORPH</span> ↔ <span>FLOW</span></div>
+            </div>
+          </div>
+          <div class="four-text">
+            Morphology hedges on lineage. Flow proves monocytic differentiation.<br/>
+            The model must <strong>credit flow</strong> with resolving the hedge.
+          </div>
+        </div>
+      </div>
+
+      <div class="four-card">
+        <div class="four-stripe green"></div>
+        <div class="four-body">
+          <div class="four-head">
+            <div class="four-ico green"><svg width="30" height="30"><use href="#i-target"/></svg></div>
+            <div>
+              <div class="four-tag">Single-source classifying</div>
+              <div class="four-pair"><span>MOLEC only</span></div>
+            </div>
+          </div>
+          <div class="four-text">
+            <strong>NPM1 + FLT3-ITD</strong> appear only in molecular.<br/>
+            Karyotype and FISH are normal. <strong>The whole diagnosis hinges here.</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="four-card">
+        <div class="four-stripe red"></div>
+        <div class="four-body">
+          <div class="four-head">
+            <div class="four-ico red"><svg width="30" height="30"><use href="#i-warning"/></svg></div>
+            <div>
+              <div class="four-tag">Lane discipline · the trap</div>
+              <div class="four-pair"><span>DNMT3A R882H</span></div>
+            </div>
+          </div>
+          <div class="four-text">
+            Real and Tier II — but it does <strong>NOT</strong> classify the disease.<br/>
+            Belongs in prognostic notes — <strong>not</strong> in the diagnosis line.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">07<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 8 — Try it as a chatbot (framing only)
+       ========================================================= -->
+  <section data-screen-label="08 Try as chatbot">
+    <div class="kicker">Warm-up · ≈ 7 minutes hands-on</div>
+    <h1 class="title">First, try it as a chatbot.</h1>
+    <div class="title-rule"></div>
+
+    <div class="cb-grid">
+      <div class="cb-step">
+        <div class="cb-num"><span>1</span></div>
+        <div class="cb-stephead">Open</div>
+        <div class="cb-text">
+          Open <span class="codepill">0_general_chatbot</span> in your account.
+          Click <strong>Playground</strong>.
+        </div>
+      </div>
+      <div class="cb-step">
+        <div class="cb-num"><span>2</span></div>
+        <div class="cb-stephead">Attach &amp; ask</div>
+        <div class="cb-text">
+          Drop the four AML PDFs into the chat input. Type:
+          <div class="cb-quote">"Produce an integrated diagnostic report for this patient using all four reports."</div>
+          Press send.
+        </div>
+      </div>
+      <div class="cb-step">
+        <div class="cb-num"><span>3</span></div>
+        <div class="cb-stephead">Read &amp; question</div>
+        <div class="cb-text">
+          You'll get something that looks like an integrated report.
+          <strong>Now ask yourself:</strong>
+          <ul class="cb-asks">
+            <li>Which of the four PDFs supports each sentence?</li>
+            <li>Did DNMT3A land in the diagnosis line, or in prognostic notes?</li>
+            <li>Run the same prompt again — how much does the structure change?</li>
+            <li>If a downstream LIS needed this as JSON, what would it parse?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="cb-foot">
+      <em>Write down your answers.</em> We'll come back to them after we've worked through the agentic workflow.
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">08<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 9 — Section break: Part 2
+       ========================================================= -->
+  <section data-screen-label="09 Part 2" class="slide-section">
+    <div class="section-mark">
+      <div class="section-rule"></div>
+      <div class="section-kicker">Part 2 · ≈ 25 minutes</div>
+    </div>
+
+    <div class="section-headline">
+      <div class="section-pt">Part&nbsp;2</div>
+      <h2 class="section-title">The agentic workflow</h2>
+      <div class="section-sub">Every component, one by one.</div>
+    </div>
+
+    <div class="section-foot">
+      <div class="section-foot-l">
+        <span class="codepill" style="font-size:18px;padding:6px 14px;">D_integrated_report_to_who</span>
+      </div>
+      <div class="section-foot-r">Same case · same four PDFs · same model · different shape.</div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">09<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 10 — Open the workflow (canvas screenshot)
+       ========================================================= -->
+  <section data-screen-label="10 The canvas">
+    <div class="kicker">Open the agentic workflow</div>
+    <h1 class="title sm">Open the workflow and look at the whole canvas at once.</h1>
+
+    <div class="canvas-instr">
+      <div class="instr-item">
+        <span class="num-circle">1</span>
+        <span>From <strong>My Projects</strong>, open <span class="codepill">D_integrated_report_to_who</span>.</span>
+      </div>
+      <div class="instr-item">
+        <span class="num-circle">2</span>
+        <span>Zoom out (<span class="kbd">fit view</span> button bottom-right of the canvas, or <span class="kbd">⌘</span> + scroll) until all seven workflow components are visible end-to-end.</span>
+      </div>
+      <div class="instr-item">
+        <span class="num-circle">3</span>
+        <span>Notice the data flowing <strong>left to right</strong>.</span>
+      </div>
+    </div>
+
+    <div class="canvas-frame">
+      <div class="canvas-frame-bar">
+        <span class="cfb-dot"></span><span class="cfb-dot"></span><span class="cfb-dot"></span>
+        <span class="cfb-label">LangFlow · D_integrated_report_to_who</span>
+      </div>
+      <div class="canvas-image-wrap">
+        <img src="img/canvas_clean.png" alt="LangFlow canvas for D_integrated_report_to_who" class="canvas-image"/>
+        <!-- Numbered overlay annotations.
+             Coordinates are percentages over the canvas image (2424×560). -->
+        <!-- Bookend: Chat Input -->
+        <div class="anno-box bookend" style="left:0.6%; top:36%; width:7.5%; height:38%;">
+          <div class="anno-label bookend">Chat Input</div>
+        </div>
+        <!-- 1 Pipeline Config -->
+        <div class="anno-circle" style="left:14%; top:46%;">1</div>
+        <div class="anno-tip" style="left:14%; top:18%;">Pipeline Config</div>
+        <!-- 2 PDF Intake -->
+        <div class="anno-circle" style="left:24.5%; top:46%;">2</div>
+        <div class="anno-tip" style="left:24.5%; top:18%;">PDF Intake</div>
+        <!-- 3 Molecular Parser -->
+        <div class="anno-circle" style="left:34%; top:38%;">3</div>
+        <div class="anno-tip" style="left:34%; top:18%;">Molecular Parser</div>
+        <!-- 4 Histology Synth -->
+        <div class="anno-circle" style="left:34%; top:65%;">4</div>
+        <div class="anno-tip" style="left:34%; top:88%;">Histology Synth</div>
+        <!-- 5 WHO Classifier -->
+        <div class="anno-circle" style="left:46.5%; top:46%;">5</div>
+        <div class="anno-tip" style="left:46.5%; top:18%;">WHO Classifier</div>
+        <!-- 6 QA Reviewer -->
+        <div class="anno-circle" style="left:57%; top:46%;">6</div>
+        <div class="anno-tip" style="left:57%; top:18%;">QA Reviewer</div>
+        <!-- 7 Report Formatter -->
+        <div class="anno-circle" style="left:68%; top:46%;">7</div>
+        <div class="anno-tip" style="left:68%; top:18%;">Report Formatter</div>
+        <!-- Bookend: Chat Output -->
+        <div class="anno-box bookend" style="left:75.5%; top:36%; width:7.8%; height:30%;">
+          <div class="anno-label bookend">Chat Output</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">10<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 11 — Pipeline at a glance
+       ========================================================= -->
+  <section data-screen-label="11 Pipeline at a glance">
+    <div class="kicker">The pipeline at a glance</div>
+    <h1 class="title">Seven components, two LLM stages.</h1>
+    <div class="title-rule"></div>
+
+    <div class="pipeline">
+      <!-- 1 Pipeline Config -->
+      <div class="pipe-col">
+        <div class="pipe-node n-blue">
+          <div class="pipe-head"><span class="pipe-ico"><svg width="24" height="24"><use href="#i-cog"/></svg></span><span class="pipe-title">Pipeline Config</span></div>
+          <div class="pipe-type">LLM · small</div>
+        </div>
+        <div class="pipe-desc">parses your chat directive into a config</div>
+      </div>
+      <div class="pipe-arrow"><svg width="28" height="28"><use href="#i-arrow-right"/></svg></div>
+
+      <!-- 2 PDF Intake -->
+      <div class="pipe-col">
+        <div class="pipe-node n-amber">
+          <div class="stage-badge">Stage 1</div>
+          <div class="pipe-head"><span class="pipe-ico"><svg width="24" height="24"><use href="#i-stack"/></svg></span><span class="pipe-title">PDF Intake</span></div>
+          <div class="pipe-type">LLM · main reasoner</div>
+        </div>
+        <div class="pipe-desc">reads all 4 PDFs, emits structured findings with source tags</div>
+      </div>
+      <div class="pipe-arrow"><svg width="28" height="28"><use href="#i-arrow-right"/></svg></div>
+
+      <!-- Branch column: 3 Molecular Parser stacked over 4 Histology -->
+      <div class="pipe-branch">
+        <div class="pipe-col">
+          <div class="pipe-node n-gray">
+            <div class="pipe-head"><span class="pipe-ico"><svg width="24" height="24"><use href="#i-split"/></svg></span><span class="pipe-title">Molecular Parser</span></div>
+            <div class="pipe-type">pure Python</div>
+          </div>
+          <div class="pipe-desc">classifying vs prognostic variants</div>
+        </div>
+        <div class="pipe-col">
+          <div class="pipe-node n-blue">
+            <div class="pipe-head"><span class="pipe-ico"><svg width="24" height="24"><use href="#i-sparkle"/></svg></span><span class="pipe-title">Histology Synth</span></div>
+            <div class="pipe-type">LLM · small</div>
+          </div>
+          <div class="pipe-desc">composes the morphology summary</div>
+        </div>
+      </div>
+      <div class="pipe-arrow"><svg width="28" height="28"><use href="#i-arrow-right"/></svg></div>
+
+      <!-- 5 WHO Classifier -->
+      <div class="pipe-col">
+        <div class="pipe-node n-amber">
+          <div class="stage-badge">Stage 2</div>
+          <div class="pipe-head"><span class="pipe-ico"><svg width="24" height="24"><use href="#i-brain"/></svg></span><span class="pipe-title">WHO Classifier</span></div>
+          <div class="pipe-type">LLM · main reasoner</div>
+        </div>
+        <div class="pipe-desc">writes the integrated report + per-sentence trace</div>
+      </div>
+      <div class="pipe-arrow"><svg width="28" height="28"><use href="#i-arrow-right"/></svg></div>
+
+      <!-- 6 QA Reviewer -->
+      <div class="pipe-col">
+        <div class="pipe-node n-blue">
+          <div class="pipe-head"><span class="pipe-ico"><svg width="24" height="24"><use href="#i-check-shield"/></svg></span><span class="pipe-title">QA Reviewer</span></div>
+          <div class="pipe-type">hybrid · rules + LLM</div>
+        </div>
+        <div class="pipe-desc">programmatic checks + optional LLM critique</div>
+      </div>
+      <div class="pipe-arrow"><svg width="28" height="28"><use href="#i-arrow-right"/></svg></div>
+
+      <!-- 7 Report Formatter -->
+      <div class="pipe-col">
+        <div class="pipe-node n-gray">
+          <div class="pipe-head"><span class="pipe-ico"><svg width="24" height="24"><use href="#i-format"/></svg></span><span class="pipe-title">Report Formatter</span></div>
+          <div class="pipe-type">pure Python</div>
+        </div>
+        <div class="pipe-desc">renders markdown / JSON / HTML</div>
+      </div>
+    </div>
+
+    <div class="pipe-legend">
+      <span><span class="lg-dot amber"></span>Amber — main reasoner</span>
+      <span><span class="lg-dot blue"></span>Blue — secondary LLM</span>
+      <span><span class="lg-dot gray"></span>Gray — deterministic / I/O</span>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">11<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 12 — Two stages, one pattern
+       ========================================================= -->
+  <section data-screen-label="12 Two stages">
+    <div class="kicker">The architectural pattern</div>
+    <h1 class="title">Two stages, one pattern.</h1>
+    <div class="title-rule"></div>
+
+    <div class="stages-row">
+      <!-- LEFT panel: PDF Intake / Stage 1 -->
+      <div class="stage-panel">
+        <div class="stage-badge2 amber">Stage 1</div>
+        <div class="stage-name">PDF Intake</div>
+        <div class="stage-illo">
+          <!-- 4 PDFs stacked -->
+          <div class="stack-of-pdfs">
+            <div class="pdf-card amber"><svg width="22" height="22"><use href="#i-doc"/></svg></div>
+            <div class="pdf-card amber"><svg width="22" height="22"><use href="#i-doc"/></svg></div>
+            <div class="pdf-card amber"><svg width="22" height="22"><use href="#i-doc"/></svg></div>
+            <div class="pdf-card amber"><svg width="22" height="22"><use href="#i-doc"/></svg></div>
+          </div>
+          <div class="stage-arrow"><svg width="34" height="34"><use href="#i-arrow-right"/></svg></div>
+          <div class="json-card">
+            <svg width="36" height="36"><use href="#i-braces"/></svg>
+            <span>JSON</span>
+          </div>
+        </div>
+        <div class="stage-text">
+          Reads all four PDFs together. Emits a structured JSON with
+          <strong>per-source findings, concordances, discordances, single-source findings,</strong> and a
+          <strong><span class="ic-code">classifying</span> boolean on every variant.</strong>
+          Every finding carries a verbatim phrase copied from the source.
+        </div>
+      </div>
+
+      <!-- middle arrow + label -->
+      <div class="stages-handoff">
+        <div class="handoff-label">structured JSON</div>
+        <div class="handoff-arrow">
+          <svg viewBox="0 0 220 64" width="220" height="64">
+            <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1f3864"/></marker></defs>
+            <path d="M5 32 L195 32" stroke="#1f3864" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+          </svg>
+        </div>
+        <div class="handoff-sub">no raw PDFs pass</div>
+      </div>
+
+      <!-- RIGHT panel: WHO Classifier / Stage 2 -->
+      <div class="stage-panel">
+        <div class="stage-badge2 amber">Stage 2</div>
+        <div class="stage-name">WHO Classifier</div>
+        <div class="stage-illo">
+          <div class="json-card">
+            <svg width="36" height="36"><use href="#i-braces"/></svg>
+            <span>JSON</span>
+          </div>
+          <div class="stage-arrow"><svg width="34" height="34"><use href="#i-arrow-right"/></svg></div>
+          <div class="report-card">
+            <div class="rc-line"></div><div class="rc-line w80"></div><div class="rc-line w65"></div>
+            <div class="rc-rule"></div>
+            <div class="rc-line w70"></div><div class="rc-line w55"></div>
+            <span class="rc-tag">11 sections + trace</span>
+          </div>
+        </div>
+        <div class="stage-text">
+          Receives <strong>only the structured JSON</strong> — not the raw PDFs.
+          Its prompt enforces explicit rules. Output:
+          <strong>the 11-section integrated report</strong> plus a
+          <strong>per-sentence evidence trace</strong> mapping each sentence to its source.
+        </div>
+      </div>
+    </div>
+
+    <div class="stages-foot">
+      <em>Two LLM calls. Each with one specific job. Each with one editable system prompt.</em>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">12<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 13 — Standard nodes vs custom components
+       ========================================================= -->
+  <section data-screen-label="13 Standard vs custom">
+    <div class="kicker">Framing the next six slides</div>
+    <h1 class="title">Standard nodes did the easy half. We wrote the rest.</h1>
+    <div class="title-rule"></div>
+
+    <div class="std-grid">
+      <!-- LEFT: Standard nodes -->
+      <div class="std-col">
+        <div class="std-head">
+          <div class="std-badge gray">Out of the box</div>
+          <div class="std-name">Standard LangFlow nodes — used as-is</div>
+        </div>
+        <div class="std-list">
+          <div class="std-row">
+            <div class="std-row-ico gray"><svg width="22" height="22"><use href="#i-chat"/></svg></div>
+            <div>
+              <div class="std-row-title">Chat Input</div>
+              <div class="std-row-sub">receives the directive</div>
+            </div>
+          </div>
+          <div class="std-row">
+            <div class="std-row-ico gray"><svg width="22" height="22"><use href="#i-format"/></svg></div>
+            <div>
+              <div class="std-row-title">Chat Output</div>
+              <div class="std-row-sub">renders the final reply</div>
+            </div>
+          </div>
+          <div class="std-empty">That's it. <strong>Two boxes.</strong></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Custom components -->
+      <div class="std-col std-col-right">
+        <div class="std-head">
+          <div class="std-badge amber">We wrote these</div>
+          <div class="std-name">Seven custom components</div>
+        </div>
+        <div class="std-list grid2">
+          <div class="std-row amber-row">
+            <div class="std-row-ico amber"><svg width="22" height="22"><use href="#i-cog"/></svg></div>
+            <div>
+              <div class="std-row-title">PipelineConfig</div>
+              <div class="std-row-sub">no stock "English-to-JSON config" node</div>
+            </div>
+          </div>
+          <div class="std-row amber-row">
+            <div class="std-row-ico amber"><svg width="22" height="22"><use href="#i-stack"/></svg></div>
+            <div>
+              <div class="std-row-title">PDF Intake</div>
+              <div class="std-row-sub">no stock multi-PDF-with-vision extractor</div>
+            </div>
+          </div>
+          <div class="std-row amber-row">
+            <div class="std-row-ico amber"><svg width="22" height="22"><use href="#i-split"/></svg></div>
+            <div>
+              <div class="std-row-title">Molecular Parser</div>
+              <div class="std-row-sub">no stock variant-classification helper</div>
+            </div>
+          </div>
+          <div class="std-row amber-row">
+            <div class="std-row-ico amber"><svg width="22" height="22"><use href="#i-sparkle"/></svg></div>
+            <div>
+              <div class="std-row-title">Histology Synthesizer</div>
+              <div class="std-row-sub">needs a domain-shaped prompt</div>
+            </div>
+          </div>
+          <div class="std-row amber-row">
+            <div class="std-row-ico amber"><svg width="22" height="22"><use href="#i-brain"/></svg></div>
+            <div>
+              <div class="std-row-title">WHO Classifier</div>
+              <div class="std-row-sub">integrator bespoke to this workflow</div>
+            </div>
+          </div>
+          <div class="std-row amber-row">
+            <div class="std-row-ico amber"><svg width="22" height="22"><use href="#i-check-shield"/></svg></div>
+            <div>
+              <div class="std-row-title">QA Reviewer</div>
+              <div class="std-row-sub">programmatic checks against our schema</div>
+            </div>
+          </div>
+          <div class="std-row amber-row span2">
+            <div class="std-row-ico amber"><svg width="22" height="22"><use href="#i-format"/></svg></div>
+            <div>
+              <div class="std-row-title">Report Formatter</div>
+              <div class="std-row-sub">renders our specific 11-section output</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="std-foot">
+      <em>All seven live in <span class="codepill">langflow_flows/components/api_scenario_d/</span> — each a small Python class with a <span class="ic-code">display_name</span>, a <span class="ic-code">description</span>, typed inputs, and one <span class="ic-code">build_output</span> method.</em>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">13<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 14 — Component 1: PipelineConfig
+       ========================================================= -->
+  <section data-screen-label="14 PipelineConfig">
+    <div class="kicker amber">Component 1 of 7 · the smallest one</div>
+    <h1 class="title">PipelineConfig — translate plain English to a strict run config</h1>
+
+    <div class="cmp-grid">
+      <!-- LEFT: features -->
+      <div class="cmp-left">
+        <div class="cmp-summary">
+          <div class="cmp-ico"><svg width="32" height="32"><use href="#i-cog"/></svg></div>
+          <div>
+            <div class="cmp-type">small LLM call · pure JSON output</div>
+            <div class="cmp-role">parses the chat directive into a JSON config the rest of the pipeline consumes.</div>
+          </div>
+        </div>
+
+        <div class="io-row">
+          <div class="io-block">
+            <div class="io-label">Chat input</div>
+            <div class="io-text">
+              <span class="cursor-blink">▌</span>run the aml case as html, hide qa flags
+            </div>
+          </div>
+          <div class="io-arrow"><svg width="28" height="28"><use href="#i-arrow-right"/></svg></div>
+          <div class="io-block code">
+            <div class="io-label">Emits</div>
+            <pre class="io-code">{
+  "case_id":     "aml",
+  "format":      "html",
+  "show_qa":     false
+}</pre>
+          </div>
+        </div>
+
+        <ul class="feat-list">
+          <li><span class="feat-bullet">•</span> One small LLM call — fast model, low cost</li>
+          <li><span class="feat-bullet">•</span> System prompt defines exactly which keys are allowed</li>
+          <li><span class="feat-bullet">•</span> Unknown keys silently dropped → downstream defaults apply</li>
+          <li><span class="feat-bullet amber">•</span> <strong>Editable prompt:</strong> add a new case or a new output knob</li>
+        </ul>
+      </div>
+
+      <!-- RIGHT: mock detail panel -->
+      <div class="cmp-right">
+        <div class="panel-mock">
+          <div class="pm-head">
+            <span class="pm-dot amber"></span>
+            <span class="pm-title">Pipeline Config</span>
+            <span class="pm-chev">›</span>
+          </div>
+          <div class="pm-row">
+            <div class="pm-handle in"><span class="pm-dot-h"></span><span>Chat Input</span><span class="pm-port">message</span></div>
+          </div>
+          <div class="pm-field">
+            <div class="pm-label">Model</div>
+            <div class="pm-input"><svg width="16" height="16" style="color:var(--gray);"><use href="#i-sparkle"/></svg> openai/gpt-4o-mini</div>
+          </div>
+          <div class="pm-field">
+            <div class="pm-label">Temperature</div>
+            <div class="pm-input"><span class="pm-num">0.0</span><div class="pm-slider"><div class="pm-slider-fill" style="width:0%"></div></div></div>
+          </div>
+          <div class="pm-field">
+            <div class="pm-label">System Prompt <span class="pm-edit-mark">editable</span></div>
+            <div class="pm-textarea">
+              <div class="pm-tline"></div>
+              <div class="pm-tline w80"></div>
+              <div class="pm-tline w55"></div>
+              <div class="pm-tline w70"></div>
+              <div class="pm-tline w40"></div>
+            </div>
+          </div>
+          <div class="pm-row">
+            <div class="pm-handle out"><span>Output</span><span class="pm-port">run_config&nbsp;<em>(Data)</em></span><span class="pm-dot-h"></span></div>
+          </div>
+        </div>
+        <div class="panel-cap">Mock of the right-side detail panel in LangFlow.</div>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">14<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 15 — Component 2: PDF Intake (Stage 1)
+       ========================================================= -->
+  <section data-screen-label="15 PDF Intake">
+    <div class="kicker amber">Component 2 of 7 · Stage 1 · main reasoner</div>
+    <h1 class="title">PDF Intake — read four PDFs together, emit structured findings</h1>
+
+    <div class="intake-grid">
+      <!-- LEFT: features -->
+      <div class="intake-left">
+        <div class="cmp-summary">
+          <div class="cmp-ico amber"><svg width="32" height="32"><use href="#i-stack"/></svg></div>
+          <div>
+            <div class="cmp-type">multimodal LLM · vision-capable · strict JSON out</div>
+            <div class="cmp-role">reads <strong>all four PDFs in one LLM call</strong> and emits cross-PDF findings.</div>
+          </div>
+        </div>
+
+        <ul class="feat-list intake-feats">
+          <li><span class="feat-bullet amber">•</span> <strong>Multimodal.</strong> Both extracted text and embedded image bytes go to the vision-capable model.</li>
+          <li><span class="feat-bullet amber">•</span> <strong>Per-source tagging.</strong> Every finding carries a <span class="ic-code">source_id</span> + a verbatim phrase copied from the source.</li>
+          <li><span class="feat-bullet amber">•</span> <strong>Concordances, discordances, single-source findings</strong> broken out as named fields, not free prose.</li>
+          <li><span class="feat-bullet amber">•</span> <strong><span class="ic-code">classifying</span> boolean on every variant.</strong> Disease-defining vs prognostic decided at extraction time.</li>
+          <li><span class="feat-bullet amber">•</span> <strong>Output is strict JSON.</strong> Same shape every run.</li>
+        </ul>
+
+        <div class="intake-foot">
+          <em>The larger of the two main reasoners.</em> Its system prompt is <strong>THE main editable lever</strong> — change how this reads, and everything downstream sees a different world.
+        </div>
+      </div>
+
+      <!-- RIGHT: annotated screenshot -->
+      <div class="intake-right">
+        <div class="prompt-frame">
+          <div class="canvas-frame-bar">
+            <span class="cfb-dot"></span><span class="cfb-dot"></span><span class="cfb-dot"></span>
+            <span class="cfb-label">PDF Intake · System Prompt</span>
+          </div>
+          <div class="prompt-image-wrap">
+            <img src="img/pdf_intake_cropped.png" alt="PDF Intake system prompt" class="prompt-image"/>
+            <!-- annotations -->
+            <div class="anno-box prompt-anno" style="left:3%; top:6%; width:64%; height:84%;">
+              <div class="anno-label-amber">② editable lever — Omar's extraction rules verbatim</div>
+            </div>
+            <div class="anno-circle" style="left:6.5%; top:10%; width:36px; height:36px; font-size:18px;">2</div>
+            <div class="anno-circle blue" style="right:6%; bottom:10%; left:auto; top:auto; transform:none; width:36px; height:36px; font-size:18px;">3</div>
+            <div class="anno-tip" style="right:6%; bottom:32%; left:auto; top:auto; transform:translateX(0);">→ structured JSON output</div>
+          </div>
+        </div>
+        <div class="intake-anno-key">
+          <div class="key-row"><span class="num-circle" style="width:28px;height:28px;font-size:14px;background:var(--amber);">1</span> arrow on the <strong>vision-capable</strong> model dropdown (shown live in LangFlow)</div>
+          <div class="key-row"><span class="num-circle" style="width:28px;height:28px;font-size:14px;background:var(--amber);">2</span> the editable system-prompt textarea — your lever</div>
+          <div class="key-row"><span class="num-circle" style="width:28px;height:28px;font-size:14px;background:var(--blue);">3</span> output handle returns one structured-JSON object</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">15<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 16 — Components 3 & 4: parallel parsers
+       ========================================================= -->
+  <section data-screen-label="16 Parallel parsers">
+    <div class="kicker">Components 3 &amp; 4 of 7 · parallel passes</div>
+    <h1 class="title">Two parallel passes prep Stage 1's output for the integrator.</h1>
+    <div class="title-rule"></div>
+
+    <div class="par-grid">
+      <!-- Molecular Parser -->
+      <div class="par-col">
+        <div class="par-head">
+          <div class="par-ico gray"><svg width="30" height="30"><use href="#i-split"/></svg></div>
+          <div>
+            <div class="par-title">Molecular Parser</div>
+            <div class="par-pill"><span class="pill">pure Python · no LLM</span></div>
+          </div>
+        </div>
+
+        <div class="par-role">
+          <span class="par-eyebrow">Role</span>
+          splits the extractor's <span class="ic-code">molecular_variants</span> array into two buckets.
+        </div>
+
+        <div class="bucket-row">
+          <div class="bucket green">
+            <div class="bucket-tag">classifying_variants</div>
+            <div class="bucket-desc">disease-defining</div>
+          </div>
+          <div class="bucket gray">
+            <div class="bucket-tag">prognostic_variants</div>
+            <div class="bucket-desc">reported but non-classifying</div>
+          </div>
+        </div>
+
+        <div class="par-why">
+          <span class="par-eyebrow">Why it exists</span>
+          lets the integrator apply <strong>lane discipline</strong> without re-deciding which variant is which.
+        </div>
+      </div>
+
+      <!-- Histology Synthesizer -->
+      <div class="par-col">
+        <div class="par-head">
+          <div class="par-ico blue"><svg width="30" height="30"><use href="#i-sparkle"/></svg></div>
+          <div>
+            <div class="par-title">Histology Synthesizer</div>
+            <div class="par-pill"><span class="pill blue">small LLM call</span></div>
+          </div>
+        </div>
+
+        <div class="par-role">
+          <span class="par-eyebrow">Role</span>
+          distills the morphology- and IHC-bearing components into a single <strong>4–7 sentence morphology paragraph</strong>.
+        </div>
+
+        <div class="histo-illo">
+          <div class="histo-src">
+            <div class="histo-card amber"><svg width="20" height="20"><use href="#i-microscope"/></svg><span>Morphology</span></div>
+            <div class="histo-card amber"><svg width="20" height="20"><use href="#i-pulse"/></svg><span>Flow</span></div>
+          </div>
+          <div class="histo-arrow"><svg width="28" height="28"><use href="#i-arrow-right"/></svg></div>
+          <div class="histo-out">
+            <div class="rc-line"></div>
+            <div class="rc-line w85"></div>
+            <div class="rc-line w70"></div>
+            <div class="rc-line w55"></div>
+          </div>
+        </div>
+
+        <div class="par-why">
+          <span class="par-eyebrow">Why it exists</span>
+          morphology content is spread across <strong>two reports</strong> (morphology + flow); this composes them into one paragraph the integrator can fold in.
+        </div>
+      </div>
+    </div>
+
+    <div class="par-foot">
+      <em>Both branches run in parallel. The integrator (Stage 2) doesn't fire until both have delivered.</em>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">16<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 17 — Component 5: WHO Classifier (Stage 2)
+       ========================================================= -->
+  <section data-screen-label="17 WHO Classifier">
+    <div class="kicker amber">Component 5 of 7 · Stage 2 · the editable lever</div>
+    <h1 class="title">WHO Classifier — write the integrated report and the trace.</h1>
+
+    <div class="who-grid">
+      <!-- LEFT: features -->
+      <div class="who-left">
+        <div class="cmp-summary">
+          <div class="cmp-ico amber"><svg width="32" height="32"><use href="#i-brain"/></svg></div>
+          <div>
+            <div class="cmp-type">LLM · main reasoner · second of two</div>
+            <div class="cmp-role">reads only the Stage 1 JSON — <strong>never the raw PDFs.</strong></div>
+          </div>
+        </div>
+
+        <div class="who-outputs">
+          <div class="who-out">
+            <div class="who-out-tag part-a">PART A</div>
+            <div class="who-out-name">11-section structured report</div>
+            <div class="who-out-flow">
+              patient → component studies → clinical context →<br/>
+              4 per-modality summaries → interpretation →<br/>
+              diagnosis → prognostic notes → limitations
+            </div>
+          </div>
+          <div class="who-out">
+            <div class="who-out-tag part-b">PART B</div>
+            <div class="who-out-name">per-sentence evidence trace</div>
+            <div class="who-out-flow">
+              one row per sentence in interpretation + diagnosis,<br/>
+              mapping to <span class="ic-code">source_id</span>s.
+            </div>
+          </div>
+        </div>
+
+        <ul class="feat-list">
+          <li><span class="feat-bullet amber">•</span> <strong>Lane discipline</strong> enforced in the prompt — non-classifying variants stay out of the diagnosis line.</li>
+          <li><span class="feat-bullet amber">•</span> <strong>Editable</strong> in the right-side detail panel — presenter will show live.</li>
+        </ul>
+      </div>
+
+      <!-- RIGHT: code-block excerpt of system prompt -->
+      <div class="who-right">
+        <div class="prompt-block">
+          <div class="prompt-block-head">
+            <div class="pb-row">
+              <span class="pb-mark">✶</span>
+              <span class="pb-name">WHO Classifier · System Prompt</span>
+            </div>
+            <span class="pb-pill">excerpt · what its prompt encodes</span>
+          </div>
+          <div class="prompt-block-body">
+            <div class="pb-line"><span class="pb-num">1</span><span class="pb-bullet">›</span><span class="pb-text">Use <strong>only what's in the Stage 1 JSON.</strong> No outside knowledge.</span></div>
+            <div class="pb-line"><span class="pb-num">2</span><span class="pb-bullet">›</span><span class="pb-text">Resolve every <strong>discordance</strong> out loud — no silent picks.</span></div>
+            <div class="pb-line"><span class="pb-num">3</span><span class="pb-bullet">›</span><span class="pb-text">Name every <strong>single-source finding.</strong> Be explicit.</span></div>
+            <div class="pb-line"><span class="pb-num">4</span><span class="pb-bullet">›</span><span class="pb-text">Non-classifying variants stay in <strong>prognostic notes,</strong> never the diagnosis line.</span></div>
+            <div class="pb-line"><span class="pb-num">5</span><span class="pb-bullet">›</span><span class="pb-text">Output: <strong>11 fixed sections</strong> + Part B per-sentence trace.</span></div>
+          </div>
+          <div class="prompt-block-foot">
+            <span class="pb-cursor"></span>
+            <span class="pb-foot-text">editable in the LangFlow detail panel · presenter demos live</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">17<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 18 — Components 6 & 7: QA Reviewer + Report Formatter
+       ========================================================= -->
+  <section data-screen-label="18 QA + Formatter">
+    <div class="kicker">Components 6 &amp; 7 of 7</div>
+    <h1 class="title">Auditability and output rendering</h1>
+    <div class="title-rule"></div>
+
+    <div class="qa-grid">
+      <!-- QA Reviewer -->
+      <div class="qa-col">
+        <div class="par-head">
+          <div class="par-ico blue"><svg width="30" height="30"><use href="#i-check-shield"/></svg></div>
+          <div>
+            <div class="par-title">QA Reviewer</div>
+            <div class="par-pill"><span class="pill blue">hybrid · rules first, LLM optional</span></div>
+          </div>
+        </div>
+
+        <div class="qa-section">
+          <div class="qa-eyebrow">Programmatic checks <span class="qa-cost">deterministic · no cost</span></div>
+          <ul class="qa-checks">
+            <li>
+              <span class="qa-mark red"><svg width="18" height="18"><use href="#i-x"/></svg></span>
+              <span><span class="ic-code">UNSUPPORTED</span> rows in Part B<span class="qa-side">hard failure</span></span>
+            </li>
+            <li>
+              <span class="qa-mark amber"><svg width="18" height="18"><use href="#i-warning"/></svg></span>
+              <span>Lane discipline · non-classifying variants in the diagnosis line</span>
+            </li>
+            <li>
+              <span class="qa-mark green"><svg width="18" height="18"><use href="#i-check"/></svg></span>
+              <span>Required findings · per-tumor-family checklist<br/><span class="qa-path"><span class="ic-code">tools/scenario_d/who_criteria.py</span></span></span>
+            </li>
+            <li>
+              <span class="qa-mark green"><svg width="18" height="18"><use href="#i-check"/></svg></span>
+              <span>Discordance handling · every discordance addressed in interpretation</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="qa-section qa-llm">
+          <div class="qa-eyebrow amber">Optional LLM critique <span class="qa-cost">advanced settings toggle</span></div>
+          <div class="qa-llm-body">free-text findings the rule checks can't catch (e.g. overstated certainty).</div>
+        </div>
+      </div>
+
+      <!-- Report Formatter -->
+      <div class="qa-col">
+        <div class="par-head">
+          <div class="par-ico gray"><svg width="30" height="30"><use href="#i-format"/></svg></div>
+          <div>
+            <div class="par-title">Report Formatter</div>
+            <div class="par-pill"><span class="pill">pure Python · no LLM call</span></div>
+          </div>
+        </div>
+
+        <div class="par-role">
+          <span class="par-eyebrow">Role</span>
+          renders the integrator's structured output in one of four formats.
+        </div>
+
+        <div class="fmt-grid">
+          <div class="fmt-card">
+            <div class="fmt-tag">integrated</div>
+            <div class="fmt-desc">markdown · 11 sections + Part B trace</div>
+          </div>
+          <div class="fmt-card">
+            <div class="fmt-tag">narrative</div>
+            <div class="fmt-desc">short clinical paragraph</div>
+          </div>
+          <div class="fmt-card">
+            <div class="fmt-tag">json</div>
+            <div class="fmt-desc">machine-readable · LIS ingestion</div>
+          </div>
+          <div class="fmt-card">
+            <div class="fmt-tag">html</div>
+            <div class="fmt-desc">styled HTML for download</div>
+          </div>
+        </div>
+
+        <div class="fmt-note">
+          Format is selected by your chat directive — e.g. <span class="codepill">run the aml case as html</span>.
+        </div>
+      </div>
+    </div>
+
+    <div class="par-foot">
+      <em>Auditability happens in two places: every claim has a trace row (Stage 2), and every trace row is checked against the schema (QA Reviewer).</em>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">18<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 19 — Where the editable knobs live
+       ========================================================= -->
+  <section data-screen-label="19 Editable knobs">
+    <div class="kicker">Live demo</div>
+    <h1 class="title">Every component has a detail panel.</h1>
+    <div class="title-rule"></div>
+
+    <div class="knobs-grid">
+      <!-- LEFT: numbered instructions -->
+      <div class="knobs-instr">
+        <div class="kn-step">
+          <div class="kn-num"><span>1</span></div>
+          <div class="kn-text"><strong>Click any node</strong> on the canvas. A panel slides in on the right side.</div>
+        </div>
+        <div class="kn-step">
+          <div class="kn-num"><span>2</span></div>
+          <div class="kn-text">The panel shows every input field for that node: <span class="codepill">model</span> · <span class="codepill">temperature</span> · <span class="codepill">max tokens</span> · <span class="codepill">system prompt</span>, etc.</div>
+        </div>
+        <div class="kn-step">
+          <div class="kn-num amber"><span>3</span></div>
+          <div class="kn-text">Most fields are glue — leave them alone. <strong>The one that matters is the System Prompt</strong> multi-line textarea.</div>
+        </div>
+        <div class="kn-step">
+          <div class="kn-num"><span>4</span></div>
+          <div class="kn-text"><strong>Edits apply on the next run</strong> — no save button, no rebuild.</div>
+        </div>
+        <div class="knobs-foot">
+          <em>Two of the seven components have System Prompt fields worth editing — <strong>PDF Intake</strong> and <strong>WHO Classifier.</strong> Everything else is calibrated.</em>
+        </div>
+      </div>
+
+      <!-- RIGHT: visual representation of the canvas+panel slide -->
+      <div class="knobs-illo">
+        <div class="knobs-canvas">
+          <div class="kc-label">Canvas</div>
+          <div class="kc-node selected">
+            <div class="kc-node-head"><svg width="18" height="18"><use href="#i-brain"/></svg> WHO Classifier</div>
+            <div class="kc-node-port"><span class="dotr"></span> Reviewed</div>
+          </div>
+          <div class="kc-node ghost">PDF Intake</div>
+          <div class="kc-node ghost">Pipeline Config</div>
+          <div class="kc-cursor"><svg width="28" height="28"><use href="#i-cursor"/></svg></div>
+        </div>
+        <div class="knobs-arrow">
+          <svg viewBox="0 0 80 40" width="80" height="40">
+            <path d="M5 20 L70 20" stroke="#1f3864" stroke-width="3" fill="none" marker-end="url(#arRight)"/>
+            <defs><marker id="arRight" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1f3864"/></marker></defs>
+          </svg>
+          <span>slides in</span>
+        </div>
+        <div class="knobs-panel">
+          <div class="kp-head">WHO Classifier</div>
+          <div class="kp-field"><span class="kp-lbl">Model</span><span class="kp-val">openai/gpt-4o</span></div>
+          <div class="kp-field"><span class="kp-lbl">Temperature</span><span class="kp-val">0</span></div>
+          <div class="kp-field highlight"><span class="kp-lbl">System Prompt</span><span class="kp-edit-mark">edit me</span></div>
+          <div class="kp-textarea">
+            <div class="kp-tline"></div>
+            <div class="kp-tline w90"></div>
+            <div class="kp-tline w75"></div>
+            <div class="kp-tline w60"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">19<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 20 — Try editing the WHO Classifier prompt
+       ========================================================= -->
+  <section data-screen-label="20 Try editing">
+    <div class="kicker amber">Hands-on · ≈ 5 minutes</div>
+    <h1 class="title">Try it — edit a prompt and re-run.</h1>
+    <div class="title-rule amber"></div>
+
+    <div class="try-grid">
+      <div class="try-step">
+        <div class="num-circle lg amber">1</div>
+        <div class="try-text">Click the <strong>WHO Classifier</strong> node on the canvas.</div>
+      </div>
+      <div class="try-step">
+        <div class="num-circle lg amber">2</div>
+        <div class="try-text">Find the <strong>System Prompt</strong> field in the right detail panel.</div>
+      </div>
+      <div class="try-step">
+        <div class="num-circle lg amber">3</div>
+        <div class="try-text">
+          <strong>Add this sentence</strong> somewhere in the rules section:
+          <div class="quote-callout">
+            <div class="qc-tag">paste anywhere in the rules section</div>
+            <div class="qc-text">"Always begin section 8 with a one-sentence reconciliation of the morphologic blast count vs the flow blast count."</div>
+          </div>
+        </div>
+      </div>
+      <div class="try-step">
+        <div class="num-circle lg amber">4</div>
+        <div class="try-text">Re-run with <span class="codepill">run the aml case</span>. Watch <strong>section 8</strong> change.</div>
+      </div>
+    </div>
+
+    <div class="try-foot">
+      <em>A single line of prompt change ripples through the <strong>entire pipeline</strong>.</em>
+      <span class="try-foot-sub">the output is structurally different, the Part B trace updates automatically.</span>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">20<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span><span></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 21 — Same input. Two outputs.
+       ========================================================= -->
+  <section data-screen-label="21 Side by side">
+    <div class="kicker">The headline comparison</div>
+    <h1 class="title">Same four PDFs in. Two very different outputs.</h1>
+    <div class="title-rule"></div>
+
+    <div class="cmp-rows">
+      <div class="cmp-row">
+        <div class="cmp-row-tag gray">Scenario 0 · chatbot</div>
+        <div class="cmp-row-flow">
+          <div class="cmp-input">
+            <div class="cmp-pdf-stack mini">
+              <div class="pdf-card-mini"></div><div class="pdf-card-mini"></div><div class="pdf-card-mini"></div><div class="pdf-card-mini"></div>
+            </div>
+          </div>
+          <div class="cmp-arrow"><svg width="22" height="22"><use href="#i-arrow-right"/></svg></div>
+          <div class="cmp-pipe small">
+            <div class="cmp-mini-node"><svg width="14" height="14"><use href="#i-chat"/></svg></div>
+            <div class="cmp-mini-edge"></div>
+            <div class="cmp-mini-node amber"><svg width="14" height="14"><use href="#i-brain"/></svg></div>
+            <div class="cmp-mini-edge"></div>
+            <div class="cmp-mini-node"><svg width="14" height="14"><use href="#i-format"/></svg></div>
+          </div>
+          <div class="cmp-arrow"><svg width="22" height="22"><use href="#i-arrow-right"/></svg></div>
+          <div class="cmp-out-card red">
+            <div class="oc-icon"><svg width="20" height="20"><use href="#i-x"/></svg></div>
+            <div class="oc-head">one prose reply</div>
+            <div class="oc-sub">no trace · no schema · variable</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmp-row">
+        <div class="cmp-row-tag amber">Scenario D · agentic</div>
+        <div class="cmp-row-flow">
+          <div class="cmp-input">
+            <div class="cmp-pdf-stack mini">
+              <div class="pdf-card-mini"></div><div class="pdf-card-mini"></div><div class="pdf-card-mini"></div><div class="pdf-card-mini"></div>
+            </div>
+          </div>
+          <div class="cmp-arrow"><svg width="22" height="22"><use href="#i-arrow-right"/></svg></div>
+          <div class="cmp-pipe">
+            <div class="cmp-mini-node"><svg width="12" height="12"><use href="#i-chat"/></svg></div>
+            <div class="cmp-mini-edge"></div>
+            <div class="cmp-mini-node blue"><svg width="12" height="12"><use href="#i-cog"/></svg></div>
+            <div class="cmp-mini-edge"></div>
+            <div class="cmp-mini-node amber"><svg width="12" height="12"><use href="#i-stack"/></svg></div>
+            <div class="cmp-mini-edge"></div>
+            <div class="cmp-mini-node"><svg width="12" height="12"><use href="#i-split"/></svg></div>
+            <div class="cmp-mini-edge"></div>
+            <div class="cmp-mini-node amber"><svg width="12" height="12"><use href="#i-brain"/></svg></div>
+            <div class="cmp-mini-edge"></div>
+            <div class="cmp-mini-node blue"><svg width="12" height="12"><use href="#i-check-shield"/></svg></div>
+            <div class="cmp-mini-edge"></div>
+            <div class="cmp-mini-node"><svg width="12" height="12"><use href="#i-format"/></svg></div>
+          </div>
+          <div class="cmp-arrow"><svg width="22" height="22"><use href="#i-arrow-right"/></svg></div>
+          <div class="cmp-out-card green">
+            <div class="oc-icon"><svg width="20" height="20"><use href="#i-check"/></svg></div>
+            <div class="oc-head">structured report + Part B trace + QA flags</div>
+            <div class="oc-sub">11 sections · per-sentence trace · auditable</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp-table-wrap">
+      <table class="cmp">
+        <thead>
+          <tr><th>&nbsp;</th><th>Scenario 0 chatbot</th><th>Scenario D agentic</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Per-sentence evidence trace</td><td><span class="no">✗ no</span></td><td><span class="yes">✓ yes (Part B)</span></td></tr>
+          <tr><td>Structured machine-readable out</td><td><span class="no">✗ no</span></td><td><span class="yes">✓ yes (JSON / 11 sections)</span></td></tr>
+          <tr><td>Lane-discipline enforced</td><td><span class="no">✗ no</span></td><td><span class="yes">✓ yes (QA flag)</span></td></tr>
+          <tr><td>Run-to-run consistency</td><td><span class="meh">variable</span></td><td><span class="yes">✓ deterministic where possible</span></td></tr>
+          <tr><td>Where you customize behavior</td><td><span class="meh">the prompt you typed</span></td><td><span class="yes">seven labeled components</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">21<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 22 — Where this pattern generalizes
+       ========================================================= -->
+  <section data-screen-label="22 Generalizes">
+    <div class="kicker">Take-home</div>
+    <h1 class="title">Where this pattern generalizes</h1>
+    <div class="title-rule amber"></div>
+
+    <div class="gen-quote">
+      <span class="gen-mark">“</span>
+      <span class="gen-text">Any task where you need <em>multi-source synthesis with auditability.</em></span>
+    </div>
+
+    <div class="gen-grid">
+      <div class="gen-card">
+        <div class="gen-ico"><svg width="26" height="26"><use href="#i-clipboard"/></svg></div>
+        <div class="gen-head">Tumor board prep</div>
+        <div class="gen-sub">clinical notes + imaging + path + molecular</div>
+      </div>
+      <div class="gen-card">
+        <div class="gen-ico"><svg width="26" height="26"><use href="#i-dna"/></svg></div>
+        <div class="gen-head">Variant interpretation</div>
+        <div class="gen-sub">ACMG across population + functional + clinical</div>
+      </div>
+      <div class="gen-card">
+        <div class="gen-ico"><svg width="26" height="26"><use href="#i-eye"/></svg></div>
+        <div class="gen-head">Trial eligibility</div>
+        <div class="gen-sub">chart review across structured + unstructured EHR</div>
+      </div>
+      <div class="gen-card">
+        <div class="gen-ico"><svg width="26" height="26"><use href="#i-link"/></svg></div>
+        <div class="gen-head">Chart-vs-claim reconciliation</div>
+        <div class="gen-sub">insurance audits with documentary evidence</div>
+      </div>
+      <div class="gen-card">
+        <div class="gen-ico"><svg width="26" height="26"><use href="#i-bookmark"/></svg></div>
+        <div class="gen-head">Multi-document policy review</div>
+        <div class="gen-sub">regulatory work across long-form documents</div>
+      </div>
+    </div>
+
+    <div class="gen-arch">
+      The architectural shape — <strong>structured extraction → reasoning over the structure → traceable output</strong> — is the same.
+    </div>
+
+    <div class="gen-resources">
+      <div class="gr-col">
+        <div class="gr-label">Handbook</div>
+        <div class="gr-val"><span class="codepill">docs/attendee_handbook.md</span></div>
+      </div>
+      <div class="gr-col">
+        <div class="gr-label">Repo</div>
+        <div class="gr-val"><span class="codepill">github.com/hesamhakim/agentic-pathology-workshop</span></div>
+      </div>
+      <div class="gr-col">
+        <div class="gr-label">Case design</div>
+        <div class="gr-val">case design + planted features by Omar</div>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">22<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 23 — Section break: Your turn
+       ========================================================= -->
+  <section data-screen-label="23 Your turn" class="slide-section slide-section-yours">
+    <div class="section-mark">
+      <div class="section-rule"></div>
+      <div class="section-kicker">Now build one yourself · ≈ 8 minutes</div>
+    </div>
+
+    <div class="section-headline">
+      <div class="section-pt amber-pt">Your turn</div>
+      <h2 class="section-title blue-title">A tiny agent — 5 nodes, 4 wires, ~7 minutes.</h2>
+      <div class="section-sub">Same canvas. Same building blocks. Nothing custom.</div>
+    </div>
+
+    <div class="section-foot">
+      <div class="section-foot-l">
+        <span class="codepill" style="font-size:18px;padding:6px 14px;">Research_Buddy</span>
+      </div>
+      <div class="section-foot-r">Standard LangFlow components only &middot; no custom code &middot; zero credentials.</div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">23<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 24 — Research Buddy: five standard components
+       ========================================================= -->
+  <section data-screen-label="24 Research Buddy">
+    <div class="kicker amber">What you'll build</div>
+    <h1 class="title">Research Buddy — five standard components</h1>
+    <div class="title-rule amber"></div>
+
+    <div class="rb-canvas">
+      <!-- Top row: Chat Input → Agent → Chat Output -->
+      <div class="rb-top-row">
+        <div class="rb-node n-gray">
+          <div class="rb-ico"><svg width="24" height="24"><use href="#i-chat"/></svg></div>
+          <div class="rb-name">Chat Input</div>
+          <div class="rb-type">Input &amp; Output</div>
+        </div>
+        <div class="rb-edge-h"></div>
+        <div class="rb-node n-amber rb-agent">
+          <div class="rb-ico amber"><svg width="32" height="32"><use href="#i-bot"/></svg></div>
+          <div class="rb-name">Agent</div>
+          <div class="rb-type">Models &amp; Agents</div>
+          <div class="rb-port-row">
+            <span class="rb-port-tag">tools</span>
+            <span class="rb-port-tag">tools</span>
+          </div>
+        </div>
+        <div class="rb-edge-h"></div>
+        <div class="rb-node n-gray">
+          <div class="rb-ico"><svg width="24" height="24"><use href="#i-format"/></svg></div>
+          <div class="rb-name">Chat Output</div>
+          <div class="rb-type">Input &amp; Output</div>
+        </div>
+      </div>
+
+      <!-- Tool row below Agent -->
+      <div class="rb-tool-row">
+        <div class="rb-node n-blue rb-tool">
+          <div class="rb-tag">tool</div>
+          <div class="rb-edge-up"></div>
+          <div class="rb-ico blue"><svg width="22" height="22"><use href="#i-book"/></svg></div>
+          <div class="rb-name">Wikipedia API</div>
+          <div class="rb-type">Tools</div>
+        </div>
+        <div class="rb-node n-blue rb-tool">
+          <div class="rb-tag">tool</div>
+          <div class="rb-edge-up"></div>
+          <div class="rb-ico blue"><svg width="22" height="22"><use href="#i-calc"/></svg></div>
+          <div class="rb-name">Calculator</div>
+          <div class="rb-type">Tools</div>
+        </div>
+      </div>
+
+      <div class="rb-note">
+        <svg width="16" height="16"><use href="#i-check"/></svg>
+        All five are stock LangFlow nodes. <strong>No Python to write.</strong>
+      </div>
+    </div>
+
+    <!-- Bottom: three test prompts -->
+    <div class="rb-prompts-head">Three test prompts the agent will handle differently</div>
+    <div class="rb-prompts">
+      <div class="rb-prompt">
+        <div class="rb-prompt-icon"><svg width="22" height="22"><use href="#i-calc"/></svg></div>
+        <div class="rb-prompt-body">
+          <div class="rb-prompt-text">"What is 23% of 7.8 million?"</div>
+          <div class="rb-prompt-tool"><span class="rb-tool-chip">Calculator only</span></div>
+        </div>
+      </div>
+      <div class="rb-prompt">
+        <div class="rb-prompt-icon"><svg width="22" height="22"><use href="#i-book"/></svg></div>
+        <div class="rb-prompt-body">
+          <div class="rb-prompt-text">"What is the population of Tokyo? Look it up on Wikipedia."</div>
+          <div class="rb-prompt-tool"><span class="rb-tool-chip">Wikipedia only</span></div>
+        </div>
+      </div>
+      <div class="rb-prompt featured">
+        <div class="rb-prompt-icon amber"><svg width="22" height="22"><use href="#i-split"/></svg></div>
+        <div class="rb-prompt-body">
+          <div class="rb-prompt-text">"Population of Tokyo divided by Osaka? Show your work."</div>
+          <div class="rb-prompt-tool"><span class="rb-tool-chip amber">Wikipedia ×2 + Calculator</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">24<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span></div>
+  </section>
+
+  <!-- =========================================================
+       SLIDE 25 — Build it yourself, step by step
+       ========================================================= -->
+  <section data-screen-label="25 Build it yourself">
+    <div class="kicker amber">Hands-on · ≈ 7 minutes</div>
+    <h1 class="title">Five steps, about seven minutes.</h1>
+    <div class="title-rule amber"></div>
+
+    <div class="build-grid">
+      <!-- LEFT: numbered checklist -->
+      <ol class="build-list">
+        <li class="build-step">
+          <div class="num-circle lg amber">1</div>
+          <div class="build-text">
+            <div class="build-head">Drag in the bookends</div>
+            <div class="build-body">From the <strong>Input/Output</strong> sidebar, drag in <span class="codepill">Chat Input</span> and <span class="codepill">Chat Output</span>.</div>
+          </div>
+        </li>
+        <li class="build-step">
+          <div class="num-circle lg amber">2</div>
+          <div class="build-text">
+            <div class="build-head">Drag in the brain and its tools</div>
+            <div class="build-body">From <strong>Models &amp; Agents</strong>, drag in <span class="codepill">Agent</span>. From <strong>Tools</strong>, drag in <span class="codepill">Wikipedia API</span> and <span class="codepill">Calculator</span>.</div>
+          </div>
+        </li>
+        <li class="build-step">
+          <div class="num-circle lg amber">3</div>
+          <div class="build-text">
+            <div class="build-head">Wire it up — four connections</div>
+            <div class="build-body wires">
+              <div class="wire"><span class="codepill mini">Chat Input</span> <span class="wire-arrow">→</span> <span class="codepill mini">Agent</span></div>
+              <div class="wire"><span class="codepill mini">Wikipedia.api_build_tool</span> <span class="wire-arrow">→</span> <span class="codepill mini">Agent.tools</span></div>
+              <div class="wire"><span class="codepill mini">Calculator.api_build_tool</span> <span class="wire-arrow">→</span> <span class="codepill mini">Agent.tools</span></div>
+              <div class="wire"><span class="codepill mini">Agent</span> <span class="wire-arrow">→</span> <span class="codepill mini">Chat Output</span></div>
+            </div>
+          </div>
+        </li>
+        <li class="build-step">
+          <div class="num-circle lg amber">4</div>
+          <div class="build-text">
+            <div class="build-head">Configure the Agent</div>
+            <div class="build-body">Click the <strong>Agent</strong> node. Set <strong>Language Model</strong> to <span class="codepill">OpenAI</span> + <span class="codepill">openai/gpt-4o-mini</span>. Paste the agent instructions from your handout into <strong>Agent Instructions</strong>.</div>
+          </div>
+        </li>
+        <li class="build-step">
+          <div class="num-circle lg amber">5</div>
+          <div class="build-text">
+            <div class="build-head">Run it</div>
+            <div class="build-body">Click <strong>Playground</strong>. Try one of the test prompts from the previous slide.</div>
+          </div>
+        </li>
+      </ol>
+
+      <!-- RIGHT: stuck callout -->
+      <aside class="stuck-card">
+        <div class="stuck-tag">Stuck?</div>
+        <div class="stuck-head">Import the reference flow.</div>
+        <div class="stuck-body">
+          <div class="stuck-step">
+            <span class="stuck-num">1</span>
+            <span>Click the <strong>Import</strong> button in the top-right toolbar.</span>
+          </div>
+          <div class="stuck-step">
+            <span class="stuck-num">2</span>
+            <span>Select</span>
+          </div>
+          <div class="stuck-file">
+            <svg width="20" height="20" style="color:var(--amber);"><use href="#i-import"/></svg>
+            <span>langflow_flows/<br/>Research_Buddy.json</span>
+          </div>
+          <div class="stuck-step">
+            <span class="stuck-num">3</span>
+            <span>Compare wiring side-by-side with yours.</span>
+          </div>
+        </div>
+        <div class="stuck-foot">
+          <em>The flow is small enough that you'll know within seconds if it's wired right — it either runs and calls a tool, or it errors out.</em>
+        </div>
+      </aside>
+    </div>
+
+    <div class="chrome">
+      <div class="brand">API Summit 2026<span class="dot">·</span>Javadi Lab</div>
+      <div class="num">25<em> / 25</em></div>
+    </div>
+    <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on amber"></span></div>
+  </section>
+
+</deck-stage>
+
+<script src="deck-stage.js"></script>
+
+<style>
+/* ============ Slide 1 (Title) specific ============ */
+.slide-title {
+  padding: 0 !important;
+  background:
+    radial-gradient(circle at 22% 22%, #f6f8fc 0%, transparent 55%),
+    radial-gradient(circle at 78% 78%, #fdf3df 0%, transparent 50%),
+    #ffffff;
+}
+.slide-title .title-illo {
+  position: absolute;
+  right: 110px; top: 110px;
+  opacity: 0.75;
+}
+.slide-title .title-block {
+  position: absolute;
+  left: 130px; top: 280px;
+  max-width: 1500px;
+}
+.slide-title .title-block .kicker { color: var(--amber-dark); font-weight: 600; }
+.slide-title h1.hero {
+  font-size: 116px;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--blue);
+  font-weight: 800;
+  margin: 16px 0 28px 0;
+}
+.slide-title .hero-rule {
+  width: 220px; height: 8px;
+  background: linear-gradient(90deg, var(--blue) 50%, var(--amber) 50%);
+  border-radius: 4px;
+  margin-bottom: 30px;
+}
+.slide-title .hero-sub {
+  font-size: 36px;
+  color: var(--gray);
+  font-weight: 400;
+  max-width: 1400px;
+  letter-spacing: -0.005em;
+}
+.slide-title .title-foot {
+  position: absolute;
+  left: 130px; right: 130px; bottom: 110px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 26px;
+  border-top: 1px solid var(--gray-line);
+}
+.slide-title .title-foot-l { display: flex; align-items: center; gap: 18px; }
+.slide-title .title-foot-l .logo-mark { width: 56px; height: 56px; display: grid; place-items: center; }
+.slide-title .venue { font-size: 22px; color: var(--blue); font-weight: 600; }
+.slide-title .org { font-size: 18px; color: var(--gray); margin-top: 2px; }
+
+/* ============ Slide 2 (Agenda) ============ */
+.agenda {
+  display: flex; flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  max-width: 1700px;
+}
+.agenda-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 320px;
+  gap: 28px;
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  padding: 14px 26px;
+  box-shadow: var(--shadow-sm);
+}
+.agenda-row.featured {
+  background: var(--amber-fill);
+  border-color: #f0d8a4;
+  box-shadow: 0 2px 4px rgba(176,111,0,.08), 0 14px 28px rgba(176,111,0,.10);
+}
+.agenda-num {
+  width: 56px; height: 56px;
+  display: grid; place-items: center;
+  background: var(--blue-tint);
+  border-radius: 50%;
+  color: var(--blue);
+}
+.agenda-num span { font-size: 26px; font-weight: 700; }
+.agenda-num.amber { background: #f1d9a8; color: var(--amber-dark); }
+.agenda-head { font-size: 24px; color: var(--ink); margin-bottom: 3px; }
+.agenda-head strong { color: var(--blue); font-weight: 700; }
+.agenda-sub { font-size: 17px; color: var(--gray); }
+.agenda-meta { text-align: right; }
+.agenda-mins { font-size: 26px; font-weight: 700; color: var(--blue); font-variant-numeric: tabular-nums; }
+.agenda-mins.amber { color: var(--amber); }
+.agenda-loc { font-size: 14px; color: var(--gray); margin-top: 3px; }
+.codepill.sm { font-size: 15px; padding: 2px 9px; }
+
+.signin-callout {
+  margin-top: 24px;
+  display: flex; align-items: center; gap: 18px;
+  padding: 18px 26px;
+  background: var(--blue-tint);
+  border: 1px solid #c8d6ef;
+  border-radius: 12px;
+  max-width: 1700px;
+}
+.signin-mark {
+  width: 50px; height: 50px;
+  background: var(--blue);
+  border-radius: 12px;
+  display: grid; place-items: center;
+  color: white;
+  flex-shrink: 0;
+}
+.signin-head { font-size: 18px; font-weight: 600; color: var(--blue); margin-bottom: 2px; }
+.signin-body { font-size: 18px; color: var(--ink); }
+
+/* ============ Slide 3 (clinical problem) ============ */
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 70px;
+  margin-top: 30px;
+  align-items: center;
+  flex: 1;
+}
+.problem-text { display: flex; flex-direction: column; gap: 18px; }
+.problem-stmt {
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  gap: 22px;
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  padding: 20px 26px;
+  box-shadow: var(--shadow-sm);
+}
+.problem-stmt .stmt-bar {
+  width: 8px; height: 44px;
+  border-radius: 4px;
+  background: var(--gray-2);
+}
+.problem-stmt .stmt-bar.amber { background: var(--amber); }
+.problem-stmt .stmt-bar.green { background: var(--green); }
+.problem-stmt .stmt-bar.gray { background: var(--gray-2); }
+.problem-stmt .stmt-text { font-size: 28px; color: var(--ink); }
+.problem-stmt .stmt-text strong { color: var(--blue); font-weight: 700; }
+.problem-conclusion {
+  margin-top: 14px;
+  padding: 22px 28px;
+  background: var(--blue);
+  color: white;
+  border-radius: 12px;
+  font-size: 26px;
+  line-height: 1.4;
+}
+.problem-conclusion em { font-style: normal; color: #f0d8a4; font-weight: 600; }
+.problem-conclusion .emph {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin-top: 6px;
+}
+.problem-illo { display: flex; align-items: center; justify-content: center; height: 100%; }
+
+/* ============ Slide 4 (Two ways) ============ */
+.two-ways {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 60px;
+  margin-top: 30px;
+  flex: 1;
+  align-items: stretch;
+}
+.way { display: flex; flex-direction: column; gap: 28px; padding: 12px 6px; }
+.way-cap { }
+.way-cap-eyebrow { font-size: 14px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--blue-light); font-weight: 600; }
+.way-cap-eyebrow.amber { color: var(--amber); }
+.way-cap-title { font-size: 36px; color: var(--blue); font-weight: 700; margin: 2px 0 4px; letter-spacing: -0.01em; }
+.way-cap-sub { font-size: 18px; color: var(--gray); }
+.way-divider { background: var(--gray-line); margin: 30px 0; width: 1px; }
+.way-illo { flex: 1; display: flex; flex-direction: column; gap: 26px; justify-content: center; }
+.way-foot { text-align: center; font-size: 16px; color: var(--gray); letter-spacing: 0.04em; }
+
+.chat-row { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.chat-arrow { color: var(--gray-2); }
+.bubble {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  padding: 18px;
+  width: 130px; height: 86px;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 8px;
+}
+.bubble.user { gap: 7px; flex-direction: row; align-items: center; justify-content: center; border-bottom-left-radius: 6px; }
+.bubble.user .bubble-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--blue-light); }
+.bubble.reply { border-bottom-right-radius: 6px; background: var(--blue-tint); border-color: #d4dff2; width: 180px; height: 110px; }
+.bubble.reply .bubble-line { height: 8px; background: var(--blue); opacity: .5; border-radius: 4px; }
+.bubble.reply .bubble-line.w70 { width: 70%; }
+.bubble.reply .bubble-line.w85 { width: 85%; }
+.bubble.reply .bubble-line.w50 { width: 50%; }
+.brain-circle {
+  width: 90px; height: 90px;
+  background: var(--blue);
+  color: white;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  box-shadow: var(--shadow-md);
+}
+
+.graph-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px;
+}
+.g-node {
+  width: 58px; height: 58px;
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  display: grid; place-items: center;
+  color: var(--blue-light);
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+.g-node.amber { background: var(--amber-fill); border-color: #f0d8a4; color: var(--amber); width: 70px; height: 70px; }
+.g-node.g-input { background: var(--gray-fill); color: var(--gray); }
+.g-node.g-py { background: var(--gray-fill); color: var(--gray); width: 46px; height: 46px; }
+.g-node.g-out { background: var(--green-fill); border-color: #c5dcc5; color: var(--green); }
+.g-node.g-qa { background: var(--blue-tint); border-color: #d4dff2; color: var(--blue); }
+.g-edge { width: 22px; height: 2px; background: var(--gray-line); flex-shrink: 0; }
+.g-branch { display: flex; flex-direction: column; gap: 10px; align-items: center; position: relative; }
+.g-branch::before {
+  content: ""; position: absolute;
+  left: -22px; top: 50%;
+  width: 22px; height: 2px;
+  background: var(--gray-line);
+}
+
+.ways-footnote {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 22px;
+  color: var(--gray);
+}
+.ways-footnote em { font-style: italic; color: var(--blue); font-weight: 500; }
+
+/* ============ Slide 5 (Decision table) ============ */
+.when-table {
+  margin-top: 22px;
+  border: 1px solid var(--gray-line);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  max-width: 1700px;
+}
+.when-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.2fr;
+  border-bottom: 1px solid var(--gray-line);
+  background: var(--paper);
+}
+.when-row:last-child { border-bottom: 0; }
+.when-row.when-head { background: var(--gray-fill); }
+.when-row.hi { background: #fcfbf6; }
+.when-row > div {
+  padding: 18px 26px;
+  font-size: 22px;
+  color: var(--ink);
+  border-right: 1px solid var(--gray-line);
+}
+.when-row > div:last-child { border-right: 0; }
+.when-row.when-head > div {
+  font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gray); font-weight: 600;
+}
+.when-row.when-head .amber-h { color: var(--amber); }
+.when-task { color: var(--blue) !important; font-weight: 500; }
+.when-col .yes { color: var(--green); font-weight: 600; }
+.when-col .no { color: var(--red); font-weight: 600; }
+.when-col .meh { color: var(--gray-2); }
+.when-col .risk { color: var(--red); }
+.when-caption {
+  margin-top: 22px;
+  display: flex; align-items: center; gap: 14px;
+  font-size: 20px; color: var(--gray);
+}
+.when-caption .when-cap-bar { width: 28px; height: 3px; background: var(--amber); border-radius: 2px; }
+.when-caption strong { color: var(--blue); font-weight: 600; }
+
+/* ============ Slide 6 (Case) ============ */
+.case-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 50px;
+  margin-top: 28px;
+  flex: 1;
+  align-items: start;
+}
+.patient-card {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 16px;
+  padding: 30px 32px;
+  box-shadow: var(--shadow-md);
+}
+.patient-head { display: flex; align-items: center; gap: 16px; }
+.patient-ico {
+  width: 60px; height: 60px;
+  background: var(--blue);
+  color: white;
+  border-radius: 14px;
+  display: grid; place-items: center;
+}
+.patient-eyebrow { font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-2); font-weight: 600; }
+.patient-name { font-size: 30px; color: var(--blue); font-weight: 700; letter-spacing: -0.01em; }
+.patient-divider { height: 1px; background: var(--gray-line); margin: 22px 0; }
+.patient-vitals { display: flex; flex-direction: column; gap: 14px; }
+.vital { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: baseline; }
+.vital-label { font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray); font-weight: 600; }
+.vital-val { font-size: 20px; color: var(--ink); }
+.vital .big-num { font-size: 38px; font-weight: 700; color: var(--amber); letter-spacing: -0.02em; line-height: 1; }
+.case-footnote {
+  margin-top: 22px;
+  font-size: 16px;
+  color: var(--gray);
+  padding-left: 4px;
+  line-height: 1.5;
+}
+
+.case-reports { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.rep-card {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 14px;
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex; gap: 18px;
+  position: relative;
+}
+.rep-card.classifier {
+  background: var(--green-fill);
+  border-color: #c5dcc5;
+}
+.rep-ico {
+  width: 54px; height: 54px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.rep-ico.amber { background: var(--amber-fill); color: var(--amber); }
+.rep-ico.gray { background: var(--gray-fill); color: var(--gray); }
+.rep-ico.green { background: #d3e6d3; color: var(--green); }
+.rep-body { display: flex; flex-direction: column; gap: 5px; }
+.rep-title { font-size: 22px; color: var(--blue); font-weight: 700; letter-spacing: -0.005em; }
+.rep-file { font-family: var(--font-mono); font-size: 14px; color: var(--gray); }
+.rep-desc { font-size: 16px; color: var(--ink); line-height: 1.4; }
+.rep-desc strong.muted { color: var(--gray); font-weight: 600; }
+.rep-tag {
+  position: absolute;
+  top: -10px; right: 14px;
+  background: var(--green);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ============ Slide 7 (Four things) ============ */
+.four-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px;
+  margin-top: 22px;
+  flex: 1;
+}
+.four-card {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.four-stripe { height: 8px; background: var(--gray-2); }
+.four-stripe.amber { background: var(--amber); }
+.four-stripe.green { background: var(--green); }
+.four-stripe.red { background: var(--red); }
+.four-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 16px; }
+.four-head { display: flex; align-items: center; gap: 18px; }
+.four-ico {
+  width: 60px; height: 60px;
+  border-radius: 14px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.four-ico.amber { background: var(--amber-fill); color: var(--amber); }
+.four-ico.green { background: var(--green-fill); color: var(--green); }
+.four-ico.red { background: var(--red-fill); color: var(--red); }
+.four-tag { font-size: 26px; color: var(--blue); font-weight: 700; letter-spacing: -0.01em; }
+.four-pair {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  color: var(--gray);
+  margin-top: 2px;
+}
+.four-pair span { color: var(--ink); font-weight: 600; }
+.four-text { font-size: 22px; color: var(--ink); line-height: 1.45; }
+.four-text strong { color: var(--blue); font-weight: 700; }
+
+/* ============ Slide 8 (Chatbot warm-up) ============ */
+.cb-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-top: 24px;
+  flex: 1;
+}
+.cb-step {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  padding: 32px 32px;
+  display: flex; flex-direction: column; gap: 14px;
+  position: relative;
+}
+.cb-num {
+  width: 52px; height: 52px;
+  background: var(--blue);
+  color: white;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 24px; font-weight: 700;
+}
+.cb-stephead {
+  font-size: 14px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 600;
+}
+.cb-text { font-size: 22px; color: var(--ink); line-height: 1.5; }
+.cb-text strong { color: var(--blue); }
+.cb-quote {
+  margin: 14px 0 6px;
+  padding: 18px 22px;
+  border-left: 4px solid var(--amber);
+  background: var(--amber-fill);
+  border-radius: 0 12px 12px 0;
+  font-size: 19px;
+  color: var(--ink);
+  font-style: italic;
+  line-height: 1.45;
+}
+.cb-asks {
+  margin: 12px 0 0;
+  padding-left: 22px;
+  font-size: 19px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+.cb-asks li { margin-bottom: 6px; }
+.cb-foot {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 22px;
+  color: var(--gray);
+}
+.cb-foot em { color: var(--blue); font-style: italic; font-weight: 500; }
+
+/* ============ Slide 9 (Part 2 section break) ============ */
+.slide-section {
+  background:
+    radial-gradient(circle at 18% 25%, #fdf3df 0%, transparent 50%),
+    radial-gradient(circle at 85% 80%, #eaf0fa 0%, transparent 55%),
+    #ffffff !important;
+  padding: 110px !important;
+  justify-content: space-between !important;
+}
+.section-mark { display: flex; align-items: center; gap: 22px; }
+.section-rule { width: 80px; height: 5px; background: var(--amber); border-radius: 3px; }
+.section-kicker { font-size: 18px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--amber-dark); font-weight: 700; }
+.section-headline { display: flex; flex-direction: column; gap: 14px; }
+.section-pt {
+  font-size: 220px;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  color: var(--blue);
+  margin-bottom: -8px;
+}
+.section-title {
+  font-size: 88px;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--amber);
+  font-weight: 700;
+  margin: 0;
+}
+.section-sub {
+  font-size: 38px;
+  color: var(--gray);
+  margin-top: 8px;
+}
+.section-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 26px;
+  border-top: 1px solid var(--gray-line);
+}
+.section-foot-r { font-size: 20px; color: var(--gray); font-style: italic; }
+
+/* ============ Slide 10 (Canvas screenshot) ============ */
+.canvas-instr {
+  display: flex; gap: 36px;
+  margin: 8px 0 16px 0;
+  flex-wrap: wrap;
+}
+.instr-item {
+  display: flex; align-items: center; gap: 14px;
+  font-size: 20px;
+  color: var(--ink);
+}
+.instr-item strong { color: var(--blue); font-weight: 600; }
+.canvas-frame {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  margin-top: 10px;
+  display: flex; flex-direction: column;
+}
+.canvas-frame-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 18px;
+  background: #f7f9fc;
+  border-bottom: 1px solid var(--gray-line);
+}
+.cfb-dot { width: 12px; height: 12px; border-radius: 50%; background: #e1e5ee; }
+.cfb-dot:nth-child(1) { background: #ed6a5e; }
+.cfb-dot:nth-child(2) { background: #f5bd4f; }
+.cfb-dot:nth-child(3) { background: #61c454; }
+.cfb-label {
+  margin-left: 14px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  color: var(--gray);
+}
+.canvas-image-wrap {
+  position: relative;
+  background: #fafbfc;
+  overflow: hidden;
+}
+.canvas-image {
+  width: 100%; height: auto;
+  display: block;
+}
+.anno-circle {
+  position: absolute;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--amber);
+  color: white;
+  font-weight: 700;
+  font-size: 22px;
+  display: grid; place-items: center;
+  border: 3px solid white;
+  box-shadow: 0 4px 10px rgba(176,111,0,.40);
+  z-index: 3;
+  transform: translate(-50%, -50%);
+}
+.anno-tip {
+  position: absolute;
+  background: var(--blue);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  z-index: 2;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.anno-tip::after {
+  content: "";
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  top: 100%;
+  width: 0; height: 0;
+  border-top: 6px solid var(--blue);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+}
+.anno-box {
+  position: absolute;
+  border: 2px dashed var(--blue-light);
+  background: rgba(59,107,184,.06);
+  border-radius: 8px;
+  z-index: 1;
+}
+.anno-label {
+  position: absolute;
+  bottom: 100%; left: 50%;
+  transform: translate(-50%, -4px);
+  background: var(--blue-light);
+  color: white;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.anno-label.right { left: auto; right: 0; transform: translate(0, -4px); }
+
+/* ============ Slide 11 (Pipeline at a glance) ============ */
+.pipeline {
+  display: flex; align-items: center;
+  gap: 14px;
+  margin: 70px 0 60px 0;
+  flex: 1;
+}
+.pipe-col { display: flex; flex-direction: column; gap: 12px; align-items: stretch; flex: 1; min-width: 0; }
+.pipe-node {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 14px;
+  padding: 24px 18px 22px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+.pipe-node.n-amber { background: var(--amber-fill); border-color: #f0d8a4; }
+.pipe-node.n-gray { background: var(--gray-fill); }
+.pipe-node.n-blue { background: var(--blue-tint); border-color: #d4dff2; }
+.pipe-head { display: flex; align-items: center; gap: 10px; }
+.pipe-ico {
+  width: 40px; height: 40px;
+  background: var(--paper);
+  border-radius: 10px;
+  display: grid; place-items: center;
+  color: var(--blue-light);
+  flex-shrink: 0;
+}
+.pipe-node.n-amber .pipe-ico { color: var(--amber); background: rgba(255,255,255,0.7); }
+.pipe-node.n-gray .pipe-ico { color: var(--gray); background: var(--paper); }
+.pipe-node.n-blue .pipe-ico { color: var(--blue-light); }
+.pipe-title { font-size: 17px; font-weight: 700; color: var(--blue); letter-spacing: -0.005em; line-height: 1.15; }
+.pipe-node.n-amber .pipe-title { color: var(--amber-dark); }
+.pipe-type {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+  margin-top: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pipe-desc { font-size: 15px; color: var(--gray); line-height: 1.45; padding: 0 4px; }
+.pipe-arrow { color: var(--gray-2); flex-shrink: 0; }
+.pipe-branch { display: flex; flex-direction: column; gap: 20px; flex: 1.05; }
+.pipe-branch .pipe-col { flex: 0 0 auto; }
+.pipe-legend {
+  margin-top: auto;
+  display: flex; gap: 36px;
+  font-size: 18px;
+  color: var(--gray);
+  padding-top: 18px;
+  border-top: 1px solid var(--gray-line);
+}
+
+/* ============ Slide 12 (Two stages) ============ */
+.stages-row {
+  display: grid;
+  grid-template-columns: 1fr 200px 1fr;
+  gap: 22px;
+  margin: 30px 0 20px;
+  flex: 1;
+  align-items: stretch;
+}
+.stage-panel {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-md);
+  padding: 32px 36px;
+  position: relative;
+  display: flex; flex-direction: column;
+  gap: 24px;
+}
+.stage-badge2 {
+  align-self: flex-start;
+  font-size: 12px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: var(--amber);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.stage-name {
+  font-size: 38px;
+  color: var(--blue);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-top: -10px;
+}
+.stage-illo {
+  display: flex; align-items: center; justify-content: center;
+  gap: 18px;
+  padding: 16px 0;
+}
+.stack-of-pdfs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.pdf-card {
+  width: 76px; height: 96px;
+  background: var(--amber-fill);
+  border: 1.5px solid #f0d8a4;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  color: var(--amber);
+  box-shadow: var(--shadow-sm);
+}
+.stage-arrow { color: var(--gray-2); }
+.json-card {
+  width: 130px; height: 130px;
+  background: var(--blue);
+  color: white;
+  border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  box-shadow: var(--shadow-md);
+}
+.report-card {
+  width: 170px; height: 200px;
+  background: var(--paper);
+  border: 1.5px solid var(--gray-line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 18px 16px;
+  position: relative;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.rc-line { height: 6px; background: var(--blue); opacity: .5; border-radius: 3px; }
+.rc-line.w80 { width: 80%; } .rc-line.w65 { width: 65%; } .rc-line.w70 { width: 70%; } .rc-line.w55 { width: 55%; }
+.rc-rule { height: 1px; background: var(--gray-line); margin: 6px 0; }
+.rc-tag {
+  position: absolute;
+  bottom: -10px; left: 12px;
+  background: var(--green);
+  color: white;
+  font-size: 10.5px; font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.04em;
+}
+.stage-text {
+  font-size: 20px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.stage-text strong { color: var(--blue); font-weight: 600; }
+.ic-code { font-family: var(--font-mono); font-size: 18px; background: var(--gray-fill); padding: 1px 7px; border-radius: 5px; color: var(--blue); }
+
+.stages-handoff {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px;
+}
+.handoff-label { font-size: 17px; font-weight: 600; color: var(--blue); }
+.handoff-sub { font-size: 13px; color: var(--gray-2); font-style: italic; }
+.stages-foot {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 22px;
+  color: var(--gray);
+}
+.stages-foot em { color: var(--blue); font-style: italic; font-weight: 500; }
+
+/* ============ Slide 13 (Standard vs custom) ============ */
+.std-grid {
+  display: grid;
+  grid-template-columns: 0.85fr 1.4fr;
+  gap: 30px;
+  margin-top: 24px;
+  flex: 1;
+}
+.std-col {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 16px;
+  padding: 30px 32px;
+  box-shadow: var(--shadow-md);
+  display: flex; flex-direction: column;
+  gap: 20px;
+}
+.std-col-right { background: var(--amber-fill); border-color: #f0d8a4; }
+.std-head { display: flex; flex-direction: column; gap: 6px; }
+.std-badge {
+  align-self: flex-start;
+  font-size: 12px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.std-badge.gray { background: var(--gray-line); color: var(--gray); }
+.std-badge.amber { background: var(--amber); color: white; }
+.std-name { font-size: 24px; color: var(--blue); font-weight: 700; letter-spacing: -0.01em; }
+.std-list { display: flex; flex-direction: column; gap: 12px; }
+.std-list.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.std-row {
+  display: flex; gap: 14px; align-items: center;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 10px;
+}
+.std-col-right .std-row { background: rgba(255,255,255,0.72); }
+.std-row-ico {
+  width: 38px; height: 38px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.std-row-ico.gray { background: var(--gray-fill); color: var(--gray); }
+.std-row-ico.amber { background: var(--amber-fill); color: var(--amber); border: 1px solid #f0d8a4; }
+.std-row-title { font-size: 18px; font-weight: 700; color: var(--blue); letter-spacing: -0.005em; }
+.std-row-sub { font-size: 14px; color: var(--gray); margin-top: 2px; line-height: 1.35; }
+.std-empty { font-size: 18px; color: var(--gray); padding: 14px 18px; }
+.std-empty strong { color: var(--blue); }
+.std-row.span2 { grid-column: span 2; }
+.std-foot {
+  margin-top: 14px;
+  font-size: 17px;
+  color: var(--gray);
+  line-height: 1.55;
+}
+.std-foot em { font-style: italic; }
+.std-foot .ic-code { font-size: 15px; }
+
+/* ============ Slide 14 (PipelineConfig) ============ */
+.cmp-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 50px;
+  margin-top: 26px;
+  flex: 1;
+}
+.cmp-left { display: flex; flex-direction: column; gap: 22px; }
+.cmp-right { display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
+.cmp-summary { display: flex; gap: 16px; align-items: flex-start; padding-bottom: 18px; border-bottom: 1px solid var(--gray-line); }
+.cmp-ico {
+  width: 60px; height: 60px;
+  border-radius: 14px;
+  background: var(--blue-tint);
+  color: var(--blue);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.cmp-ico.amber { background: var(--amber-fill); color: var(--amber); border: 1px solid #f0d8a4; }
+.cmp-type {
+  font-size: 13px; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gray); font-weight: 600;
+}
+.cmp-role { font-size: 22px; color: var(--ink); margin-top: 6px; line-height: 1.4; }
+.cmp-role strong { color: var(--blue); font-weight: 700; }
+
+.io-row {
+  display: grid;
+  grid-template-columns: 1fr 56px 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+.io-block {
+  background: var(--gray-fill);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.io-block.code { background: var(--blue); color: white; border-color: var(--blue); }
+.io-label {
+  font-size: 12px; letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.io-block.code .io-label { color: rgba(255,255,255,0.65); }
+.io-text { font-family: var(--font-mono); font-size: 17px; color: var(--ink); line-height: 1.45; }
+.io-code {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: #cfe1ff;
+  white-space: pre;
+  line-height: 1.5;
+}
+.io-arrow { display: grid; place-items: center; color: var(--gray-2); }
+.cursor-blink { color: var(--amber); font-weight: 700; }
+
+.feat-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.feat-list li {
+  font-size: 19px; color: var(--ink);
+  position: relative;
+  padding-left: 24px;
+  line-height: 1.45;
+}
+.feat-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0; top: -2px;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--gray-2);
+}
+.feat-list li.b-amber::before { color: var(--amber); }
+.feat-list li:has(.feat-bullet.amber)::before { color: var(--amber); }
+.feat-list li strong { color: var(--blue); font-weight: 600; }
+.feat-bullet { display: none; }
+.feat-bullet.amber { display: none; }
+
+.panel-mock {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  padding: 18px 22px;
+  display: flex; flex-direction: column;
+  gap: 14px;
+}
+.pm-head { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-line); }
+.pm-dot {
+  width: 18px; height: 18px;
+  background: var(--gray-line);
+  border-radius: 5px;
+}
+.pm-dot.amber { background: var(--amber); }
+.pm-title { font-weight: 700; color: var(--blue); font-size: 17px; }
+.pm-chev { margin-left: auto; color: var(--gray-2); font-size: 22px; }
+.pm-row { display: flex; align-items: center; gap: 10px; }
+.pm-handle {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px;
+  color: var(--gray);
+}
+.pm-handle.in { color: var(--blue); }
+.pm-handle.out { margin-left: auto; }
+.pm-dot-h { width: 10px; height: 10px; border-radius: 50%; background: var(--blue-light); }
+.pm-handle.out .pm-dot-h { background: var(--amber); }
+.pm-port { font-family: var(--font-mono); font-size: 13px; color: var(--gray); }
+.pm-handle.out .pm-port { color: var(--amber-dark); font-weight: 500; }
+.pm-handle .pm-port em { font-style: italic; color: var(--gray-2); }
+.pm-field { display: flex; flex-direction: column; gap: 6px; }
+.pm-label {
+  font-size: 13px; color: var(--gray);
+  display: flex; align-items: center; gap: 8px;
+}
+.pm-edit-mark {
+  font-size: 10px; letter-spacing: 0.1em;
+  background: var(--amber); color: white;
+  padding: 2px 7px; border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.pm-input {
+  border: 1px solid var(--gray-line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px; font-family: var(--font-mono);
+  color: var(--ink);
+  display: flex; align-items: center; gap: 8px;
+  background: #fafbfc;
+}
+.pm-num { font-family: var(--font-mono); font-weight: 600; }
+.pm-slider {
+  flex: 1; height: 4px;
+  background: var(--gray-line);
+  border-radius: 2px;
+  position: relative;
+}
+.pm-slider-fill { background: var(--blue); height: 100%; border-radius: 2px; }
+.pm-textarea {
+  border: 1.5px solid var(--amber);
+  border-radius: 8px;
+  background: var(--amber-fill);
+  padding: 12px 14px;
+  min-height: 110px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.pm-tline {
+  height: 5px;
+  background: var(--amber);
+  opacity: 0.45;
+  border-radius: 3px;
+}
+.pm-tline.w80 { width: 80%; } .pm-tline.w55 { width: 55%; }
+.pm-tline.w70 { width: 70%; } .pm-tline.w40 { width: 40%; }
+.panel-cap {
+  text-align: center;
+  font-size: 13px; color: var(--gray-2);
+  font-style: italic;
+}
+
+/* ============ Slide 15 (PDF Intake) ============ */
+.intake-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 40px;
+  margin-top: 24px;
+  flex: 1;
+}
+.intake-left { display: flex; flex-direction: column; gap: 20px; }
+.intake-feats li { font-size: 18px; }
+.intake-foot {
+  margin-top: auto;
+  padding: 18px 22px;
+  background: var(--amber-fill);
+  border-left: 4px solid var(--amber);
+  border-radius: 0 12px 12px 0;
+  font-size: 18px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+.intake-foot em { color: var(--amber-dark); font-style: italic; font-weight: 600; }
+.intake-foot strong { color: var(--blue); font-weight: 700; }
+
+.intake-right { display: flex; flex-direction: column; gap: 14px; }
+.prompt-frame {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.prompt-image-wrap { position: relative; background: white; }
+.prompt-image { width: 100%; height: auto; display: block; }
+.prompt-anno { z-index: 1; }
+.anno-label-amber {
+  position: absolute;
+  top: 100%; left: 0;
+  transform: translateY(6px);
+  background: var(--amber);
+  color: white;
+  font-size: 13px; font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.anno-circle.blue { background: var(--blue); box-shadow: 0 4px 10px rgba(31,56,100,.40); }
+.intake-anno-key {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 18px;
+  background: var(--gray-fill);
+  border-radius: 10px;
+}
+.key-row {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 15px; color: var(--ink);
+}
+.key-row strong { color: var(--blue); }
+
+/* ============ Slide 16 (Parallel parsers) ============ */
+.par-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 28px;
+  flex: 1;
+}
+.par-col {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 16px;
+  padding: 32px 36px;
+  display: flex; flex-direction: column; gap: 22px;
+  box-shadow: var(--shadow-md);
+}
+.par-head { display: flex; align-items: center; gap: 16px; }
+.par-ico {
+  width: 60px; height: 60px;
+  border-radius: 14px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.par-ico.gray { background: var(--gray-fill); color: var(--gray); }
+.par-ico.blue { background: var(--blue-tint); color: var(--blue); }
+.par-ico.amber { background: var(--amber-fill); color: var(--amber); }
+.par-title { font-size: 30px; font-weight: 700; color: var(--blue); letter-spacing: -0.015em; }
+.par-pill { margin-top: 5px; }
+.par-pill .pill { white-space: nowrap; }
+.par-pill .pill { height: auto; padding: 4px 12px; }
+.par-eyebrow { display: block; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray); font-weight: 600; margin-bottom: 6px; }
+.par-role, .par-why { font-size: 20px; color: var(--ink); line-height: 1.5; }
+.par-role strong, .par-why strong { color: var(--blue); font-weight: 700; }
+
+.bucket-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.bucket {
+  border-radius: 12px;
+  padding: 18px 20px;
+  border: 1px solid var(--gray-line);
+}
+.bucket.green { background: var(--green-fill); border-color: #c5dcc5; }
+.bucket.gray { background: var(--gray-fill); }
+.bucket-tag {
+  font-family: var(--font-mono);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--blue);
+}
+.bucket.green .bucket-tag { color: var(--green); }
+.bucket-desc { font-size: 14px; color: var(--gray); margin-top: 4px; }
+
+.histo-illo {
+  display: flex; align-items: center;
+  gap: 14px;
+  padding: 12px;
+  background: var(--gray-fill);
+  border-radius: 12px;
+}
+.histo-src { display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
+.histo-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--amber-fill);
+  color: var(--amber-dark);
+  font-size: 14px; font-weight: 600;
+}
+.histo-arrow { color: var(--gray-2); flex-shrink: 0; }
+.histo-out {
+  flex: 1;
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 6px;
+  min-height: 110px;
+  justify-content: center;
+}
+.par-foot { margin-top: 18px; text-align: center; font-size: 20px; color: var(--gray); }
+.par-foot em { font-style: italic; color: var(--blue); font-weight: 500; }
+
+/* ============ Slide 17 (WHO Classifier) ============ */
+.who-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 24px;
+  flex: 1;
+}
+.who-left { display: flex; flex-direction: column; gap: 18px; }
+.who-outputs { display: flex; flex-direction: column; gap: 12px; }
+.who-out {
+  background: var(--gray-fill);
+  border-left: 4px solid var(--blue);
+  border-radius: 0 12px 12px 0;
+  padding: 14px 18px;
+}
+.who-out:nth-child(2) { border-left-color: var(--amber); background: var(--amber-fill); }
+.who-out-tag {
+  display: inline-block;
+  font-size: 11px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: white;
+  background: var(--blue);
+  padding: 3px 9px;
+  border-radius: 5px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.who-out-tag.part-b { background: var(--amber); }
+.who-out-name { font-size: 22px; color: var(--blue); font-weight: 700; letter-spacing: -0.01em; }
+.who-out:nth-child(2) .who-out-name { color: var(--amber-dark); }
+.who-out-flow { font-size: 15px; color: var(--gray); margin-top: 4px; font-family: var(--font-mono); line-height: 1.55; }
+
+.who-right { display: flex; flex-direction: column; }
+.prompt-block {
+  background: #0f1426;
+  color: #e7eaf6;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  flex: 1;
+  display: flex; flex-direction: column;
+}
+.prompt-block-head {
+  background: #1a2238;
+  padding: 16px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.pb-row { display: flex; align-items: center; gap: 10px; }
+.pb-mark { font-size: 18px; color: var(--amber); }
+.pb-name { font-family: var(--font-mono); font-size: 14px; color: #b8c0d8; }
+.pb-pill {
+  font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: rgba(176,111,0,0.25);
+  color: #f0d8a4;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.prompt-block-body {
+  padding: 24px 26px;
+  display: flex; flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+.pb-line {
+  display: grid;
+  grid-template-columns: 28px 22px 1fr;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 17px;
+  color: #e7eaf6;
+  line-height: 1.5;
+}
+.pb-num { color: var(--amber); font-weight: 600; }
+.pb-bullet { color: var(--blue-light); }
+.pb-line strong { color: #f0d8a4; font-weight: 600; }
+.prompt-block-foot {
+  background: #1a2238;
+  padding: 12px 22px;
+  display: flex; align-items: center; gap: 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.pb-cursor {
+  display: inline-block;
+  width: 10px; height: 16px;
+  background: var(--amber);
+  animation: blink 1.1s steps(2) infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.pb-foot-text { font-family: var(--font-mono); font-size: 13px; color: #b8c0d8; }
+
+/* ============ Slide 18 (QA + Formatter) ============ */
+.qa-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 40px;
+  margin-top: 22px;
+  flex: 1;
+}
+.qa-col {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 16px;
+  padding: 28px 32px;
+  display: flex; flex-direction: column; gap: 18px;
+  box-shadow: var(--shadow-md);
+}
+.qa-section {
+  display: flex; flex-direction: column; gap: 12px;
+}
+.qa-eyebrow {
+  display: flex; align-items: center; gap: 14px;
+  font-size: 13px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 700;
+  flex-wrap: wrap;
+  white-space: nowrap;
+}
+.qa-eyebrow.amber { color: var(--amber); }
+.qa-cost { font-size: 11px; letter-spacing: 0.06em; color: var(--gray-2); font-weight: 500; text-transform: none; font-style: italic; }
+.qa-checks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.qa-checks li {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 12px 16px;
+  background: var(--gray-fill);
+  border-radius: 10px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.qa-mark {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.qa-mark.red { background: var(--red-fill); color: var(--red); }
+.qa-mark.amber { background: var(--amber-fill); color: var(--amber); }
+.qa-mark.green { background: var(--green-fill); color: var(--green); }
+.qa-side { display: inline-block; margin-left: 8px; padding: 2px 8px; background: var(--red); color: white; font-size: 11px; font-weight: 700; border-radius: 4px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.qa-path { font-size: 13px; color: var(--gray); }
+.qa-llm {
+  padding: 14px 18px;
+  background: var(--amber-fill);
+  border: 1px solid #f0d8a4;
+  border-radius: 12px;
+}
+.qa-llm-body { font-size: 16px; color: var(--ink); margin-top: 4px; }
+
+.fmt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.fmt-card {
+  background: var(--gray-fill);
+  border: 1px solid var(--gray-line);
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+.fmt-tag {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--blue);
+}
+.fmt-desc { font-size: 14px; color: var(--gray); margin-top: 4px; line-height: 1.4; }
+.fmt-note { margin-top: auto; font-size: 16px; color: var(--gray); line-height: 1.5; padding-top: 10px; }
+
+/* ============ Slide 19 (Editable knobs) ============ */
+.knobs-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 50px;
+  margin-top: 24px;
+  flex: 1;
+  align-items: start;
+}
+.knobs-instr { display: flex; flex-direction: column; gap: 20px; }
+.kn-step { display: flex; gap: 18px; align-items: flex-start; padding: 14px 18px; background: var(--gray-fill); border-radius: 12px; }
+.kn-num {
+  width: 46px; height: 46px;
+  background: var(--blue);
+  color: white;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 22px; font-weight: 700;
+  flex-shrink: 0;
+}
+.kn-num.amber { background: var(--amber); }
+.kn-text { font-size: 21px; color: var(--ink); line-height: 1.45; padding-top: 6px; }
+.kn-text strong { color: var(--blue); font-weight: 700; }
+.knobs-foot {
+  padding: 18px 22px;
+  background: var(--amber-fill);
+  border-left: 4px solid var(--amber);
+  border-radius: 0 12px 12px 0;
+  font-size: 18px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+.knobs-foot em { font-style: italic; color: var(--amber-dark); font-weight: 500; }
+.knobs-foot strong { color: var(--blue); font-weight: 700; }
+
+.knobs-illo { display: flex; align-items: stretch; gap: 12px; }
+.knobs-canvas {
+  flex: 1;
+  background: #fafbfc;
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  display: flex; flex-direction: column; gap: 10px;
+  background-image: radial-gradient(#e3e6ee 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
+}
+.kc-label {
+  font-size: 11px; letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 700;
+}
+.kc-node {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--blue);
+  box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; gap: 8px;
+}
+.kc-node-head { display: flex; align-items: center; gap: 8px; flex: 1; }
+.kc-node-port { font-size: 12px; color: var(--gray); display: flex; align-items: center; gap: 6px; }
+.kc-node-port .dotr { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); display: inline-block; }
+.kc-node.selected { border: 2px solid var(--amber); background: var(--amber-fill); color: var(--amber-dark); box-shadow: 0 0 0 6px rgba(176,111,0,0.10); }
+.kc-node.ghost { opacity: 0.45; }
+.kc-cursor {
+  position: absolute;
+  bottom: 80px; right: 50px;
+  color: var(--amber);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.knobs-arrow {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--gray);
+  font-style: italic;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.knobs-panel {
+  flex: 1.05;
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 18px 22px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.kp-head { font-size: 18px; font-weight: 700; color: var(--blue); padding-bottom: 10px; border-bottom: 1px solid var(--gray-line); }
+.kp-field { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+.kp-lbl { color: var(--gray); font-size: 13px; font-weight: 500; }
+.kp-val { font-family: var(--font-mono); color: var(--ink); font-size: 13px; }
+.kp-field.highlight { background: var(--amber-fill); border-radius: 6px; padding: 8px 10px; border: 1.5px solid var(--amber); }
+.kp-field.highlight .kp-lbl { color: var(--amber-dark); font-weight: 700; }
+.kp-edit-mark { font-size: 10px; letter-spacing: 0.1em; background: var(--amber); color: white; padding: 2px 7px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+.kp-textarea {
+  border: 1.5px solid var(--amber);
+  background: var(--amber-fill);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 7px;
+  min-height: 110px;
+}
+.kp-tline { height: 5px; background: var(--amber); opacity: 0.45; border-radius: 3px; }
+.kp-tline.w90 { width: 90%; } .kp-tline.w75 { width: 75%; } .kp-tline.w60 { width: 60%; }
+
+/* ============ Slide 20 (Try editing) ============ */
+.try-grid {
+  display: flex; flex-direction: column;
+  gap: 22px;
+  margin-top: 28px;
+  flex: 1;
+}
+.try-step {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 26px;
+  align-items: start;
+}
+.try-text { font-size: 26px; color: var(--ink); line-height: 1.4; padding-top: 8px; }
+.try-text strong { color: var(--blue); font-weight: 700; }
+.quote-callout {
+  margin-top: 14px;
+  background: var(--amber-fill);
+  border-left: 6px solid var(--amber);
+  border-radius: 0 14px 14px 0;
+  padding: 22px 28px;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+}
+.qc-tag {
+  display: inline-block;
+  background: var(--amber);
+  color: white;
+  font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  white-space: nowrap;
+}
+.qc-text {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  color: var(--ink);
+  line-height: 1.5;
+  font-style: italic;
+}
+.try-foot {
+  margin-top: 14px;
+  text-align: center;
+  padding: 20px;
+  border-top: 2px solid var(--amber);
+}
+.try-foot em { color: var(--amber-dark); font-style: italic; font-weight: 600; font-size: 24px; }
+.try-foot strong { color: var(--blue); font-weight: 700; }
+.try-foot-sub { display: block; font-size: 18px; color: var(--gray); margin-top: 8px; }
+
+/* ============ Slide 21 (Same input. Two outputs.) ============ */
+.cmp-rows {
+  display: flex; flex-direction: column; gap: 18px;
+  margin-top: 18px;
+}
+.cmp-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 14px;
+  padding: 20px 28px;
+  box-shadow: var(--shadow-sm);
+}
+.cmp-row-tag {
+  font-size: 14px; letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  text-align: center;
+}
+.cmp-row-tag.gray { background: var(--gray); }
+.cmp-row-tag.amber { background: var(--amber); }
+.cmp-row-flow {
+  display: flex; align-items: center; gap: 16px;
+}
+.cmp-input { flex-shrink: 0; }
+.cmp-pdf-stack.mini {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+}
+.pdf-card-mini {
+  width: 26px; height: 32px;
+  background: var(--amber-fill);
+  border: 1.5px solid #f0d8a4;
+  border-radius: 5px;
+}
+.cmp-arrow { color: var(--gray-2); flex-shrink: 0; }
+.cmp-pipe {
+  display: flex; align-items: center;
+  flex: 1; min-width: 0;
+}
+.cmp-pipe.small { gap: 4px; }
+.cmp-mini-node {
+  width: 36px; height: 36px;
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 8px;
+  display: grid; place-items: center;
+  color: var(--blue-light);
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+.cmp-mini-node.amber { background: var(--amber-fill); border-color: #f0d8a4; color: var(--amber); }
+.cmp-mini-node.blue { background: var(--blue-tint); border-color: #d4dff2; color: var(--blue); }
+.cmp-mini-edge { flex: 1; height: 2px; background: var(--gray-line); min-width: 8px; }
+.cmp-out-card {
+  flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  min-width: 260px;
+  border: 1.5px solid;
+  position: relative;
+}
+.cmp-out-card.red { background: var(--red-fill); border-color: #f1c9c9; color: var(--red); }
+.cmp-out-card.green { background: var(--green-fill); border-color: #c5dcc5; color: var(--green); }
+.oc-icon {
+  position: absolute;
+  top: -12px; left: 14px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: white;
+}
+.cmp-out-card.red .oc-icon { background: var(--red); }
+.cmp-out-card.green .oc-icon { background: var(--green); }
+.oc-head { font-size: 17px; font-weight: 700; margin-top: 6px; }
+.oc-sub { font-size: 13px; color: var(--gray); }
+.cmp-table-wrap { margin-top: 12px; }
+
+/* ============ Slide 22 (Generalizes) ============ */
+.gen-quote {
+  margin: 22px auto 26px;
+  padding: 30px 50px;
+  background: var(--blue);
+  color: white;
+  border-radius: 16px;
+  max-width: 1500px;
+  text-align: center;
+  position: relative;
+  box-shadow: var(--shadow-md);
+}
+.gen-mark {
+  position: absolute;
+  top: 8px; left: 24px;
+  font-size: 64px;
+  font-family: Georgia, serif;
+  color: var(--amber);
+  line-height: 1;
+  opacity: 0.7;
+}
+.gen-text { font-size: 34px; font-weight: 600; letter-spacing: -0.01em; padding-left: 30px; }
+.gen-text em { color: var(--amber); font-style: italic; font-weight: 700; }
+
+.gen-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.gen-card {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  padding: 22px 22px;
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: 8px;
+  align-self: start;
+}
+.gen-ico {
+  width: 44px; height: 44px;
+  background: var(--amber-fill);
+  color: var(--amber);
+  border-radius: 10px;
+  display: grid; place-items: center;
+  margin-bottom: 4px;
+}
+.gen-head { font-size: 20px; color: var(--blue); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.gen-sub { font-size: 14px; color: var(--gray); line-height: 1.4; }
+
+.gen-arch {
+  text-align: center;
+  font-size: 22px;
+  color: var(--gray);
+  padding: 18px 0;
+  border-top: 1px solid var(--gray-line);
+  border-bottom: 1px solid var(--gray-line);
+  margin-bottom: 16px;
+}
+.gen-arch strong { color: var(--blue); font-weight: 600; }
+
+.gen-resources {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+.gr-col { display: flex; flex-direction: column; gap: 4px; }
+.gr-label { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gray); font-weight: 700; }
+.gr-val { font-size: 16px; color: var(--ink); }
+
+/* ============ Slide 23 (Your turn section break) ============ */
+.slide-section-yours {
+  background:
+    radial-gradient(circle at 78% 22%, #fdf3df 0%, transparent 55%),
+    radial-gradient(circle at 18% 80%, #eaf0fa 0%, transparent 55%),
+    #ffffff !important;
+}
+.slide-section .section-pt.amber-pt { color: var(--amber); }
+.slide-section .section-title.blue-title { color: var(--blue); }
+
+/* ============ Slide 24 (Research Buddy) ============ */
+.rb-canvas {
+  margin-top: 18px;
+  padding: 30px 60px 24px;
+  background:
+    radial-gradient(#e3e6ee 1.5px, transparent 1.5px) 0 0/22px 22px,
+    var(--gray-fill);
+  border: 1px solid var(--gray-line);
+  border-radius: 16px;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+}
+.rb-top-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px;
+}
+.rb-tool-row {
+  margin-top: 28px;
+  display: flex; justify-content: center; gap: 24px;
+}
+.rb-node {
+  background: var(--paper);
+  border: 1.5px solid var(--gray-line);
+  border-radius: 14px;
+  padding: 18px 22px 16px;
+  box-shadow: var(--shadow-md);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  position: relative;
+  min-width: 200px;
+}
+.rb-node.n-amber { background: var(--amber-fill); border-color: #f0d8a4; }
+.rb-node.n-blue { background: var(--blue-tint); border-color: #c8d6ef; }
+.rb-node.n-gray { background: var(--paper); border-color: var(--gray-line); }
+.rb-agent { padding: 22px 28px 18px; transform: scale(1.06); transform-origin: center; min-width: 240px; }
+.rb-tool { padding-top: 28px; min-width: 220px; }
+.rb-ico {
+  width: 48px; height: 48px;
+  background: var(--gray-fill);
+  border-radius: 12px;
+  display: grid; place-items: center;
+  color: var(--gray);
+}
+.rb-ico.amber { background: var(--amber); color: white; width: 56px; height: 56px; box-shadow: 0 6px 14px rgba(176,111,0,.30); }
+.rb-ico.blue { background: rgba(255,255,255,0.85); color: var(--blue); }
+.rb-name { font-size: 18px; font-weight: 700; color: var(--blue); letter-spacing: -0.01em; }
+.rb-agent .rb-name { color: var(--amber-dark); font-size: 22px; }
+.rb-type { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--gray); text-transform: uppercase; white-space: nowrap; }
+.rb-tag {
+  position: absolute;
+  top: -10px; left: 50%; transform: translateX(-50%);
+  background: var(--blue);
+  color: white;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em;
+  padding: 3px 10px;
+  border-radius: 5px;
+  text-transform: uppercase;
+}
+.rb-port-row {
+  display: flex; gap: 32px;
+  margin-top: 4px;
+}
+.rb-port-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--amber-dark);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  position: relative;
+}
+.rb-port-tag::after {
+  content: "";
+  position: absolute;
+  top: calc(100% + 4px); left: 50%;
+  transform: translateX(-50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
+.rb-edge-h {
+  flex: 0 0 60px;
+  height: 3px;
+  background: var(--blue);
+  border-radius: 2px;
+  position: relative;
+}
+.rb-edge-h::after {
+  content: "";
+  position: absolute;
+  right: -3px; top: 50%;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-left: 9px solid var(--blue);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+}
+.rb-edge-up {
+  position: absolute;
+  top: -34px; left: 50%;
+  transform: translateX(-50%);
+  width: 3px; height: 34px;
+  background: var(--amber);
+  border-radius: 2px;
+}
+.rb-edge-up::after {
+  content: "";
+  position: absolute;
+  top: -3px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-bottom: 9px solid var(--amber);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+}
+
+.rb-note {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 17px;
+  color: var(--gray);
+  display: flex;
+  align-items: center; gap: 8px;
+  justify-content: center;
+}
+.rb-note strong { color: var(--blue); font-weight: 600; }
+.rb-note svg { color: var(--green); }
+
+.rb-prompts-head {
+  margin-top: 26px;
+  font-size: 14px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 700;
+}
+.rb-prompts {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.rb-prompt {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex; gap: 14px; align-items: flex-start;
+  box-shadow: var(--shadow-sm);
+}
+.rb-prompt.featured {
+  background: var(--amber-fill);
+  border-color: #f0d8a4;
+  box-shadow: 0 2px 4px rgba(176,111,0,.08), 0 12px 24px rgba(176,111,0,.10);
+}
+.rb-prompt-icon {
+  width: 42px; height: 42px;
+  background: var(--blue-tint);
+  color: var(--blue);
+  border-radius: 10px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.rb-prompt-icon.amber { background: var(--amber); color: white; }
+.rb-prompt-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.rb-prompt-text {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.rb-tool-chip {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--gray-fill);
+  color: var(--gray);
+  padding: 3px 10px;
+  border-radius: 5px;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--gray-line);
+  white-space: nowrap;
+}
+.rb-tool-chip.amber {
+  background: var(--amber);
+  color: white;
+  border-color: var(--amber);
+}
+
+/* ============ Slide 25 (Build it yourself) ============ */
+.build-grid {
+  display: grid;
+  grid-template-columns: 1.85fr 1fr;
+  gap: 50px;
+  margin-top: 24px;
+  flex: 1;
+  align-items: start;
+}
+.build-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.build-step {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 22px;
+  align-items: start;
+  padding: 14px 18px;
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.build-step .num-circle.lg {
+  width: 48px; height: 48px;
+  font-size: 20px;
+}
+.build-head { font-size: 20px; font-weight: 700; color: var(--blue); letter-spacing: -0.005em; margin-bottom: 4px; }
+.build-body { font-size: 17px; color: var(--ink); line-height: 1.5; }
+.build-body strong { color: var(--blue); font-weight: 600; }
+.build-body.wires { display: flex; flex-direction: column; gap: 6px; padding: 8px 0 2px; }
+.wire {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px;
+}
+.wire-arrow { color: var(--gray-2); font-weight: 700; }
+.codepill.mini { font-size: 13px; padding: 2px 8px; }
+
+.stuck-card {
+  background: var(--amber-fill);
+  border: 1.5px solid #f0d8a4;
+  border-radius: 16px;
+  padding: 26px 28px;
+  box-shadow: 0 4px 10px rgba(176,111,0,.10);
+  display: flex; flex-direction: column; gap: 14px;
+  position: relative;
+}
+.stuck-tag {
+  align-self: flex-start;
+  background: var(--amber);
+  color: white;
+  font-size: 12px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+.stuck-head { font-size: 22px; color: var(--amber-dark); font-weight: 700; letter-spacing: -0.01em; }
+.stuck-body { display: flex; flex-direction: column; gap: 10px; }
+.stuck-step {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 16px; color: var(--ink);
+  line-height: 1.4;
+}
+.stuck-step strong { color: var(--blue); font-weight: 600; }
+.stuck-num {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  background: var(--amber);
+  color: white;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 13px; font-weight: 700;
+}
+.stuck-file {
+  display: flex; align-items: center; gap: 12px;
+  margin-left: 36px;
+  padding: 10px 14px;
+  background: var(--paper);
+  border: 1.5px solid var(--amber);
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--amber-dark);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.stuck-foot {
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid #f0d8a4;
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.5;
+}
+.stuck-foot em { color: var(--amber-dark); font-style: italic; }
+</style>
+
+</body>
+</html>

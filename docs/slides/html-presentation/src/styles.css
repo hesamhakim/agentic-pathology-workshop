@@ -1,0 +1,330 @@
+/* =============================================================
+   API Summit 2026 — Agentic Pathology Workshop Deck
+   Design system: clinical-infographic. Inter + IBM Plex Mono.
+   ============================================================= */
+
+:root {
+  --blue:          #1f3864;
+  --blue-light:    #3b6bb8;
+  --blue-tint:     #eaf0fa;
+  --amber:         #b06f00;
+  --amber-fill:    #fff4e0;
+  --amber-dark:    #8a5600;
+  --gray:          #666666;
+  --gray-2:        #8a8a8a;
+  --gray-fill:     #f4f6fa;
+  --gray-line:     #e3e6ee;
+  --red:           #9b1a1a;
+  --red-fill:      #fbecec;
+  --green:         #1f6b1f;
+  --green-fill:    #eaf3ea;
+  --ink:           #15192b;
+  --paper:         #ffffff;
+
+  --r-card: 14px;
+  --r-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(20,30,60,.06), 0 2px 6px rgba(20,30,60,.05);
+  --shadow-md: 0 2px 4px rgba(20,30,60,.06), 0 8px 24px rgba(20,30,60,.08);
+  --shadow-lg: 0 4px 8px rgba(20,30,60,.06), 0 18px 40px rgba(20,30,60,.10);
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  background: #0c0e16;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  font-feature-settings: "ss01", "cv11";
+}
+
+deck-stage > section {
+  width: 1920px;
+  height: 1080px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  position: relative;
+  overflow: hidden;
+  /* All slides padded with safe area to avoid right-margin clipping. */
+  padding: 70px 110px 90px 110px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Chrome (footer + progress) ---------- */
+.chrome {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 70px;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 56px 28px 56px;
+  font-size: 18px;
+  color: var(--gray);
+  letter-spacing: 0.02em;
+}
+.chrome .brand { font-weight: 500; }
+.chrome .brand .dot { display: inline-block; margin: 0 10px; color: var(--gray-2); }
+.chrome .num { font-variant-numeric: tabular-nums; font-weight: 500; color: var(--blue); }
+.chrome .num em { color: var(--gray-2); font-style: normal; font-weight: 400; }
+
+.progress {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 6px;
+  background: var(--gray-fill);
+  display: flex;
+}
+.progress span {
+  flex: 1;
+  border-right: 2px solid var(--paper);
+  background: var(--gray-line);
+}
+.progress span:last-child { border-right: 0; }
+.progress span.on { background: var(--blue); }
+.progress span.on.amber { background: var(--amber); }
+
+/* Slide kicker (small uppercase) and title */
+.kicker {
+  font-size: 16px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.kicker.amber { color: var(--amber); }
+.kicker.blue { color: var(--blue-light); }
+
+h1.title {
+  font-size: 56px;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--blue);
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  text-wrap: balance;
+}
+h1.title.sm { font-size: 46px; }
+h1.title .accent { color: var(--amber); }
+
+.subtitle {
+  font-size: 26px;
+  color: var(--gray);
+  font-weight: 400;
+  margin: 0 0 28px 0;
+  text-wrap: pretty;
+  max-width: 1500px;
+}
+
+.title-rule {
+  width: 96px;
+  height: 5px;
+  background: var(--blue);
+  border-radius: 3px;
+  margin: 0 0 18px 0;
+}
+.title-rule.amber { background: var(--amber); }
+
+/* ---------- Common building blocks ---------- */
+.card {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-md);
+  padding: 28px 32px;
+}
+.card.tinted-gray { background: var(--gray-fill); }
+.card.tinted-amber { background: var(--amber-fill); border-color: #f1d9a8; }
+.card.tinted-blue { background: var(--blue-tint); border-color: #d4dff2; }
+.card.tinted-red { background: var(--red-fill); border-color: #f1c9c9; }
+.card.tinted-green { background: var(--green-fill); border-color: #c5dcc5; }
+
+.card h3 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  color: var(--blue);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+  background: var(--gray-fill);
+  color: var(--gray);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  border: 1px solid var(--gray-line);
+}
+.pill.amber { background: var(--amber-fill); color: var(--amber-dark); border-color: #f1d9a8; }
+.pill.blue { background: var(--blue-tint); color: var(--blue); border-color: #d4dff2; }
+.pill.red { background: var(--red-fill); color: var(--red); border-color: #f1c9c9; }
+.pill.green { background: var(--green-fill); color: var(--green); border-color: #c5dcc5; }
+
+.codepill {
+  font-family: var(--font-mono);
+  font-size: 19px;
+  background: var(--gray-fill);
+  color: var(--blue);
+  padding: 3px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--gray-line);
+}
+
+/* Body text */
+.body {
+  font-size: 22px;
+  color: var(--ink);
+  line-height: 1.45;
+  max-width: 1480px;
+}
+.body.lg { font-size: 26px; }
+.body.muted { color: var(--gray); }
+.body p { margin: 0 0 14px 0; }
+
+/* ---------- Numbered callout circles ---------- */
+.num-circle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  font-size: 18px; font-weight: 700;
+  color: white;
+  background: var(--blue);
+  font-family: var(--font-sans);
+  flex-shrink: 0;
+}
+.num-circle.amber { background: var(--amber); }
+.num-circle.red { background: var(--red); }
+.num-circle.green { background: var(--green); }
+.num-circle.lg { width: 50px; height: 50px; font-size: 22px; }
+
+/* ---------- Node card (used in diagrams) ---------- */
+.node {
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-radius: 12px;
+  padding: 18px 18px 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+.node.amber { background: var(--amber-fill); border-color: #f0d8a4; }
+.node.blue { background: var(--blue-tint); border-color: #c8d6ef; }
+.node.gray { background: var(--gray-fill); }
+.node .node-head {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 600; font-size: 18px;
+  color: var(--blue);
+}
+.node.amber .node-head { color: var(--amber-dark); }
+.node .node-icon {
+  width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--blue-light);
+}
+.node.amber .node-icon { color: var(--amber); }
+.node.gray .node-icon { color: var(--gray); }
+.node .node-type {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray-2);
+}
+.node .node-desc {
+  font-size: 14.5px;
+  color: var(--gray);
+  line-height: 1.4;
+}
+
+/* ---------- Icon helpers ---------- */
+.ico {
+  display: inline-flex; align-items: center; justify-content: center;
+  vertical-align: middle;
+}
+.ico svg { display: block; }
+
+/* tables */
+table.cmp {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 22px;
+}
+table.cmp th, table.cmp td {
+  padding: 18px 22px;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-line);
+  vertical-align: middle;
+}
+table.cmp thead th {
+  font-size: 14px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 600;
+  background: var(--gray-fill);
+  border-bottom: 2px solid var(--gray-line);
+}
+table.cmp tbody tr:hover { background: transparent; }
+table.cmp td:first-child { color: var(--blue); font-weight: 500; }
+table.cmp td .yes { color: var(--green); font-weight: 600; }
+table.cmp td .no { color: var(--red); font-weight: 600; }
+table.cmp td .meh { color: var(--gray-2); }
+
+/* keyboard / shortcut chip */
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  padding: 2px 9px;
+  background: var(--paper);
+  border: 1px solid var(--gray-line);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  color: var(--blue);
+}
+
+/* legend dot */
+.lg-dot {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.lg-dot.amber { background: var(--amber); }
+.lg-dot.blue { background: var(--blue-light); }
+.lg-dot.gray { background: var(--gray-2); }
+
+/* corner badges on nodes (e.g. "Stage 1") */
+.stage-badge {
+  position: absolute;
+  top: -10px; right: 14px;
+  background: var(--amber);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* arrow used between cards */
+.flow-arrow {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--gray-2);
+}
+
+/* ----- Slide-specific helpers further down in slides ----- */
