@@ -485,7 +485,7 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
   - Multi-document policy review in regulatory work
 - **Footer line:** *The architectural shape — **structured extraction → reasoning over the structure → traceable output** — is the same.*
 - **Resources (small, bottom):**
-  - Handbook: `docs/attendee_handbook.md` in the workshop repo
+  - Handbook: `docs/attendee_handbook.html` in the workshop repo (standalone, opens in any browser)
   - Repo: `github.com/hesamhakim/agentic-pathology-workshop`
   - *Case design + planted features by Omar*
 - **Speaker notes:** "Open up for questions, then everyone goes back to the canvas for side-by-side discussion."

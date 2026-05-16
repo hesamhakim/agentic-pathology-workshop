@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>API Summit 2026 — Agentic Pathology Workshop · Attendee Handbook</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --blue:        #1f3864;
+    --blue-light:  #3b6bb8;
+    --blue-tint:   #eaf0fa;
+    --amber:       #b06f00;
+    --amber-fill:  #fff4e0;
+    --amber-dark:  #8a5600;
+    --gray:        #4a4a4a;
+    --gray-2:      #808080;
+    --gray-fill:   #f4f6fa;
+    --gray-line:   #e3e6ee;
+    --red:         #9b1a1a;
+    --red-fill:    #fbecec;
+    --green:       #1f6b1f;
+    --green-fill:  #eaf3ea;
+    --ink:         #15192b;
+    --paper:       #ffffff;
+    --r-card:      10px;
+    --shadow-sm:   0 1px 2px rgba(20,30,60,.06), 0 2px 6px rgba(20,30,60,.05);
+    --shadow-md:   0 2px 4px rgba(20,30,60,.06), 0 8px 24px rgba(20,30,60,.08);
+    --font-sans:   "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --font-mono:   "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    color: var(--ink);
+    background: #fafbfc;
+    line-height: 1.55;
+    font-size: 16px;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    max-width: 1280px;
+    margin: 0 auto;
+    gap: 32px;
+    padding: 0 24px;
+  }
+  /* ---------- Side TOC ---------- */
+  nav.toc {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow-y: auto;
+    padding: 24px 8px 24px 0;
+    font-size: 13.5px;
+  }
+  nav.toc .toc-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--gray-2);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: section;
+  }
+  nav.toc > ol > li {
+    margin-bottom: 6px;
+  }
+  nav.toc > ol > li > a {
+    display: block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: var(--blue);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  nav.toc > ol > li > a:hover { background: var(--blue-tint); }
+  nav.toc ol ol {
+    margin: 2px 0 8px 14px;
+    padding: 0;
+  }
+  nav.toc ol ol li { margin: 2px 0; }
+  nav.toc ol ol a {
+    display: block;
+    padding: 2px 6px;
+    color: var(--gray);
+    text-decoration: none;
+    font-weight: 400;
+    font-size: 13px;
+    border-radius: 3px;
+  }
+  nav.toc ol ol a:hover { background: var(--gray-fill); color: var(--ink); }
+  /* ---------- Main column ---------- */
+  main { padding: 24px 0 80px; min-width: 0; }
+  /* ---------- Header ---------- */
+  header.hero {
+    background: linear-gradient(135deg, var(--blue) 0%, #2a4a7a 100%);
+    color: #fff;
+    padding: 36px 32px 28px;
+    border-radius: 12px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-md);
+  }
+  header.hero .kicker {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 2.4px;
+    opacity: 0.85;
+    margin-bottom: 8px;
+    color: #ffd58a;
+    font-weight: 600;
+  }
+  header.hero h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+  }
+  header.hero p.lede {
+    margin: 12px 0 0;
+    font-size: 16px;
+    max-width: 720px;
+    opacity: 0.92;
+    line-height: 1.55;
+  }
+  header.hero .meta {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    font-size: 13px;
+    opacity: 0.85;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  header.hero .meta strong { color: #ffd58a; font-weight: 600; }
+  /* ---------- Typography ---------- */
+  h2 {
+    margin: 40px 0 14px;
+    font-size: 24px;
+    color: var(--blue);
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--blue-tint);
+  }
+  h3 {
+    margin: 28px 0 10px;
+    font-size: 18px;
+    color: var(--ink);
+    font-weight: 650;
+  }
+  h4 {
+    margin: 20px 0 8px;
+    font-size: 15.5px;
+    color: var(--blue);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  p { margin: 8px 0 12px; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  a { color: var(--blue-light); }
+  a:hover { color: var(--blue); }
+  code {
+    font-family: var(--font-mono);
+    background: var(--gray-fill);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 13.5px;
+    border: 1px solid var(--gray-line);
+  }
+  strong { color: var(--ink); font-weight: 650; }
+  /* ---------- Prompt blocks (with copy button) ---------- */
+  .prompt {
+    position: relative;
+    background: var(--gray-fill);
+    border: 1px solid var(--gray-line);
+    border-left: 4px solid var(--blue-light);
+    border-radius: var(--r-card);
+    padding: 16px 20px 16px 20px;
+    margin: 14px 0 18px;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
+  }
+  .prompt.system {
+    border-left-color: var(--amber);
+    background: #fffaf2;
+    border-color: #f0d8a0;
+  }
+  .prompt.user {
+    border-left-color: var(--blue-light);
+  }
+  .prompt-label {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    font-weight: 700;
+    color: var(--gray-2);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--gray-line);
+    width: 100%;
+  }
+  .prompt.system .prompt-label { color: var(--amber-dark); }
+  .copy-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--paper);
+    border: 1px solid var(--gray-line);
+    color: var(--gray);
+    font-family: var(--font-sans);
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .copy-btn.copied { background: var(--green); color: #fff; border-color: var(--green); }
+  /* ---------- Callouts ---------- */
+  .callout {
+    border-radius: var(--r-card);
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-left: 4px solid;
+    background: var(--gray-fill);
+  }
+  .callout.tip    { border-color: var(--green); background: var(--green-fill); }
+  .callout.warn   { border-color: var(--red);   background: var(--red-fill); }
+  .callout.info   { border-color: var(--blue-light); background: var(--blue-tint); }
+  .callout strong { display: block; margin-bottom: 4px; }
+  /* ---------- Tables ---------- */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 14px 0;
+    font-size: 14px;
+    background: var(--paper);
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--gray-line);
+    vertical-align: top;
+  }
+  th {
+    background: var(--blue-tint);
+    color: var(--blue);
+    font-weight: 600;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #fafbfd; }
+  /* ---------- Part-section banners ---------- */
+  .part-banner {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    background: linear-gradient(90deg, var(--amber-fill) 0%, transparent 100%);
+    border-left: 6px solid var(--amber);
+    padding: 14px 20px;
+    margin: 42px 0 8px;
+    border-radius: var(--r-card);
+  }
+  .part-banner .part-num {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--amber-dark);
+    font-weight: 700;
+  }
+  .part-banner h2 {
+    margin: 0;
+    border: none;
+    padding: 0;
+    font-size: 26px;
+    color: var(--blue);
+  }
+  /* ---------- Step lists ---------- */
+  ol.steps {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+  }
+  ol.steps > li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 44px;
+    margin: 10px 0;
+    min-height: 28px;
+  }
+  ol.steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    text-align: center;
+    line-height: 28px;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  /* ---------- Cards row ---------- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 14px 0; }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--gray-line);
+    border-radius: var(--r-card);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card h4 {
+    margin: 0 0 6px;
+    color: var(--blue);
+    font-size: 13px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .card p { margin: 0; font-size: 13.5px; }
+  /* ---------- ASCII diagram ---------- */
+  pre.ascii {
+    font-family: var(--font-mono);
+    background: var(--gray-fill);
+    border: 1px solid var(--gray-line);
+    border-radius: var(--r-card);
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--gray);
+    margin: 14px 0;
+  }
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 64px;
+    padding: 24px 0;
+    border-top: 1px solid var(--gray-line);
+    font-size: 13px;
+    color: var(--gray-2);
+  }
+  footer a { color: var(--blue-light); }
+  /* ---------- Print ---------- */
+  @media print {
+    body { font-size: 11pt; background: #fff; }
+    .layout { grid-template-columns: 1fr; gap: 0; padding: 0; }
+    nav.toc { display: none; }
+    .copy-btn { display: none; }
+    header.hero { box-shadow: none; background: #1f3864; color: #fff; }
+    a { color: inherit; text-decoration: none; }
+    .prompt { page-break-inside: avoid; }
+    h2, h3, .part-banner { page-break-after: avoid; }
+  }
+  /* ---------- Responsive ---------- */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: relative; max-height: none; padding-top: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ============================================================
+     LEFT SIDE TABLE OF CONTENTS
+     ============================================================ -->
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <ol>
+    <li><a href="#quickstart">Quick start</a>
+      <ol>
+        <li><a href="#login">Log in</a></li>
+        <li><a href="#open-flow">Open a flow</a></li>
+        <li><a href="#playground">Use Playground</a></li>
+      </ol>
+    </li>
+    <li><a href="#part1">Part 1 · Chatbot</a>
+      <ol>
+        <li><a href="#chatbot-pdfs">The four PDFs</a></li>
+        <li><a href="#chatbot-prompt">The prompt</a></li>
+        <li><a href="#chatbot-run">Run + observe</a></li>
+        <li><a href="#chatbot-variants">Variants</a></li>
+      </ol>
+    </li>
+    <li><a href="#part2">Part 2 · Agentic workflow</a>
+      <ol>
+        <li><a href="#d-pipeline">The pipeline</a></li>
+        <li><a href="#d-directives">Directives</a></li>
+        <li><a href="#d-good-output">Good output</a></li>
+        <li><a href="#d-edit">Edit a prompt</a></li>
+        <li><a href="#d-stage1-prompt">Stage 1 prompt</a></li>
+        <li><a href="#d-stage2-prompt">Stage 2 prompt</a></li>
+        <li><a href="#d-troubleshoot">Troubleshooting</a></li>
+      </ol>
+    </li>
+    <li><a href="#part3">Part 3 · Build your own</a>
+      <ol>
+        <li><a href="#rb-build">Build steps</a></li>
+        <li><a href="#rb-instructions">Agent instructions</a></li>
+        <li><a href="#rb-tests">Test prompts</a></li>
+        <li><a href="#rb-gotchas">Gotchas</a></li>
+        <li><a href="#rb-edits">Edits to try</a></li>
+        <li><a href="#rb-tools">Tool actions</a></li>
+      </ol>
+    </li>
+    <li><a href="#bonus">Bonus: A/B/C</a></li>
+    <li><a href="#trouble">Troubleshooting</a></li>
+    <li><a href="#credits">Credits + repo</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================
+     MAIN COLUMN
+     ============================================================ -->
+<main>
+
+<header class="hero">
+  <div class="kicker">API Summit 2026 · Javadi Lab · Pathology Informatics</div>
+  <h1>Agentic AI for Integrated Pathology Reporting</h1>
+  <p class="lede">A 45-minute hands-on workshop. You'll run three LangFlow workflows that progressively show what an agentic workflow does that a chatbot can't. Everything you need — login info, PDFs, user prompts, and system prompts — is in this one page.</p>
+  <div class="meta">
+    <span><strong>VM:</strong> pi-2026-workshop.javadilab.org</span>
+    <span><strong>Length:</strong> 45 min</span>
+    <span><strong>Flows:</strong> Chatbot → Agentic → Build-your-own</span>
+  </div>
+</header>
+
+<!-- ============================================================
+     QUICK START
+     ============================================================ -->
+<h2 id="quickstart">Quick start</h2>
+
+<h3 id="login">1. Log in</h3>
+<p>Open <a href="https://pi-2026-workshop.javadilab.org">https://pi-2026-workshop.javadilab.org</a> in any browser. Your facilitator will hand out usernames in the form <code>pi-user-NNN</code> and a shared password.</p>
+
+<h3 id="open-flow">2. Open a flow</h3>
+<p>After login you'll see "My Projects." Six flows are pre-loaded for you:</p>
+<ul>
+  <li><code>0_general_chatbot</code> — the Part 1 chatbot</li>
+  <li><code>D_integrated_report_to_who</code> — the Part 2 agentic workflow</li>
+  <li><code>Research_Buddy</code> — the Part 3 reference (build it from scratch first; this is the completed version)</li>
+  <li><code>A_variant_tournament</code>, <code>B_longitudinal_ghost</code>, <code>C_digital_thread_v2</code> — bonus scenarios, not part of the live talk</li>
+</ul>
+<p>Click any name to open the flow's canvas.</p>
+
+<h3 id="playground">3. Use Playground</h3>
+<p>Click the <strong>Playground</strong> button at the top-right of the canvas. A chat panel opens. Type your prompt in the input, press send, watch the flow run. Edits to any node's right-side detail panel apply on the next run — no save button needed.</p>
+
+<!-- ============================================================
+     PART 1 — CHATBOT
+     ============================================================ -->
+<div class="part-banner">
+  <div>
+    <div class="part-num">Part 1 · ~7 minutes</div>
+    <h2 id="part1">General Chatbot</h2>
+  </div>
+</div>
+
+<p>The workshop's warm-up baseline. Three nodes: Chat Input → General Chatbot → Chat Output. A single LLM call with file attachments. This is the <em>before</em> we compare Part 2 against.</p>
+
+<h3 id="chatbot-pdfs">The four AML PDFs</h3>
+<p>Download these to your machine. You'll attach them via the paperclip in Playground.</p>
+
+<table>
+  <thead><tr><th>#</th><th>File</th><th>Modality</th><th>What it carries</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><a href="../data/scenario_d/case_aml/01_bone_marrow_morphology.pdf">01_bone_marrow_morphology.pdf</a></td><td>Bone marrow morphology</td><td>Manual blast count, cytochemistry, hedges on lineage</td></tr>
+    <tr><td>2</td><td><a href="../data/scenario_d/case_aml/02_flow_cytometry.pdf">02_flow_cytometry.pdf</a></td><td>Flow cytometry</td><td>Gated blast %, immunophenotype, resolves the morphology hedge</td></tr>
+    <tr><td>3</td><td><a href="../data/scenario_d/case_aml/03_cytogenetics_fish.pdf">03_cytogenetics_fish.pdf</a></td><td>Cytogenetics + FISH</td><td>Karyotype, AML panel — normal here</td></tr>
+    <tr><td>4</td><td><a href="../data/scenario_d/case_aml/04_molecular_ngs.pdf">04_molecular_ngs.pdf</a></td><td>Molecular NGS (54-gene)</td><td>NPM1, FLT3-ITD, DNMT3A, other variants</td></tr>
+  </tbody>
+</table>
+
+<p>One fictional patient: adult male, 58y · leukocytosis, anemia, thrombocytopenia · 41% peripheral blasts.</p>
+
+<h3 id="chatbot-prompt">The prompt to type</h3>
+<p>After attaching all four PDFs, paste this into the chat input.</p>
+
+<div class="prompt user">
+<span class="prompt-label">User prompt</span>Produce an integrated diagnostic report for this patient using all four reports. Include patient identifiers, per-modality summaries, an integrated interpretation, the final diagnosis, and prognostic notes.</div>
+
+<p>This is the same task Part 2 (Scenario D) tackles. Identical input, identical ask, very different output.</p>
+
+<h3 id="chatbot-run">How to run, what to notice</h3>
+<ol class="steps">
+  <li>Open <code>0_general_chatbot</code> from "My Projects."</li>
+  <li>Click <strong>Playground</strong>.</li>
+  <li>Click the paperclip icon and attach all four PDFs.</li>
+  <li>Paste the prompt above. Press send.</li>
+  <li>Wait 10–30 seconds.</li>
+</ol>
+
+<p>Four things to notice in the reply. These are the gaps the agentic workflow will close.</p>
+
+<ul>
+  <li><strong>Which PDF supported each sentence?</strong> The chatbot won't tell you. Part 2's Part B trace will.</li>
+  <li><strong>Where did DNMT3A land?</strong> It often drifts into the diagnosis line. DNMT3A is prognostic, not classifying — it belongs in prognostic notes only.</li>
+  <li><strong>Run it again.</strong> Same prompt, same files, fresh chat. How much does the structure change?</li>
+  <li><strong>If a downstream LIS needed JSON, what could it parse?</strong> Run the same prompt a third time. Is the structure stable enough to write a parser against?</li>
+</ul>
+
+<p>Write down what you see. We revisit these answers in the side-by-side at the end of the workshop.</p>
+
+<h3 id="chatbot-variants">Variants if you finish early</h3>
+
+<h4>Tighter format</h4>
+<div class="prompt user">
+<span class="prompt-label">User prompt — tighter format</span>Produce an integrated diagnostic report for this patient using all four PDFs. Reply in five sections with these exact headings:
+1. Patient and specimen
+2. Per-modality summary (one paragraph per PDF)
+3. Discordances and resolutions
+4. Final integrated diagnosis (one sentence, in WHO 5e language)
+5. Prognostic notes</div>
+
+<h4>Ask for an evidence trace</h4>
+<div class="prompt user">
+<span class="prompt-label">User prompt — evidence trace</span>Produce an integrated diagnostic report for this patient using all four PDFs. For EVERY sentence in your final diagnosis and interpretation, name which attached filename supports it. If a sentence has no support, mark it UNSUPPORTED.</div>
+
+<h4>Lane discipline stress test</h4>
+<div class="prompt user">
+<span class="prompt-label">User prompt — lane discipline</span>Produce an integrated diagnostic report. Be especially careful about DNMT3A — explain exactly which section mentions it and why.</div>
+
+<h4>Single-source classifying</h4>
+<div class="prompt user">
+<span class="prompt-label">User prompt — single-source</span>Looking only at the four attached PDFs, identify any classifying finding that appears in just ONE of them, and explain how the diagnosis would be wrong without that PDF.</div>
+
+<p>Expected answer for the last one: NPM1 + FLT3-ITD live only in <code>04_molecular_ngs.pdf</code>. Sometimes the chatbot catches this, sometimes it doesn't.</p>
+
+<div class="callout info">
+<strong>Behind the scenes</strong>
+The chatbot's own system prompt is intentionally generic — six sentences telling the model to "read attached files carefully and don't invent facts." That's all the structure it has, by design. The component source is at <code>langflow_flows/components/api_scenario_zero/general_chatbot.py</code> in the repo.
+</div>
+
+<!-- ============================================================
+     PART 2 — AGENTIC WORKFLOW
+     ============================================================ -->
+<div class="part-banner">
+  <div>
+    <div class="part-num">Part 2 · ~25 minutes</div>
+    <h2 id="part2">Agentic workflow — Integrated Report → WHO</h2>
+  </div>
+</div>
+
+<p>The workshop's headline case study. Seven custom components in two LLM stages. Reads the same four AML PDFs as Part 1 but emits a structured 11-section integrated report, a per-sentence evidence trace, and a QA-flag section. Case design and the Stage 1 / Stage 2 prompts: <strong>Omar</strong>.</p>
+
+<h3 id="d-pipeline">The pipeline</h3>
+
+<pre class="ascii">[ChatInput] → [PipelineConfig] → [PDF Intake (Stage 1)] ─┐
+                                                          ├──► [WHO Classifier (Stage 2)] → [QA Reviewer] → [Report Formatter] → [ChatOutput]
+                     [Molecular Parser] ─────────────────┐│
+                     [Histology Synthesizer] ────────────┘│
+                                                          └ (parallel post-processing)</pre>
+
+<p>Two stages do the real work. Stage 1 (PDF Intake) reads the four PDFs and emits a structured JSON of per-source findings, concordances, discordances, single-source findings, and a <code>classifying</code> flag on every variant. Stage 2 (WHO Classifier) takes that structured JSON and writes the 11-section report plus the Part B evidence trace. Each stage has one editable system prompt — those are the two "levers" you'll edit later.</p>
+
+<h3 id="d-directives">Directives to type</h3>
+
+<p>You don't upload PDFs here. The four AML files are pre-registered in the case manifest — typing a directive loads them automatically.</p>
+
+<h4>Start here</h4>
+<div class="prompt user">
+<span class="prompt-label">Directive — start here</span>run the aml case</div>
+
+<p>This is the workshop's standard exercise. Loads the four AML PDFs, runs both LLM stages, emits the full integrated report + Part B trace + QA flags in markdown.</p>
+
+<h4>Output format variations</h4>
+<div class="prompt user">
+<span class="prompt-label">Directive — HTML output</span>run the aml case as html</div>
+<div class="prompt user">
+<span class="prompt-label">Directive — JSON output</span>run the aml case as json</div>
+<div class="prompt user">
+<span class="prompt-label">Directive — narrative</span>run the aml case as narrative</div>
+<div class="prompt user">
+<span class="prompt-label">Directive — hide QA</span>run the aml case, hide the qa flags</div>
+
+<p>HTML renders styled output. JSON returns only the machine-readable form — what a downstream LIS would parse. Narrative collapses 11 sections into one short paragraph. <em>Hide the qa flags</em> suppresses the QA section in the rendered output (the QA Reviewer still runs).</p>
+
+<h4>Other cases the same workflow handles</h4>
+<div class="prompt user">
+<span class="prompt-label">Directive — glioma case</span>run the glioma case</div>
+<div class="prompt user">
+<span class="prompt-label">Directive — medulloblastoma case</span>run the medulloblastoma case</div>
+<div class="prompt user">
+<span class="prompt-label">Directive — breast case</span>run the breast case</div>
+
+<p>The pipeline isn't AML-specific. Same seven components, different PDFs. The AML case is the one with all four planted pedagogical features, so focus on it during the workshop. Save the others for after.</p>
+
+<h3 id="d-good-output">What good AML output looks like</h3>
+
+<p>A passing run satisfies all of these:</p>
+
+<ul>
+  <li>Final diagnosis line contains <strong>NPM1</strong></li>
+  <li>Final diagnosis line does <strong>NOT</strong> contain <strong>DNMT3A</strong> (it belongs in prognostic notes only)</li>
+  <li>Section 8 (Integrated Interpretation) mentions both blast numbers — <strong>18%</strong> from morphology and <strong>22%</strong> from flow — and reconciles them out loud</li>
+  <li>Part B trace has zero <strong>UNSUPPORTED</strong> rows</li>
+  <li>Prognostic notes section mentions <strong>DNMT3A</strong></li>
+  <li>QA flags section is empty or only contains low-severity items</li>
+</ul>
+
+<p>If something's missing, that's a learning opportunity — keep reading.</p>
+
+<h3 id="d-edit">Edit a prompt and re-run</h3>
+
+<p>This is the workshop's "your turn" moment for Part 2. Each LLM stage carries an editable system prompt. Edit one, re-run, watch the output change.</p>
+
+<p>The cleanest one-line exercise:</p>
+
+<ol class="steps">
+  <li>Run the baseline once with <code>run the aml case</code>. Note which sentence in section 8 talks about the blast count.</li>
+  <li>Click the <strong>WHO Classifier (Integrator)</strong> node on the canvas. Open the <strong>System Prompt</strong> field on the right.</li>
+  <li>Add this sentence somewhere in the rules section: <em>Always begin section 8 with a one-sentence reconciliation of the morphologic blast count vs the flow blast count, naming both numbers explicitly.</em></li>
+  <li>Re-run with <code>run the aml case</code>. Section 8 should now lead with the numeric comparison; the Part B trace updates to match.</li>
+</ol>
+
+<p>That single edit ripples through the whole pipeline. No saving, no rebuild — changes apply on the next run.</p>
+
+<h3 id="d-stage1-prompt">Stage 1 — PDF Intake system prompt</h3>
+<p>How the four PDFs become structured JSON. This is the larger of the two editable levers. To edit: click the <strong>PDF Intake</strong> node → right-side panel → System Prompt textarea → paste your edited version → run.</p>
+
+<div class="prompt system">
+<span class="prompt-label">System prompt — PDF Intake (Stage 1, extraction)</span>You are the EXTRACTION stage of a two-stage
+integrated-reporting pipeline. You receive raw text dumps from MULTIPLE
+component pathology reports for a single patient and single diagnostic
+episode (one patient, one specimen, several separately issued reports
+from different laboratories on different days). Your only job is to read
+all of them and produce ONE structured JSON object. You do NOT write the
+integrated report; that is the next stage. You do NOT soften, resolve,
+or smooth over anything yet.
+
+The input you receive will contain explicit source delimiters of the form
+"========== SOURCE &lt;ID&gt; — &lt;name&gt; ==========" preceding each component's
+raw text. The valid source_id values for this case are listed in the
+incoming JSON header. Treat all components as belonging to the same
+patient if the MRN matches; flag any mismatch in extraction_metadata.
+
+KEY RULES
+
+1. EXTRACT, DO NOT INTERPRET. In the per-source "components" blocks,
+   record what each report says on its own terms. If morphology hedges
+   on lineage, capture the hedge. If two reports give different
+   numbers for the same quantity (e.g. blast count), record both as
+   they appear. Do not reconcile them here.
+
+2. EVERY FINDING CARRIES ITS SOURCE. Every object in a "key_findings"
+   array must have a source_id (matching one of the input sources) and
+   a "verbatim_support" string — a short phrase copied word-for-word
+   from that source's raw text. If you cannot find verbatim support
+   for a finding, do not include it.
+
+3. THE CROSS-REPORT BLOCK IS WHERE COMPARISON HAPPENS. After per-source
+   extraction, populate cross_report_observations:
+   - concordances: things two or more sources agree on. Each carries a
+     short statement and supporting_source_ids.
+   - discordances: apparent conflicts. Each must carry a topic, the
+     positions each source takes, a resolution, and a resolution_basis
+     (the reason it holds: a classification rule, expected
+     methodological variance between a manual and a gated count,
+     hemodilution of an aspirate, etc.). State whether the discordance
+     actually changes the diagnosis.
+   - single_source_findings: decisive findings that appear in exactly
+     one source and are invisible to the others. For each, name the
+     only_source_id, list invisible_to (the other source_ids), and
+     state diagnostic_impact in one sentence.
+
+4. THE classifying BOOLEAN ON VARIANTS. For each molecular variant,
+   set classifying=true ONLY if that variant by itself defines or
+   changes the WHO / ICC disease category for the relevant tumor
+   family. Examples:
+     - AML: NPM1 = true; FLT3-ITD = false (prognostic); DNMT3A = false.
+     - Glioma: IDH1/2 = true; 1p/19q codel = true; CDKN2A/B homo del
+       = true (grade-4 driver); TP53 = false.
+     - Medulloblastoma: PTCH1 (SHH activator) = true; SHH signature
+       = true; TP53 (in SHH context, stratifier) = false as classifying
+       — record under prognostic.
+     - Breast: PIK3CA = false (actionable, not classifying for entity name).
+   Always set prognostic_note for non-classifying variants.
+
+5. RETURN ONLY THE JSON OBJECT — no commentary, no markdown fences,
+   no backticks. Use the word "json" anywhere in your reasoning.
+
+OUTPUT SHAPE:
+
+{
+  "case_id":    "case_&lt;...&gt;",
+  "tumor_family": "aml" | "glioma" | "medulloblastoma" | "breast",
+  "patient": {"name": "...", "mrn": "...", "age": &lt;int|null&gt;, "sex": "..."},
+  "specimen": {"site": "...", "collection_date": "..."},
+  "sources": [
+    {"source_id": "&lt;ID&gt;", "lab": "...", "accession": "...", "report_date": "..."}
+  ],
+  "components": {
+    "&lt;ID&gt;": {
+      "source_id": "&lt;ID&gt;",
+      "summary": "&lt;one-paragraph component summary&gt;",
+      "key_findings": [
+        {"text": "...", "source_id": "&lt;ID&gt;",
+         "verbatim_support": "&lt;copied phrase&gt;",
+         "category": "lineage|blast_burden|genetics|grade|biomarker|limitation|other"}
+      ],
+      "stated_limitations": "..."
+    }
+  },
+  "molecular_variants": [
+    {"gene": "...", "variant": "...", "vaf": "...", "tier": "...",
+     "classifying": &lt;bool&gt;, "prognostic_note": "...",
+     "source_id": "&lt;ID&gt;", "verbatim_support": "..."}
+  ],
+  "cross_report_observations": {
+    "concordances": [{"statement": "...", "supporting_source_ids": [...]}],
+    "discordances": [{"topic": "...",
+                      "positions": [{"source_id": "...", "position": "..."}],
+                      "resolution": "...",
+                      "resolution_basis": "...",
+                      "changes_diagnosis": &lt;bool&gt;}],
+    "single_source_findings": [{"finding": "...", "only_source_id": "...",
+                                "invisible_to": [...],
+                                "diagnostic_impact": "..."}]
+  },
+  "extraction_metadata": {"uncertain_extractions": ["..."]}
+}
+
+Sweep across ALL source blocks before finalizing. Fields you need may
+appear in any block. Strip repeating page headers/footers and "Page N"
+markers when attributing text. Tables flattened into space-separated
+rows are common — recover columns from context. Preserve exact gene
+symbols and HGVS strings; do not paraphrase. If a value is ambiguous,
+add it to extraction_metadata.uncertain_extractions rather than
+guessing silently.</div>
+
+<p><strong>What this prompt buys you.</strong> Rule 1 (EXTRACT, DO NOT INTERPRET) keeps Stage 1 honest — the discordance is preserved until Stage 2 resolves it explicitly. Rule 2 (verbatim_support) is anti-hallucination at the structural level. Rule 3 makes concordances / discordances / single-source findings into <em>fields</em> Stage 2 can iterate over, not prose. Rule 4 pre-resolves the lane-discipline question at extraction time. Rule 5's second half (the literal word "json") is an Azure-via-OpenRouter quirk for structured-output mode.</p>
+
+<h3 id="d-stage2-prompt">Stage 2 — WHO Classifier system prompt</h3>
+<p>How structured JSON becomes the integrated report and the trace. To edit: click the <strong>WHO Classifier (Integrator)</strong> node → right-side panel → System Prompt textarea → paste your edited version → run.</p>
+
+<div class="prompt system">
+<span class="prompt-label">System prompt — WHO Classifier (Stage 2, integration)</span>You are the INTEGRATION stage of a two-stage
+pipeline. You receive a structured JSON extraction of multiple
+component pathology reports for one diagnostic episode and a short
+morphologic synthesis paragraph from a parallel agent. The extraction
+already contains per-source findings, concordances, discordances with
+their resolutions, single-source findings, and the molecular variants
+flagged as classifying vs prognostic. Your job is to synthesize that
+into a single integrated hematopathology / pathology report PLUS an
+evidence trace mapping every interpretation and diagnosis sentence to
+its supporting source(s).
+
+You act as the one responsible diagnostician signing the combined
+report. Integrated reporting is synthesis, not assembly. Do not staple
+the component reports together — explain how the pieces fit.
+
+OUTPUT shape — a SINGLE JSON object with two top-level keys:
+
+{
+  "integrated_report": {
+    "patient_specimen_id":    "&lt;one short sentence&gt;",
+    "component_studies":      [{"source_id": "...", "lab": "...",
+                                 "accession": "...", "report_date": "..."}],
+    "clinical_context":       "&lt;one short paragraph&gt;",
+    "morphology_summary":     "&lt;paragraph&gt;",
+    "flow_or_ihc_summary":    "&lt;paragraph; may be empty if not applicable&gt;",
+    "cytogenetics_summary":   "&lt;paragraph; may be empty&gt;",
+    "molecular_summary":      "&lt;paragraph&gt;",
+    "integrated_interpretation": [
+      "Sentence 1.", "Sentence 2.", ...
+    ],
+    "final_integrated_diagnosis": [
+      "Sentence 1.", "Sentence 2.", ...
+    ],
+    "prognostic_predictive_notes": "&lt;paragraph&gt;",
+    "limitations_pending": "&lt;paragraph&gt;"
+  },
+  "evidence_trace": [
+    {"section": "integrated_interpretation" | "final_integrated_diagnosis",
+     "sentence_number": &lt;int&gt;,
+     "sentence": "&lt;exact sentence text&gt;",
+     "supporting_source_ids": ["...", ...],
+     "basis": "direct_finding" | "concordance" | "discordance_resolution"
+              | "single_source_finding" | "classification_rule" | "UNSUPPORTED"}
+  ]
+}
+
+RULES
+
+1. USE ONLY WHAT IS IN THE EXTRACTION. Every clinical claim in
+   integrated_interpretation and final_integrated_diagnosis must trace
+   to a finding, a concordance, a discordance resolution, a
+   single-source finding, or a recognized classification rule that
+   the extractor already carries (e.g. a discordance resolution_basis
+   that names "20% blast threshold does not apply when a defining
+   genetic abnormality is present"). Do NOT import outside facts.
+
+2. RESOLVE THE DISCORDANCES OUT LOUD. Each discordance in the
+   extraction must be addressed explicitly in the interpretation.
+   Name the conflicting numbers or assessments, state the resolution,
+   and state why it holds. Do not silently pick one number.
+
+3. NAME THE SINGLE-SOURCE FINDINGS. For any finding the extraction
+   marks as single-source, say so plainly in the interpretation: this
+   finding was detectable only on the named source and was invisible
+   to the others, and here is what it changes. This is the central
+   argument for integrated reporting.
+
+4. KEEP NON-CLASSIFYING VARIANTS IN THEIR LANE. A variant with
+   classifying=false (e.g. DNMT3A in AML; TP53 in IDH-mutant
+   astrocytoma; PIK3CA in invasive breast carcinoma) is reported in
+   molecular_summary and prognostic_predictive_notes. It must NOT
+   appear in final_integrated_diagnosis and must NOT be used to
+   assign the disease entity. If you find yourself using it to
+   classify, stop — that is the error this case is designed to catch.
+
+5. DIAGNOSIS IN CLASSIFICATION TERMS. Final diagnosis should read the
+   way a signed-out report would state it, in WHO/ICC language,
+   reflecting the defining genetic abnormality, the lineage / grade
+   established by morphology + IHC where relevant, and an adverse
+   co-mutation only where it belongs (the prognostic notes line, not
+   the diagnosis line).
+
+6. CARRY LIMITATIONS FORWARD. If the extraction flagged uncertain
+   extractions or component-level stated limitations, reflect them in
+   limitations_pending rather than papering over them.
+
+7. EVIDENCE TRACE INTEGRITY. Every sentence you place in
+   integrated_interpretation and final_integrated_diagnosis must have
+   a row in evidence_trace whose `sentence` matches it verbatim.
+   If a sentence has no support, either remove it or mark its trace
+   row basis=UNSUPPORTED. Any UNSUPPORTED row in the final output
+   counts as a pipeline failure for scoring.
+
+Return ONLY the JSON object. Use the word "json" in your reasoning
+if needed.</div>
+
+<p><strong>What this prompt buys you.</strong> Rule 1 turns "no hallucinations" from a hope into a structural constraint — the integrator's input is finite. Rule 2 forces the 18% vs 22% blast discordance into the interpretation explicitly. Rule 3 makes NPM1 / FLT3-ITD's single-source role visible in the diagnosis. Rule 4 is the lane-discipline rule that keeps DNMT3A out of the diagnosis line. Rule 7 makes the Part B trace a structural requirement rather than a side feature.</p>
+
+<h3 id="d-troubleshoot">When the output looks wrong</h3>
+
+<table>
+  <thead><tr><th>Symptom</th><th>First place to look</th></tr></thead>
+  <tbody>
+    <tr><td><code>UNSUPPORTED</code> rows in Part B</td><td>Stage 2 wrote a sentence Stage 1's extraction didn't support. Tighten Rule 1 in the WHO Classifier prompt, or click the PDF Intake node after a run to inspect its output JSON for missing findings.</td></tr>
+    <tr><td>DNMT3A in the diagnosis line</td><td>Lane discipline slipped. Tighten Rule 4 in the WHO Classifier prompt.</td></tr>
+    <tr><td>Blast discordance not addressed</td><td>Stage 2 silently picked a number. Tighten Rule 2 in the WHO Classifier prompt.</td></tr>
+    <tr><td>Sections 1–7 look thin</td><td>Stage 1 didn't extract enough. Click the PDF Intake node after a run — its output is JSON you can read directly.</td></tr>
+  </tbody>
+</table>
+
+<div class="callout tip">
+<strong>Click any node after a run</strong>
+Every node's intermediate output is browsable from the right-side panel. This is the closest thing the workshop has to a debugger — see what each component produced before the next one consumed it.
+</div>
+
+<!-- ============================================================
+     PART 3 — RESEARCH BUDDY
+     ============================================================ -->
+<div class="part-banner">
+  <div>
+    <div class="part-num">Part 3 · ~10 minutes</div>
+    <h2 id="part3">Build a workflow yourself — Research Buddy</h2>
+  </div>
+</div>
+
+<p>A tiny agentic flow you build from scratch. Five standard LangFlow nodes, four wires, no custom Python. The smallest possible demo of an LLM that picks tools at runtime. The completed reference (<code>Research_Buddy</code>) is already in your account if you get stuck — open it side by side.</p>
+
+<pre class="ascii">[Chat Input]  ──►  [ Agent ]  ──►  [Chat Output]
+                    ▲    ▲
+                    │    │
+          [Wikipedia]  [Calculator]
+          (tool mode)  (tool mode)</pre>
+
+<h3 id="rb-build">Build it from scratch</h3>
+
+<ol class="steps">
+  <li>From the <strong>Input/Output</strong> sidebar, drag in <strong>Chat Input</strong> and <strong>Chat Output</strong>.</li>
+  <li>From <strong>Models &amp; Agents</strong>, drag in <strong>Agent</strong>.</li>
+  <li>From the components panel, drag in <strong>Wikipedia</strong> (under "Wikipedia") and <strong>Calculator</strong> (under "Utilities"). On each of these two nodes, toggle <strong>Tool Mode</strong> ON — the small wrench icon in the node header.</li>
+  <li>Draw four edges: Chat Input → Agent (Input), Wikipedia → Agent (Tools), Calculator → Agent (Tools), Agent → Chat Output.</li>
+  <li>Click the <strong>Agent</strong> node. In <strong>Language Model</strong>, pick <strong>OpenAI</strong> and then <code>openai/gpt-4o-mini</code>. Leave <strong>API Key</strong> blank — the workshop's KeyBroker token is wired through the container env.</li>
+  <li>Paste the Agent Instructions below into the Agent's Agent Instructions field.</li>
+  <li>Click <strong>Playground</strong>. Try one of the test prompts.</li>
+</ol>
+
+<h3 id="rb-instructions">Agent instructions (paste into the Agent node)</h3>
+
+<div class="prompt system">
+<span class="prompt-label">System prompt — Research Buddy Agent</span>You are a helpful research assistant. When the user asks a factual question, use the Wikipedia API to look it up. When the user asks anything requiring arithmetic, use the Calculator. If a question needs both — for example, 'what's the population of Tokyo divided by the population of Osaka?' — call the tools in sequence and show your reasoning step by step. When you cite a Wikipedia fact, mention the article you used.</div>
+
+<p>That's the whole system prompt. Three rules: prefer Wikipedia for facts, prefer Calculator for math, chain them when both are needed.</p>
+
+<h3 id="rb-tests">Test prompts</h3>
+
+<h4>Calculator only</h4>
+<div class="prompt user">
+<span class="prompt-label">Test prompt — Calculator only</span>What is 23 percent of 7.8 million?</div>
+<p>Expected: <code>1,794,000</code>. Run time ~2–4 seconds. You'll see one "Calling tool: evaluate_expression" card in the chat before the final answer.</p>
+
+<h4>Wikipedia only</h4>
+<div class="prompt user">
+<span class="prompt-label">Test prompt — Wikipedia only</span>What is the population of Tokyo? Look it up on Wikipedia.</div>
+<p>The reply should cite the article (e.g., "from the Wikipedia article on Tokyo") because the system prompt requires it.</p>
+
+<h4>Both tools, in sequence</h4>
+<div class="prompt user">
+<span class="prompt-label">Test prompt — both tools</span>What is the population of Tokyo divided by the population of Osaka? Show your work.</div>
+<p>The most interesting one. Agent calls Wikipedia twice, then Calculator, then composes the answer. Run time ~10–20 seconds. Three tool-call cards stack up before the final reply — the canonical visual of the agentic pattern.</p>
+
+<h3 id="rb-gotchas">Two things that catch people out</h3>
+
+<div class="callout warn">
+<strong>Tool Mode must be ON</strong>
+Without it, the Wikipedia and Calculator components only expose a regular JSON output, not the <code>Tool</code> handle the Agent needs. The toggle is in the node header.
+</div>
+
+<div class="callout warn">
+<strong>Don't paste an OpenAI API key</strong>
+The Agent's API Key field stays blank. The KeyBroker proxy is wired via the container's <code>OPENAI_API_KEY</code> env var, which gives you rate-limit protection. Pasting your own key overrides the broker.
+</div>
+
+<h3 id="rb-edits">Edits worth trying</h3>
+
+<h4>Add a third behavioural rule</h4>
+<p>Append to the Agent Instructions:</p>
+<div class="prompt user">
+<span class="prompt-label">Edit — add knowledge-base fallback</span>If the user asks a question that requires neither Wikipedia nor arithmetic, answer from your own knowledge but say so explicitly.</div>
+<p>Try <code>What is the capital of France?</code> before and after. Watch the tool-call cards disappear after the edit.</p>
+
+<h4>Demand structured output</h4>
+<p>Replace the whole system prompt with:</p>
+<div class="prompt system">
+<span class="prompt-label">Edit — structured output</span>You are a research assistant. Answer the user's question by calling tools as needed. Reply in this exact format:
+Question: &lt;restate&gt;
+Tools used: &lt;comma-separated names&gt;
+Reasoning: &lt;one short paragraph&gt;
+Answer: &lt;final answer&gt;</div>
+<p>Run the same test prompts. The structure is now identical every run — a small taste of what Part 2's rigid output shape buys you.</p>
+
+<h3 id="rb-tools">Tool actions (what the Agent sees)</h3>
+
+<p>The Agent picks between tools using each tool's <strong>action name</strong> and <strong>description</strong>. These are visible (and editable) in each tool node's "Actions" section.</p>
+
+<table>
+  <thead><tr><th>Tool</th><th>Action name</th><th>Description (visible to the LLM)</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Wikipedia</strong></td>
+      <td><code>fetch_content</code></td>
+      <td>WikipediaComponent. fetch_content() — Search Wikipedia and return article summaries. Use this for factual lookups: people, places, populations, definitions, etc.</td>
+    </tr>
+    <tr>
+      <td><strong>Calculator</strong></td>
+      <td><code>evaluate_expression</code></td>
+      <td>CalculatorComponent. evaluate_expression() — Perform basic arithmetic operations on a given expression.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Editing the description steers the agent. If you want a tool used <em>more</em>, expand its description with concrete examples. If you want a tool used <em>less</em>, narrow it ("use this ONLY for population queries").</p>
+
+<h4>Adding more tools</h4>
+<p>Same pattern works for any LangFlow component that supports tool mode:</p>
+<div class="cards">
+  <div class="card"><h4>Current Date</h4><p>Tools / Utilities. "What's today's date?" / "How many days since…"</p></div>
+  <div class="card"><h4>URL</h4><p>Tools / Data Source. "Fetch and summarize this URL"</p></div>
+  <div class="card"><h4>DuckDuckGo Search</h4><p>Tools / DuckDuckGo. Open-ended web search, no API key needed.</p></div>
+  <div class="card"><h4>ArXiv Search</h4><p>Tools / ArXiv. "Find recent papers on…" — for a research-paper agent.</p></div>
+</div>
+<p>For each: drag it onto the canvas, toggle Tool Mode on, wire its Tool output into the Agent's Tools input, and add a line to the Agent Instructions telling the LLM when to reach for it.</p>
+
+<!-- ============================================================
+     BONUS REFERENCE
+     ============================================================ -->
+<h2 id="bonus">Bonus reference — Scenarios A, B, C</h2>
+
+<p>These three scenarios are in your account as bonus material. They're not part of the live talk but the patterns are worth seeing if you want to explore after the workshop.</p>
+
+<table>
+  <thead><tr><th>Scenario</th><th>What it does</th><th>The pattern it shows</th></tr></thead>
+  <tbody>
+    <tr><td><strong>A — Variant Tournament</strong></td><td>Ranks germline variants against rubric criteria using an LLM "tournament judge."</td><td>LLM-as-judge with a structured rubric; parallel evidence fetches (ClinVar, gnomAD, PubMed).</td></tr>
+    <tr><td><strong>B — Longitudinal Ghost</strong></td><td>Finds contradictions in a 14-note patient timeline. The "ghost": a 2022 note documenting tamoxifen use that the current request contradicts.</td><td>Temporal synthesis + rule-based contradiction detection. Includes an HITL gate.</td></tr>
+    <tr><td><strong>C — Digital Thread</strong></td><td>Routes 30 pending cases to 8 subspecialty pathologists. The "trap": two pathologists are over-loaded by design.</td><td>LLM-decides-then-deterministic-rule-clamps. Workshop-relevant fatigue-cap edit.</td></tr>
+  </tbody>
+</table>
+
+<p>Open any of them from "My Projects" and click <strong>Playground</strong>. Each scenario's prompts and editable levers are documented in the repo at <code>langflow_flows/components/api_scenario_{a,b,c}/</code>.</p>
+
+<!-- ============================================================
+     TROUBLESHOOTING
+     ============================================================ -->
+<h2 id="trouble">Troubleshooting</h2>
+
+<table>
+  <thead><tr><th>Symptom</th><th>Likely cause / fix</th></tr></thead>
+  <tbody>
+    <tr><td><strong>"No model selected"</strong></td><td>Click the Agent node → Language Model dropdown → pick OpenAI + <code>openai/gpt-4o-mini</code>.</td></tr>
+    <tr><td><strong>Node turns red with a "!" badge</strong></td><td>Click the badge for the error. Most common is a rate-limit timeout — wait 60 seconds and retry. The proxy caps each attendee at 30K tokens/min.</td></tr>
+    <tr><td><strong>"401 Unauthorized" or auth error</strong></td><td>Check the Agent's API Key field is <em>blank</em>. Pasting a key overrides the KeyBroker auth.</td></tr>
+    <tr><td><strong>Connection dropped from a tool to the Agent</strong></td><td>Check Tool Mode is ON on the tool node. The toggle is in the node header. Without it the tool exposes JSON, not the Tool handle.</td></tr>
+    <tr><td><strong>Flow runs but the output looks empty / truncated</strong></td><td>Click each node after the run and inspect its output panel. You'll find which stage produced nothing — usually that's where to investigate.</td></tr>
+    <tr><td><strong>Edited a prompt and the result got worse</strong></td><td>Click the node's <strong>Reset</strong> button (top of its detail panel) to restore the default prompt.</td></tr>
+    <tr><td><strong>Last resort</strong></td><td>Wave at the facilitator. They have a reset-attendee script that rebuilds your flows from scratch in ~10 seconds.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================================================
+     CREDITS + REPO
+     ============================================================ -->
+<h2 id="credits">Credits + repo</h2>
+
+<p><strong>AML case design, the four planted pedagogical features, and the Stage 1 / Stage 2 prompts:</strong> Omar. See <code>docs/Integrated_report_demo_Omar/</code> in the repo for his original demo guide and source materials.</p>
+
+<p><strong>Workshop infrastructure:</strong> LangFlow 1.9.2 · OpenRouter via in-house KeyBroker proxy · Phoenix (currently disabled) · pre-provisioned attendee accounts on <code>pi-2026-workshop.javadilab.org</code>.</p>
+
+<p><strong>Repository:</strong> <a href="https://github.com/hesamhakim/agentic-pathology-workshop">github.com/hesamhakim/agentic-pathology-workshop</a></p>
+
+<ul>
+  <li>Slide deck: <code>docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html</code></li>
+  <li>This handbook: <code>docs/attendee_handbook.html</code></li>
+  <li>Component sources: <code>langflow_flows/components/</code></li>
+  <li>Case PDFs and ground truth: <code>data/scenario_d/</code></li>
+</ul>
+
+<footer>
+  <p>API Summit 2026 · Pathology Informatics Track · Javadi Lab. Built with LangFlow and a lot of Omar's prompt engineering.</p>
+</footer>
+
+</main>
+</div>
+
+<!-- ============================================================
+     JS — copy-to-clipboard on every .prompt block
+     ============================================================ -->
+<script>
+(function () {
+  document.querySelectorAll('.prompt').forEach(function (block) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.type = 'button';
+    btn.addEventListener('click', function () {
+      // Get text content excluding the label
+      var clone = block.cloneNode(true);
+      var label = clone.querySelector('.prompt-label');
+      if (label) label.remove();
+      var copyBtn = clone.querySelector('.copy-btn');
+      if (copyBtn) copyBtn.remove();
+      var text = clone.textContent.trim();
+      // Decode any HTML entities that survived
+      var ta = document.createElement('textarea');
+      ta.innerHTML = text;
+      var decoded = ta.value;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(decoded).then(showCopied).catch(showError);
+      } else {
+        // Fallback for older browsers
+        var t = document.createElement('textarea');
+        t.value = decoded;
+        document.body.appendChild(t);
+        t.select();
+        try { document.execCommand('copy'); showCopied(); }
+        catch (e) { showError(); }
+        document.body.removeChild(t);
+      }
+    });
+    block.appendChild(btn);
+  });
+
+  function showCopied() {
+    var b = event.currentTarget;
+    b.textContent = 'Copied!';
+    b.classList.add('copied');
+    setTimeout(function () {
+      b.textContent = 'Copy';
+      b.classList.remove('copied');
+    }, 1400);
+  }
+  function showError() {
+    var b = event.currentTarget;
+    b.textContent = 'Error';
+    setTimeout(function () { b.textContent = 'Copy'; }, 1400);
+  }
+})();
+</script>
+
+</body>
+</html>
