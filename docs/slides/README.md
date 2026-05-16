@@ -1,15 +1,18 @@
 # Workshop slide deck
 
 The deck for the API Summit 2026 workshop talk on agentic AI in
-integrated pathology reporting. **26 slides, ~30 minutes of presenter
-time.** Heavily hands-on — most of the deck guides attendees step
-by step through Scenario 0 and Scenario D in the actual LangFlow UI.
+integrated pathology reporting. **28 slides, ~30 minutes of presenter
+time.** Heavily hands-on — the chatbot half of the workshop is
+covered in **one framing slide** (no screenshots — everyone knows
+what a chat panel looks like). The bulk of the deck is the
+**agentic-workflow deep-dive**: flow · input · output · config ·
+trace · troubleshoot.
 
 ## Current source-of-truth
 
 [`slide_specs.md`](slide_specs.md) is the authoritative spec. Hand
 it to Claude Design (or any other design tool) together with the
-SVG topology references in `img/` and the 11 LangFlow screenshots
+SVG topology references in `img/` and the 10 LangFlow screenshots
 in `img/screenshots/` (once captured).
 
 The earlier 21-slide draft (Marp markdown at `slides.md`) is
@@ -26,45 +29,55 @@ When you hand off the deck:
    *topology references only* — show what connects to what — and
    should be redrawn from scratch in a polished clinical-infographic
    style. Do NOT embed them verbatim.
-3. **The 11 screenshots from `img/screenshots/`** (specs below).
-   These can be captured once and dropped in.
+3. **The 10 screenshots from `img/screenshots/`** (specs below).
+   All from `D_integrated_report_to_who`. No chatbot screenshots.
 
-## Screenshots — 11 needed, one per hands-on slide
+## Screenshots — 10 needed, all Scenario D
 
 Capture instructions for every screenshot are in
-[`slide_specs.md` § "Screenshot inventory"](slide_specs.md#screenshot-inventory--11-screenshots-one-per-hands-on-slide).
+[`slide_specs.md` § "Screenshot inventory"](slide_specs.md#screenshot-inventory--10-scenario-d-screenshots).
 Capture the raw PNGs (no annotations). Claude Design adds the
 arrows, numbered callouts, and highlight overlays at slide
 composition time.
 
 | # | Filename | Slide | Topic |
 |---|---|---|---|
-| 1 | `lookup_general_chatbot.png` | 10 | My Projects view + opening `0_general_chatbot` |
-| 2 | `chatbot_attach_pdfs.png` | 11 | Paperclip + 4 PDFs queued |
-| 3 | `chatbot_prompt_sent.png` | 12 | Typed prompt visible before send |
-| 4 | `chatbot_reply.png` | 13 | The chatbot's reply |
-| 5 | `canvas_scenario_d.png` | 16 | Full LangFlow canvas of Scenario D |
-| 6 | `scenario_d_running.png` | 19 | The `run the aml case` prompt + pipeline executing |
-| 7 | `scenario_d_report_top.png` | 20 | Sections 1–7 of the integrated report |
-| 8 | `scenario_d_diagnosis.png` | 21 | Sections 8–9 (interpretation + final diagnosis) |
-| 9 | `scenario_d_trace.png` | 22 | Part B — Evidence Trace table |
-| 10 | `scenario_d_qa.png` | 23 | QA flags section |
-| 11 | `scenario_d_edit_prompt.png` | 24 | WHO Classifier system-prompt textarea |
+| 1 | `canvas_scenario_d.png` | 10 | Full LangFlow canvas of Scenario D, all 7 nodes in one frame |
+| 2 | `scenario_d_running.png` | 13 | The `run the aml case` prompt typed in Playground |
+| 3 | `scenario_d_report_top.png` | 16 | Sections 1–7 of the integrated report |
+| 4 | `scenario_d_diagnosis.png` | 17 | Sections 8–9 (interpretation + final diagnosis) |
+| 5 | `scenario_d_trace.png` | 18 | Part B — Evidence Trace table |
+| 6 | `scenario_d_qa.png` | 19 | QA flags section |
+| 7 | `scenario_d_node_config.png` | 20 | Right-side node detail panel showing model + temperature + prompt fields |
+| 8 | `pdf_intake_prompt.png` | 22 | PDF Intake node's System Prompt textarea expanded |
+| 9 | `who_classifier_prompt.png` | 23 | WHO Classifier node's System Prompt textarea expanded |
+| 10 | `scenario_d_edit_prompt.png` | 24 | WHO Classifier System Prompt with cursor positioned for an edit |
+
+**No chatbot screenshots.** Per the design brief, attendees already
+know what a chat panel looks like; the non-intuitive material is
+the agentic workflow.
 
 ## Rebalanced deck structure
 
-- **Intro + concept (slides 1–6)**: ~6 slides, tightened from the previous
-  9-slide block. Theory is kept brief; the case study comes early.
-- **Case (slides 7–8)**: ~2 slides. Patient + four reports + planted features.
-- **Part 1 hands-on — chatbot (slides 9–14)**: 6 slides, step-by-step:
-  open the flow, attach PDFs, type the prompt, read the reply, ask
-  four diagnostic questions.
-- **Part 2 hands-on — agentic workflow (slides 15–24)**: 10 slides,
-  step-by-step: open the canvas, understand the seven components,
-  identify the two editable levers, run the case, walk through the
-  output (top of report, diagnosis line, evidence trace, QA flags),
-  and edit a prompt + re-run.
-- **Wrap (slides 25–26)**: side-by-side comparison + take-home.
+- **Intro + concept (slides 1–5)**: 5 slides. Title, what you'll do,
+  the clinical problem, two ways to use an LLM, when to reach for which.
+- **Case (slides 6–7)**: 2 slides. Patient + four reports + four
+  planted pedagogical features.
+- **Chatbot framing (slide 8)**: 1 text-only slide. No hands-on
+  walkthrough — attendees do it in their browsers while presenter
+  speaks.
+- **Agentic deep-dive (slides 9–26)**: 18 slides. The bulk of the deck.
+  - Slide 9: section break
+  - Slide 10: canvas
+  - Slide 11: pipeline at a glance
+  - Slide 12: two stages (extract → integrate)
+  - Slides 13–14: input (chat directives)
+  - Slides 15–19: output (overview, sections 1–7, sections 8–9,
+    Part B trace, QA flags)
+  - Slides 20–24: config (where knobs live, two editable levers,
+    PDF Intake prompt, WHO Classifier prompt, edit-and-rerun)
+  - Slides 25–26: troubleshoot (node fails, output wrong)
+- **Wrap (slides 27–28)**: side-by-side comparison + take-home.
 
 ## Visual style direction — key points
 
@@ -110,16 +123,15 @@ docs/slides/
     ├── side_by_side.svg                     wireframe ref — redraw at design time
     ├── _preview/                            matplotlib PNG previews (gitignored)
     └── screenshots/
-        ├── lookup_general_chatbot.png       user-provided
-        ├── chatbot_attach_pdfs.png          user-provided
-        ├── chatbot_prompt_sent.png          user-provided
-        ├── chatbot_reply.png                user-provided
         ├── canvas_scenario_d.png            user-provided
         ├── scenario_d_running.png           user-provided
         ├── scenario_d_report_top.png        user-provided
         ├── scenario_d_diagnosis.png         user-provided
         ├── scenario_d_trace.png             user-provided
         ├── scenario_d_qa.png                user-provided
+        ├── scenario_d_node_config.png       user-provided
+        ├── pdf_intake_prompt.png            user-provided
+        ├── who_classifier_prompt.png        user-provided
         └── scenario_d_edit_prompt.png       user-provided
 ```
 
