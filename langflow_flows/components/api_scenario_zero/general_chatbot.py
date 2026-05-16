@@ -59,11 +59,51 @@ TEXT_EXTS = {".txt", ".md", ".markdown", ".csv", ".json", ".yaml", ".yml",
              ".xml", ".html", ".htm", ".rst", ".log", ".tsv"}
 
 
+def _langflow_data_dirs() -> list[Path]:
+    """Return all plausible roots where LangFlow stores uploaded files.
+
+    Newer LangFlow versions use platformdirs.user_cache_dir which
+    resolves to ``~/.cache/langflow`` on Linux for the user that
+    actually started the langflow process. v1 per-flow uploads land
+    under ``<root>/<flow_id>/``; v2 uploads (which the Playground
+    paperclip uses) land under ``<root>/<user_id>/``. Either way the
+    actual file lives directly under one of these roots, possibly two
+    levels deep.
+    """
+    candidates: list[Path] = []
+    for env in ("LANGFLOW_CONFIG_DIR",):
+        v = os.environ.get(env)
+        if v:
+            candidates.append(Path(v))
+    # Default cache dirs across common user accounts inside the container
+    for home in ("/root", str(Path.home()), "/app", "/app/data"):
+        candidates.append(Path(home) / ".cache" / "langflow")
+        candidates.append(Path(home) / ".langflow")
+    # De-dup while preserving order
+    seen = set()
+    out = []
+    for p in candidates:
+        s = str(p)
+        if s not in seen:
+            seen.add(s)
+            out.append(p)
+    return out
+
+
 def _resolve_path(file_ref) -> str | None:
-    """LangFlow's Message.files entries may be (a) raw path strings,
-    (b) Image objects with .path, or (c) flow-relative paths under the
-    LangFlow file store. Resolve to an absolute path that exists, or
-    return None if we can't find the file."""
+    """Try hard to locate the actual file an attachment refers to.
+
+    LangFlow's Message.files entries arrive in several shapes:
+      * absolute paths (``/root/.cache/langflow/<flow_id>/<file>``)
+      * v1-style flow-scoped relative paths (``<flow_id>/<file>``)
+      * v2-style user-scoped relative paths (``<user_id>/<file>``)
+      * Image-like objects with a ``.path`` attribute
+      * Bare filenames (rare)
+
+    Strategy: try the path verbatim, then try every plausible
+    LangFlow data dir as a prefix, then fall back to a basename
+    search across the whole langflow cache.
+    """
     if file_ref is None:
         return None
     if hasattr(file_ref, "path"):
@@ -72,26 +112,34 @@ def _resolve_path(file_ref) -> str | None:
         candidate = str(file_ref)
     if not candidate:
         return None
+
+    # 1. As-is if absolute
     if os.path.isabs(candidate) and os.path.exists(candidate):
         return candidate
-    # Try resolving under LangFlow's configured storage location.
-    for base in [
-        os.environ.get("LANGFLOW_CONFIG_DIR", ""),
-        "/app/data",
-        "/app/.langflow",
-        str(Path.home() / ".langflow"),
-    ]:
-        if not base:
+
+    # 2. Under each known LangFlow data root, both directly and via the
+    #    standard <root>/<flow-or-user>/<file> layout.
+    for base in _langflow_data_dirs():
+        if not base.exists():
             continue
-        candidate_full = Path(base) / candidate
-        if candidate_full.exists():
-            return str(candidate_full)
-        # Try a few subdirectories where attachments commonly land
-        for sub in ("uploads", "flows", "files"):
-            candidate_sub = Path(base) / sub / candidate
-            if candidate_sub.exists():
-                return str(candidate_sub)
-    # Fallback: maybe it's relative to cwd
+        direct = base / candidate
+        if direct.exists():
+            return str(direct)
+
+    # 3. Fall back: search by basename anywhere under each data root.
+    basename = Path(candidate).name
+    if basename:
+        for base in _langflow_data_dirs():
+            if not base.exists():
+                continue
+            matches = list(base.rglob(basename))
+            if matches:
+                # Prefer the most-recently-modified match (most likely
+                # to be the one the user just uploaded).
+                matches.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+                return str(matches[0])
+
+    # 4. Relative to CWD
     if os.path.exists(candidate):
         return os.path.abspath(candidate)
     return None

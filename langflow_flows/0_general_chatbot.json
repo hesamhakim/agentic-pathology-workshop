@@ -4,14 +4,14 @@
   "data": {
     "nodes": [
       {
-        "id": "ChatInput-fb1001",
+        "id": "ChatInput-d7af09",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 300
         },
         "data": {
-          "id": "ChatInput-fb1001",
+          "id": "ChatInput-d7af09",
           "type": "ChatInput",
           "node": {
             "base_classes": [
@@ -291,14 +291,14 @@
         }
       },
       {
-        "id": "GeneralChatbot-39af67",
+        "id": "GeneralChatbot-482100",
         "type": "genericNode",
         "position": {
           "x": 550,
           "y": 300
         },
         "data": {
-          "id": "GeneralChatbot-39af67",
+          "id": "GeneralChatbot-482100",
           "type": "GeneralChatbot",
           "node": {
             "template": {
@@ -332,7 +332,7 @@
                 "list": false,
                 "show": true,
                 "multiline": true,
-                "value": "\"\"\"Scenario Zero \u2014 General Chatbot.\n\nA truly generic single-LLM-call chatbot that mirrors the UX of a\ntypical ChatGPT / Gemini / Claude conversation: one chat panel, a\npaperclip button for attaching zero, one, or many files. Attendees\nattach whatever they want (or nothing) and ask whatever they want.\n\nThe component takes a single Message input from a Chat Input node and\ninspects the Message's `.files` attribute for any attached files. For\neach attached file it parses the content using LangFlow's own\nfile-parsing utilities (PDF via pypdf, DOCX, plain text, markdown,\nCSV, etc.), concatenates the file contents to the user's text, and\nmakes one LLM call.\n\nThe workshop uses this as the warm-up baseline. Attendees attach the\nfour Omar AML PDFs (or just one, or none) and ask plain-English\nquestions. Then they compare to Scenario D's seven-component workflow\non the same input to see what workflow design buys you over a single\nchat call.\n\nSits in api_scenario_zero so it lives alongside api_scenario_a..d in\nthe LangFlow component sidebar.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport os\nfrom pathlib import Path\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.message import Message\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a helpful AI assistant. The user may\nattach one or more files (PDFs, text documents, or similar) for context.\nRead any provided files carefully and use their content to answer the\nuser's questions accurately and concisely. If the user asks something\nthat cannot be answered from the provided files, say so plainly. Do\nnot invent facts. Match the user's tone and depth of detail.\"\"\"\n\n# Per-file truncation cap to keep prompt sizes manageable when an\n# attendee attaches a very large document. Default ~30k chars per file\n# is enough for a typical multi-page pathology PDF.\nMAX_CHARS_PER_FILE = 30_000\n\nPDF_EXTS = {\".pdf\"}\nDOCX_EXTS = {\".docx\"}\nTEXT_EXTS = {\".txt\", \".md\", \".markdown\", \".csv\", \".json\", \".yaml\", \".yml\",\n             \".xml\", \".html\", \".htm\", \".rst\", \".log\", \".tsv\"}\n\n\ndef _resolve_path(file_ref) -> str | None:\n    \"\"\"LangFlow's Message.files entries may be (a) raw path strings,\n    (b) Image objects with .path, or (c) flow-relative paths under the\n    LangFlow file store. Resolve to an absolute path that exists, or\n    return None if we can't find the file.\"\"\"\n    if file_ref is None:\n        return None\n    if hasattr(file_ref, \"path\"):\n        candidate = file_ref.path\n    else:\n        candidate = str(file_ref)\n    if not candidate:\n        return None\n    if os.path.isabs(candidate) and os.path.exists(candidate):\n        return candidate\n    # Try resolving under LangFlow's configured storage location.\n    for base in [\n        os.environ.get(\"LANGFLOW_CONFIG_DIR\", \"\"),\n        \"/app/data\",\n        \"/app/.langflow\",\n        str(Path.home() / \".langflow\"),\n    ]:\n        if not base:\n            continue\n        candidate_full = Path(base) / candidate\n        if candidate_full.exists():\n            return str(candidate_full)\n        # Try a few subdirectories where attachments commonly land\n        for sub in (\"uploads\", \"flows\", \"files\"):\n            candidate_sub = Path(base) / sub / candidate\n            if candidate_sub.exists():\n                return str(candidate_sub)\n    # Fallback: maybe it's relative to cwd\n    if os.path.exists(candidate):\n        return os.path.abspath(candidate)\n    return None\n\n\ndef _read_one_file(file_ref) -> tuple[str, str]:\n    \"\"\"Return (display_name, parsed_text) for one attachment. If we\n    cannot parse or find the file, return (name, '') and the caller\n    will skip the empty block.\"\"\"\n    try:\n        from lfx.base.data.utils import (\n            parse_pdf_to_text,\n            read_docx_file,\n            read_text_file,\n        )\n    except ImportError as e:\n        return (\"import-failed\", f\"(could not import parser: {e})\")\n\n    abs_path = _resolve_path(file_ref)\n    name = Path(getattr(file_ref, \"path\", str(file_ref))).name or \"attachment\"\n    if not abs_path:\n        return (name, f\"(file not found: {file_ref})\")\n    suffix = Path(abs_path).suffix.lower()\n    try:\n        if suffix in PDF_EXTS:\n            text = parse_pdf_to_text(abs_path)\n        elif suffix in DOCX_EXTS:\n            text = read_docx_file(abs_path)\n        elif suffix in TEXT_EXTS or suffix == \"\":\n            text = read_text_file(abs_path)\n        else:\n            # Best-effort: try reading as text; if it's binary garbage,\n            # the model will get a noisy block.\n            text = read_text_file(abs_path)\n    except Exception as e:\n        return (name, f\"(parse error: {type(e).__name__}: {e})\")\n    if not text:\n        return (name, \"\")\n    if len(text) > MAX_CHARS_PER_FILE:\n        text = text[:MAX_CHARS_PER_FILE] + \"\\n\\n[... file truncated ...]\"\n    return (name, text)\n\n\nclass ScenarioZero_GeneralChatbot(Component):\n    display_name = \"General Chatbot\"\n    description = (\n        \"A general-purpose chatbot. Reads the user message from a Chat Input \"\n        \"and parses any files the user attached via the Playground paperclip \"\n        \"button. Zero, one, or many attachments \u2014 same flow. Makes one LLM \"\n        \"call and replies. The deliberate 'general chat tool' baseline that \"\n        \"contrasts with the workshop's purpose-built agentic workflows.\"\n    )\n    icon = \"message-square\"\n    name = \"GeneralChatbot\"\n\n    inputs = [\n        HandleInput(\n            name=\"user_message\",\n            display_name=\"User Message\",\n            input_types=[\"Message\"],\n            info=\"Connect a Chat Input node. The user types in Playground, \"\n                 \"optionally attaches files using the paperclip button, \"\n                 \"and presses send.\",\n        ),\n        StrInput(\n            name=\"model\",\n            display_name=\"Model\",\n            value=\"openai/gpt-4o\",\n            info=\"Default openai/gpt-4o \u2014 same model the workshop's agentic \"\n                 \"workflows use for their main reasoner \u2014 so any difference \"\n                 \"the workshop's later scenarios show vs this chatbot is \"\n                 \"workflow design, not model capability.\",\n        ),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.2),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=2500, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. The single instruction the LLM gets. This is the \"\n                 \"entire 'workflow.' Try tightening it for a specific task and \"\n                 \"see how far you can push the chatbot's behavior with prompt \"\n                 \"engineering alone before you reach for a multi-stage workflow.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Reply\", name=\"reply\", method=\"run_chat\")]\n\n    def run_chat(self) -> Message:\n        if not self.user_message:\n            return Message(text=\"(no input received)\")\n        user_text = (getattr(self.user_message, \"text\", \"\") or \"\").strip()\n        attached = list(getattr(self.user_message, \"files\", None) or [])\n\n        if not user_text and not attached:\n            return Message(text=(\n                \"(type a question \u2014 and optionally attach one or more files \"\n                \"via the paperclip button in Playground \u2014 then press send)\"\n            ))\n\n        # Parse any attachments and assemble a single prompt\n        file_blocks: list[str] = []\n        for i, file_ref in enumerate(attached, start=1):\n            name, text = _read_one_file(file_ref)\n            if not text:\n                continue\n            file_blocks.append(\n                f\"\\n\\n========== ATTACHED FILE {i}: {name} ==========\\n\\n{text}\\n\"\n            )\n\n        if file_blocks:\n            user_content = (\n                f\"{user_text}\\n\\n\"\n                f\"--- Attached files follow ---\" + \"\".join(file_blocks)\n            )\n        else:\n            # Plain chat, no usable attachments\n            user_content = user_text or \"(empty message)\"\n\n        client = openai_client()\n        text = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=user_content,\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            span_name=\"scenario_zero.general_chatbot\",\n        )\n        return Message(text=text.strip())\n",
+                "value": "\"\"\"Scenario Zero \u2014 General Chatbot.\n\nA truly generic single-LLM-call chatbot that mirrors the UX of a\ntypical ChatGPT / Gemini / Claude conversation: one chat panel, a\npaperclip button for attaching zero, one, or many files. Attendees\nattach whatever they want (or nothing) and ask whatever they want.\n\nThe component takes a single Message input from a Chat Input node and\ninspects the Message's `.files` attribute for any attached files. For\neach attached file it parses the content using LangFlow's own\nfile-parsing utilities (PDF via pypdf, DOCX, plain text, markdown,\nCSV, etc.), concatenates the file contents to the user's text, and\nmakes one LLM call.\n\nThe workshop uses this as the warm-up baseline. Attendees attach the\nfour Omar AML PDFs (or just one, or none) and ask plain-English\nquestions. Then they compare to Scenario D's seven-component workflow\non the same input to see what workflow design buys you over a single\nchat call.\n\nSits in api_scenario_zero so it lives alongside api_scenario_a..d in\nthe LangFlow component sidebar.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport os\nfrom pathlib import Path\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.message import Message\n\nfrom tools.scenario_d.v2_helpers import chat_completion_text, openai_client\n\n\nDEFAULT_SYSTEM_PROMPT = \"\"\"You are a helpful AI assistant. The user may\nattach one or more files (PDFs, text documents, or similar) for context.\nRead any provided files carefully and use their content to answer the\nuser's questions accurately and concisely. If the user asks something\nthat cannot be answered from the provided files, say so plainly. Do\nnot invent facts. Match the user's tone and depth of detail.\"\"\"\n\n# Per-file truncation cap to keep prompt sizes manageable when an\n# attendee attaches a very large document. Default ~30k chars per file\n# is enough for a typical multi-page pathology PDF.\nMAX_CHARS_PER_FILE = 30_000\n\nPDF_EXTS = {\".pdf\"}\nDOCX_EXTS = {\".docx\"}\nTEXT_EXTS = {\".txt\", \".md\", \".markdown\", \".csv\", \".json\", \".yaml\", \".yml\",\n             \".xml\", \".html\", \".htm\", \".rst\", \".log\", \".tsv\"}\n\n\ndef _langflow_data_dirs() -> list[Path]:\n    \"\"\"Return all plausible roots where LangFlow stores uploaded files.\n\n    Newer LangFlow versions use platformdirs.user_cache_dir which\n    resolves to ``~/.cache/langflow`` on Linux for the user that\n    actually started the langflow process. v1 per-flow uploads land\n    under ``<root>/<flow_id>/``; v2 uploads (which the Playground\n    paperclip uses) land under ``<root>/<user_id>/``. Either way the\n    actual file lives directly under one of these roots, possibly two\n    levels deep.\n    \"\"\"\n    candidates: list[Path] = []\n    for env in (\"LANGFLOW_CONFIG_DIR\",):\n        v = os.environ.get(env)\n        if v:\n            candidates.append(Path(v))\n    # Default cache dirs across common user accounts inside the container\n    for home in (\"/root\", str(Path.home()), \"/app\", \"/app/data\"):\n        candidates.append(Path(home) / \".cache\" / \"langflow\")\n        candidates.append(Path(home) / \".langflow\")\n    # De-dup while preserving order\n    seen = set()\n    out = []\n    for p in candidates:\n        s = str(p)\n        if s not in seen:\n            seen.add(s)\n            out.append(p)\n    return out\n\n\ndef _resolve_path(file_ref) -> str | None:\n    \"\"\"Try hard to locate the actual file an attachment refers to.\n\n    LangFlow's Message.files entries arrive in several shapes:\n      * absolute paths (``/root/.cache/langflow/<flow_id>/<file>``)\n      * v1-style flow-scoped relative paths (``<flow_id>/<file>``)\n      * v2-style user-scoped relative paths (``<user_id>/<file>``)\n      * Image-like objects with a ``.path`` attribute\n      * Bare filenames (rare)\n\n    Strategy: try the path verbatim, then try every plausible\n    LangFlow data dir as a prefix, then fall back to a basename\n    search across the whole langflow cache.\n    \"\"\"\n    if file_ref is None:\n        return None\n    if hasattr(file_ref, \"path\"):\n        candidate = file_ref.path\n    else:\n        candidate = str(file_ref)\n    if not candidate:\n        return None\n\n    # 1. As-is if absolute\n    if os.path.isabs(candidate) and os.path.exists(candidate):\n        return candidate\n\n    # 2. Under each known LangFlow data root, both directly and via the\n    #    standard <root>/<flow-or-user>/<file> layout.\n    for base in _langflow_data_dirs():\n        if not base.exists():\n            continue\n        direct = base / candidate\n        if direct.exists():\n            return str(direct)\n\n    # 3. Fall back: search by basename anywhere under each data root.\n    basename = Path(candidate).name\n    if basename:\n        for base in _langflow_data_dirs():\n            if not base.exists():\n                continue\n            matches = list(base.rglob(basename))\n            if matches:\n                # Prefer the most-recently-modified match (most likely\n                # to be the one the user just uploaded).\n                matches.sort(key=lambda p: p.stat().st_mtime, reverse=True)\n                return str(matches[0])\n\n    # 4. Relative to CWD\n    if os.path.exists(candidate):\n        return os.path.abspath(candidate)\n    return None\n\n\ndef _read_one_file(file_ref) -> tuple[str, str]:\n    \"\"\"Return (display_name, parsed_text) for one attachment. If we\n    cannot parse or find the file, return (name, '') and the caller\n    will skip the empty block.\"\"\"\n    try:\n        from lfx.base.data.utils import (\n            parse_pdf_to_text,\n            read_docx_file,\n            read_text_file,\n        )\n    except ImportError as e:\n        return (\"import-failed\", f\"(could not import parser: {e})\")\n\n    abs_path = _resolve_path(file_ref)\n    name = Path(getattr(file_ref, \"path\", str(file_ref))).name or \"attachment\"\n    if not abs_path:\n        return (name, f\"(file not found: {file_ref})\")\n    suffix = Path(abs_path).suffix.lower()\n    try:\n        if suffix in PDF_EXTS:\n            text = parse_pdf_to_text(abs_path)\n        elif suffix in DOCX_EXTS:\n            text = read_docx_file(abs_path)\n        elif suffix in TEXT_EXTS or suffix == \"\":\n            text = read_text_file(abs_path)\n        else:\n            # Best-effort: try reading as text; if it's binary garbage,\n            # the model will get a noisy block.\n            text = read_text_file(abs_path)\n    except Exception as e:\n        return (name, f\"(parse error: {type(e).__name__}: {e})\")\n    if not text:\n        return (name, \"\")\n    if len(text) > MAX_CHARS_PER_FILE:\n        text = text[:MAX_CHARS_PER_FILE] + \"\\n\\n[... file truncated ...]\"\n    return (name, text)\n\n\nclass ScenarioZero_GeneralChatbot(Component):\n    display_name = \"General Chatbot\"\n    description = (\n        \"A general-purpose chatbot. Reads the user message from a Chat Input \"\n        \"and parses any files the user attached via the Playground paperclip \"\n        \"button. Zero, one, or many attachments \u2014 same flow. Makes one LLM \"\n        \"call and replies. The deliberate 'general chat tool' baseline that \"\n        \"contrasts with the workshop's purpose-built agentic workflows.\"\n    )\n    icon = \"message-square\"\n    name = \"GeneralChatbot\"\n\n    inputs = [\n        HandleInput(\n            name=\"user_message\",\n            display_name=\"User Message\",\n            input_types=[\"Message\"],\n            info=\"Connect a Chat Input node. The user types in Playground, \"\n                 \"optionally attaches files using the paperclip button, \"\n                 \"and presses send.\",\n        ),\n        StrInput(\n            name=\"model\",\n            display_name=\"Model\",\n            value=\"openai/gpt-4o\",\n            info=\"Default openai/gpt-4o \u2014 same model the workshop's agentic \"\n                 \"workflows use for their main reasoner \u2014 so any difference \"\n                 \"the workshop's later scenarios show vs this chatbot is \"\n                 \"workflow design, not model capability.\",\n        ),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.2),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=2500, advanced=True),\n        MultilineInput(\n            name=\"system_prompt\",\n            display_name=\"System Prompt\",\n            value=DEFAULT_SYSTEM_PROMPT,\n            info=\"EDIT ME. The single instruction the LLM gets. This is the \"\n                 \"entire 'workflow.' Try tightening it for a specific task and \"\n                 \"see how far you can push the chatbot's behavior with prompt \"\n                 \"engineering alone before you reach for a multi-stage workflow.\",\n        ),\n    ]\n\n    outputs = [Output(display_name=\"Reply\", name=\"reply\", method=\"run_chat\")]\n\n    def run_chat(self) -> Message:\n        if not self.user_message:\n            return Message(text=\"(no input received)\")\n        user_text = (getattr(self.user_message, \"text\", \"\") or \"\").strip()\n        attached = list(getattr(self.user_message, \"files\", None) or [])\n\n        if not user_text and not attached:\n            return Message(text=(\n                \"(type a question \u2014 and optionally attach one or more files \"\n                \"via the paperclip button in Playground \u2014 then press send)\"\n            ))\n\n        # Parse any attachments and assemble a single prompt\n        file_blocks: list[str] = []\n        for i, file_ref in enumerate(attached, start=1):\n            name, text = _read_one_file(file_ref)\n            if not text:\n                continue\n            file_blocks.append(\n                f\"\\n\\n========== ATTACHED FILE {i}: {name} ==========\\n\\n{text}\\n\"\n            )\n\n        if file_blocks:\n            user_content = (\n                f\"{user_text}\\n\\n\"\n                f\"--- Attached files follow ---\" + \"\".join(file_blocks)\n            )\n        else:\n            # Plain chat, no usable attachments\n            user_content = user_text or \"(empty message)\"\n\n        client = openai_client()\n        text = chat_completion_text(\n            client,\n            model=self.model,\n            system_prompt=self.system_prompt or DEFAULT_SYSTEM_PROMPT,\n            user_content=user_content,\n            temperature=self.temperature,\n            max_tokens=self.max_tokens,\n            span_name=\"scenario_zero.general_chatbot\",\n        )\n        return Message(text=text.strip())\n",
                 "fileTypes": [],
                 "file_path": "",
                 "password": false,
@@ -475,7 +475,7 @@
             "edited": false,
             "metadata": {
               "module": "custom_components.general_chatbot",
-              "code_hash": "20c4d9482025",
+              "code_hash": "5c2191946530",
               "dependencies": {
                 "total_dependencies": 3,
                 "dependencies": [
@@ -500,14 +500,14 @@
         }
       },
       {
-        "id": "ChatOutput-3aefbf",
+        "id": "ChatOutput-3e4eb0",
         "type": "genericNode",
         "position": {
           "x": 1100,
           "y": 300
         },
         "data": {
-          "id": "ChatOutput-3aefbf",
+          "id": "ChatOutput-3e4eb0",
           "type": "ChatOutput",
           "node": {
             "base_classes": [
@@ -795,14 +795,14 @@
     ],
     "edges": [
       {
-        "source": "ChatInput-fb1001",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-fb1001\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "GeneralChatbot-39af67",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153GeneralChatbot-39af67\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "ChatInput-d7af09",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-d7af09\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "GeneralChatbot-482100",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153GeneralChatbot-482100\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ChatInput",
-            "id": "ChatInput-fb1001",
+            "id": "ChatInput-d7af09",
             "name": "message",
             "output_types": [
               "Message"
@@ -810,27 +810,27 @@
           },
           "targetHandle": {
             "fieldName": "user_message",
-            "id": "GeneralChatbot-39af67",
+            "id": "GeneralChatbot-482100",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__ChatInput-fb1001{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-fb1001\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-39af67{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153GeneralChatbot-39af67\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__ChatInput-d7af09{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-d7af09\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-GeneralChatbot-482100{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153GeneralChatbot-482100\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "GeneralChatbot-39af67",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153GeneralChatbot\u0153,\u0153id\u0153:\u0153GeneralChatbot-39af67\u0153,\u0153name\u0153:\u0153reply\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "ChatOutput-3aefbf",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3aefbf\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "GeneralChatbot-482100",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153GeneralChatbot\u0153,\u0153id\u0153:\u0153GeneralChatbot-482100\u0153,\u0153name\u0153:\u0153reply\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "ChatOutput-3e4eb0",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3e4eb0\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "GeneralChatbot",
-            "id": "GeneralChatbot-39af67",
+            "id": "GeneralChatbot-482100",
             "name": "reply",
             "output_types": [
               "Message"
@@ -838,14 +838,14 @@
           },
           "targetHandle": {
             "fieldName": "input_value",
-            "id": "ChatOutput-3aefbf",
+            "id": "ChatOutput-3e4eb0",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__GeneralChatbot-39af67{\u0153dataType\u0153:\u0153GeneralChatbot\u0153,\u0153id\u0153:\u0153GeneralChatbot-39af67\u0153,\u0153name\u0153:\u0153reply\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-3aefbf{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3aefbf\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__GeneralChatbot-482100{\u0153dataType\u0153:\u0153GeneralChatbot\u0153,\u0153id\u0153:\u0153GeneralChatbot-482100\u0153,\u0153name\u0153:\u0153reply\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-3e4eb0{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-3e4eb0\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
