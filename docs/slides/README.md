@@ -125,8 +125,10 @@ docs/slides/
         └── pdf_intake_prompt.png            ✓ provided (slide 15)
 ```
 
-## Credits
+## Authors
 
-- AML case design + planted features: Omar (see
-  [`docs/Integrated_report_demo_Omar/`](../Integrated_report_demo_Omar/))
-- Workshop infrastructure: LangFlow 1.9 · OpenRouter · Phoenix · KeyBroker proxy
+- **[Hesam Hakim Javadi, Ph.D.](https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092)** — Medical College of Wisconsin. Slides, deck spec, build chain.
+- **Srikar Chamala, Ph.D.** — Children's Hospital of Los Angeles.
+- **Omar Baba, MD** — Henry Ford Health System. AML case design + planted pedagogical features (see [`docs/Integrated_report_demo_Omar/`](../Integrated_report_demo_Omar/)).
+
+Workshop infrastructure: LangFlow 1.9 · OpenRouter · Phoenix · KeyBroker proxy

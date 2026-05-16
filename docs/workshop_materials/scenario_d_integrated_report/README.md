@@ -115,4 +115,4 @@ These are the same files Scenario 0 attaches by hand. Scenario D loads them auto
 - [03_cytogenetics_fish.pdf](../../../data/scenario_d/case_aml/03_cytogenetics_fish.pdf)
 - [04_molecular_ngs.pdf](../../../data/scenario_d/case_aml/04_molecular_ngs.pdf)
 
-The four planted pedagogical features (blast-count discordance, hedge resolution, NPM1 single-source classifier, DNMT3A lane-discipline trap) are documented in [`extracted_ground_truth.json`](../../../data/scenario_d/case_aml/extracted_ground_truth.json). Case design + system prompts: Omar.
+The four planted pedagogical features (blast-count discordance, hedge resolution, NPM1 single-source classifier, DNMT3A lane-discipline trap) are documented in [`extracted_ground_truth.json`](../../../data/scenario_d/case_aml/extracted_ground_truth.json). Case design + system prompts: **Omar Baba, MD** (Henry Ford Health System).
