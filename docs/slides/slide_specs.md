@@ -1,7 +1,8 @@
 # Slide specification — API Summit 2026 workshop deck (v4 — components-focused)
 
 **Audience:** Pathology informatics attendees at the API Summit 2026 workshop. Clinical-leaning — pathologists, lab IT directors, informatics fellows. Not primarily programmers.
-**Length:** ~25 minutes of presenter time, **22 slides**.
+**Total workshop length:** **45 minutes** (slides + hands-on + discussion combined).
+**Deck length:** **22 slides**, ~18–22 minutes of presenter time when moving briskly.
 **Aspect ratio:** 16:9 (1920×1080).
 **Talk structure:** brief framing → brief concept → case → **one slide framing the chatbot warm-up** → **the agentic workflow, focused on the components themselves and what each one does** → side-by-side discussion.
 
@@ -94,7 +95,7 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
 - **Subtitle:** *A purpose-built workflow for multi-source clinical synthesis*
 - **Footer:** *API Summit 2026 — Pathology Informatics Track  ·  Javadi Lab*
 - **Visual:** Optional subtle clinical-style illustration (lab-bench icon, stack-of-PDFs glyph).
-- **Speaker notes:** "Welcome. ~25 minutes of slides up front, then hands-on time on the workshop VM, then side-by-side discussion at the end."
+- **Speaker notes:** "Welcome. 45 minutes total — about 20 minutes of slides, then hands-on time on the workshop VM, then a brief side-by-side discussion at the end."
 
 ---
 
@@ -105,12 +106,12 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
 - **Title:** *What you'll do today*
 - **Body — numbered list:**
   1. **Concept** — agentic ≠ chat. *5 min · this deck*
-  2. **The case** — one patient, four reports. *5 min · this deck*
-  3. **Try it as a chatbot first** — quick warm-up. *15 min ·* `0_general_chatbot`
-  4. **The agentic workflow** — canvas + components, what each one does. *40 min ·* `D_integrated_report_to_who`
-  5. **Side-by-side discussion.** *15 min*
+  2. **The case** — one patient, four reports. *3 min · this deck*
+  3. **Try it as a chatbot first** — quick warm-up. *7 min ·* `0_general_chatbot`
+  4. **The agentic workflow** — canvas + components, what each one does. *25 min ·* `D_integrated_report_to_who`
+  5. **Side-by-side discussion.** *5 min*
 - **Callout box (bottom):** *Sign in at `https://pi-2026-workshop.javadilab.org` with your `pi-user-NNN` username and the password the facilitator just announced.*
-- **Speaker notes:** "The bulk of the time today is on the agentic workflow. The chatbot warm-up is intentionally brief — everyone already knows how a chat panel works. The agentic workflow is what's new — specifically the components inside it and what each one's job is."
+- **Speaker notes:** "45 minutes total. The bulk of the time is on the agentic workflow — slides plus live demo plus a brief hands-on edit. The chatbot warm-up is intentionally short — everyone already knows how a chat panel works. The agentic workflow is what's new, specifically the components inside it and what each one's job is."
 
 ---
 
@@ -231,7 +232,7 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
 - **Layout:** Centered, minimal, large "Part 2." Strong amber accent.
 - **Title (very large, 80 px+):** *Part 2*
 - **Subtitle:** *The agentic workflow — every component, one by one*
-- **Footer line:** *≈40 minutes hands-on  ·  flow:* `D_integrated_report_to_who`
+- **Footer line:** *≈25 minutes  ·  flow:* `D_integrated_report_to_who`
 - **Speaker notes:** "Same case. Same four PDFs. Same model. Now we'll see the boxes the work has been split into — and why each one needed to be its own box."
 
 ---

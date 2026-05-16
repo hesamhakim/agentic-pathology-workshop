@@ -1,11 +1,23 @@
 # Workshop slide deck
 
 The deck for the API Summit 2026 workshop talk on agentic AI in
-integrated pathology reporting. **22 slides, ~25 minutes of presenter
-time.** Components-focused — the bulk of the deck is one slide per
-custom component, covering what it does and why it had to be its own
-component. Nothing from the running Playground is shown — the live
-demo covers that better than static screenshots can.
+integrated pathology reporting. **22 slides for a 45-minute workshop**
+(slides + hands-on + discussion combined; ~18–22 minutes of presenter
+time on slides). Components-focused — the bulk of the deck is one
+slide per custom component, covering what it does and why it had to
+be its own component. Nothing from the running Playground is shown —
+the live demo covers that better than static screenshots can.
+
+**Workshop timing** (matches the agenda on slide 2):
+
+| Block | Min |
+|---|---|
+| Concept (slides 1–5) | 5 |
+| Case (slides 6–7) | 3 |
+| Chatbot warm-up (slide 8 + hands-on) | 7 |
+| Agentic deep-dive (slides 9–20 + live demo + edit) | 25 |
+| Side-by-side + discussion (slides 21–22) | 5 |
+| **Total** | **45** |
 
 ## Current source-of-truth
 
