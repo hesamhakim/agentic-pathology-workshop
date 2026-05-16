@@ -82,27 +82,28 @@ The proxy is what makes the build-your-own exercise frictionless — attendees p
 <table>
 <tr>
 <td align="center" width="33%" valign="top">
-  <a href="https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092">
-    <img src="docs/assets/logos/mcw.svg" alt="Medical College of Wisconsin" height="100"/>
-  </a>
+  <img src="docs/assets/logos/Medical_College_of_Wisconsin_logo.svg" alt="Medical College of Wisconsin" height="70"/>
+  &nbsp;&nbsp;
+  <img src="docs/assets/logos/childrens-wisconsing-logo.jpg" alt="Children's Wisconsin" height="70"/>
   <br/><br/>
   <strong><a href="https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092">Hesam Hakim Javadi, Ph.D.</a></strong><br/>
-  <sub>Medical College of Wisconsin</sub>
+  <sub>Medical College of Wisconsin · Children's Wisconsin</sub>
   <br/><br/>
   <sub>Workshop infrastructure, LangFlow components, slides, handbook.</sub>
 </td>
 <td align="center" width="33%" valign="top">
-  <a href="https://www.chla.org/profile/srikar-chamala-phd">
-    <img src="docs/assets/logos/chla.svg" alt="Children's Hospital Los Angeles" height="100"/>
-  </a>
+  <img src="docs/assets/logos/chla.svg" alt="Children's Hospital Los Angeles" height="70"/>
+  &nbsp;&nbsp;
+  <img src="docs/assets/logos/KeckLogoPositive.jpg" alt="USC Keck School of Medicine" height="70"/>
   <br/><br/>
   <strong><a href="https://www.chla.org/profile/srikar-chamala-phd">Srikar Chamala, Ph.D.</a></strong><br/>
-  <sub>Children's Hospital of Los Angeles</sub>
+  <sub>Children's Hospital of Los Angeles · USC Keck School of Medicine</sub>
   <br/><br/>
   <sub>&nbsp;</sub>
 </td>
 <td align="center" width="33%" valign="top">
-  <br/><br/><br/>
+  <img src="docs/assets/logos/henry_ford_HS.webp" alt="Henry Ford Health" height="70"/>
+  <br/><br/>
   <strong>Omar Baba, MD</strong><br/>
   <sub>Henry Ford Health System</sub>
   <br/><br/>
