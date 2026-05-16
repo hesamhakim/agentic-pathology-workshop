@@ -1,47 +1,94 @@
 # Agentic Pathology Workshop — API Summit 2026
 
-A 2-hour, hands-on workshop teaching agentic AI workflows in pathology informatics. Each participant gets an isolated GitHub Codespace running LangFlow + Arize Phoenix + an OpenAI proxy, and runs three scenarios end-to-end:
+A 45-minute hands-on workshop showing what an *agentic workflow* does that a chatbot can't. Built for pathology informatics, with a real-feeling AML case as the example.
 
-- **A — Variant Tournament:** rank somatic/germline variants from a VCF using ClinVar/gnomAD/PubMed agents, emit GA4GH Phenopackets.
-- **B — Longitudinal Ghost:** reconcile a current pathology request against 5+ years of clinical notes; flag contradictions; extract Social Determinants of Health.
-- **C — Digital Thread:** route incoming cases to pathologists by sub-specialty, workload, and instrument availability.
+Fifty attendees, each with their own LangFlow account on a shared workshop VM, work through three flows in sequence. Same four PDFs go in. Three very different outputs come out. The point is the gap between them.
 
-Every scenario includes a Human-in-the-Loop gate. Real-time traces visible in Phoenix.
+## What attendees do
 
-## Launch
+**1 · Chatbot (warm-up, ~7 min).** Attach four AML PDFs in chat, ask for an integrated diagnostic report, get a prose reply. Different every run, no citations, prognostic variants drift into the diagnosis line. This is the "before."
 
-Click **Code → Codespaces → Create codespace on main**. Wait ~60–90s for the prebuilt image.
+**2 · Agentic workflow — Integrated Report → WHO (~25 min).** The same four PDFs feed a seven-component pipeline. Two LLM stages (extraction, then integration), plus parallel post-processing and a QA reviewer. Output: a structured 11-section integrated report, a per-sentence evidence trace mapping every claim back to a source PDF, and a QA-flag section that catches lane-discipline violations and unsupported sentences. Attendees see the two editable system prompts in the canvas; the workshop exercise is to edit one and watch the output change.
 
-Once the Codespace is running, three forwarded ports appear in the **Ports** panel:
+**3 · Build a workflow yourself — Research Buddy (~10 min).** A tiny five-node agentic flow from stock LangFlow components — Chat Input, Agent, Wikipedia, Calculator, Chat Output. About seven minutes to build from scratch, with the completed reference shipped in each account if anyone gets stuck. Demonstrates the agentic pattern at its smallest scale: an LLM that picks tools at runtime.
 
-| Port | Service | What for |
-|---:|---|---|
-| 7860 | LangFlow | Build and run agent flows |
-| 6006 | Phoenix | Inspect traces |
-| 8000 | KeyBroker | OpenAI proxy (you don't open this directly) |
+The AML sample case, the four planted pedagogical features (blast-count discordance, hedge resolution, NPM1 single-source classifier, DNMT3A lane-discipline trap), and the two-stage prompt design are all **Omar's work**. See [`docs/Integrated_report_demo_Omar/`](docs/Integrated_report_demo_Omar/) for his original case design.
+
+## Where to find things
+
+| What | Where |
+|---|---|
+| **Attendee handbook** (everything in one HTML page — PDF links, user prompts, system prompts, copy buttons) | [`docs/attendee_handbook.html`](docs/attendee_handbook.html) |
+| **Slide deck** (25 slides, standalone HTML) | [`docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html`](docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html) |
+| **Per-flow READMEs** (same content, split by flow) | [`docs/workshop_materials/`](docs/workshop_materials/) |
+| **The four AML PDFs** | [`data/scenario_d/case_aml/`](data/scenario_d/case_aml/) |
+| **Slide spec (Markdown source)** | [`docs/slides/slide_specs.md`](docs/slides/slide_specs.md) |
+| **LangFlow flow JSONs** | [`langflow_flows/`](langflow_flows/) |
+| **Custom component sources** | [`langflow_flows/components/`](langflow_flows/components/) |
+| **Troubleshooting (for facilitators)** | [`docs/troubleshooting.md`](docs/troubleshooting.md) |
+
+The handbook is the single thing an attendee actually needs. Download it, open it in any browser, and every prompt is a click-to-copy away.
+
+## Workshop infrastructure
+
+Each attendee gets a pre-provisioned LangFlow account on `pi-2026-workshop.javadilab.org` with all six flows imported and ready: `0_general_chatbot`, `D_integrated_report_to_who`, `Research_Buddy`, plus three bonus scenarios (`A_variant_tournament`, `B_longitudinal_ghost`, `C_digital_thread_v2`) that aren't presented from stage but live on for self-exploration.
+
+Behind the VM sits a small stack:
+
+- **LangFlow 1.9.2** for the agent canvas and Playground UI
+- **KeyBroker** — an in-house FastAPI proxy that holds the real OpenRouter key and enforces a per-attendee rate limit, so no attendee handles credentials directly
+- **Arize Phoenix** ships with the stack but is currently disabled (`OTEL_SDK_DISABLED=true`) because LangFlow's own instrumentation floods it with health-check spans; the workshop's auditability story lives in the Part B evidence trace inside Scenario D's output, not in Phoenix tracing
+
+The proxy is what makes the build-your-own exercise frictionless — attendees pick OpenAI in the Agent's Language Model dropdown, leave the API Key field blank, and the broker handles everything.
 
 ## Repo layout
 
 ```
-.devcontainer/      Codespaces + docker-compose orchestration
-proxy/              KeyBroker (FastAPI OpenAI proxy)
-tools/              Python tools called by LangFlow components
-langflow_flows/     Flow JSONs + Custom Components
-data/               Sample VCFs, synthetic notes, lab-ops fixtures
-docs/               Attendee guide, facilitator runbook, troubleshooting
-tests/              Unit + flow + e2e smoke tests
-scripts/            Build/seed/reset utilities
+docs/
+  attendee_handbook.html          ← THE handbook (standalone, all-in-one)
+  slides/                          slide deck source + rendered HTML
+  workshop_materials/              per-flow READMEs (split version of the handbook)
+  Integrated_report_demo_Omar/     Omar's original case design
+  troubleshooting.md
+
+langflow_flows/
+  0_general_chatbot.json
+  D_integrated_report_to_who.json
+  Research_Buddy.json
+  A_variant_tournament.json        bonus
+  B_longitudinal_ghost.json        bonus
+  C_digital_thread_v2.json         bonus
+  components/                      custom Python components used by the flows
+
+tools/                             Python helpers the components call
+data/                              case PDFs + ground-truth fixtures
+proxy/                             KeyBroker (FastAPI proxy)
+.devcontainer/                     docker-compose orchestration for the stack
+scripts/                           flow build scripts + provisioning
+tests/                             unit + flow + smoke tests
 ```
 
-See [docs/attendee_guide.md](docs/attendee_guide.md) for the workshop walk-through and [docs/facilitator_runbook.md](docs/facilitator_runbook.md) for the room script.
+## Running this locally
 
-## Build & verify locally
+If you want to play with the workshop stack on your own machine rather than the workshop VM, the dev-container stack runs end-to-end on a Linux host:
 
 ```bash
-make up         # docker compose up
-make smoke      # run e2e smoke test
-make down
+cp proxy/tokens.json.example proxy/tokens.json   # one-time
+echo "OPENAI_API_KEY_REAL=<your-openrouter-key>" >> .env
+docker compose -f .devcontainer/docker-compose.yml up -d
+# LangFlow: http://localhost:7860
+# Phoenix:  http://localhost:6006  (disabled by default; see compose file)
 ```
+
+The flow JSONs in `langflow_flows/` import directly into a fresh LangFlow instance. The build scripts under `scripts/build_*_flow.py` regenerate each one programmatically against the live LangFlow API, which is how the per-attendee provisioning works for the workshop itself.
+
+## Credits
+
+Case design, planted pedagogical features, Stage 1 and Stage 2 system prompts: **Omar** ([`docs/Integrated_report_demo_Omar/`](docs/Integrated_report_demo_Omar/)).
+
+Workshop infrastructure, LangFlow components, slides, and handbook: **Hesam Hakim** (Javadi Lab).
+
+LangFlow 1.9.2 · OpenRouter · pdfplumber · matplotlib · Inter · IBM Plex Mono.
 
 ## License
 
