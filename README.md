@@ -2,6 +2,8 @@
 
 A 45-minute hands-on workshop showing what an *agentic workflow* does that a chatbot can't. Built for pathology informatics, with a real-feeling AML case as the example.
 
+**Attendees, start here:** [📘 Open the handbook](https://hesamhakim.github.io/agentic-pathology-workshop/docs/attendee_handbook.html) · [📊 Open the slide deck](https://hesamhakim.github.io/agentic-pathology-workshop/docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html) · Workshop VM: [pi-2026-workshop.javadilab.org](https://pi-2026-workshop.javadilab.org)
+
 Fifty attendees, each with their own LangFlow account on a shared workshop VM, work through three flows in sequence. Same four PDFs go in. Three very different outputs come out. The point is the gap between them.
 
 ## What attendees do
@@ -18,8 +20,8 @@ The AML sample case, the four planted pedagogical features (blast-count discorda
 
 | What | Where |
 |---|---|
-| **Attendee handbook** (everything in one HTML page — PDF links, user prompts, system prompts, copy buttons) | [`docs/attendee_handbook.html`](docs/attendee_handbook.html) |
-| **Slide deck** (25 slides, standalone HTML) | [`docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html`](docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html) |
+| **Attendee handbook** (everything in one HTML page — PDF links, user prompts, system prompts, copy buttons) | [Open in browser](https://hesamhakim.github.io/agentic-pathology-workshop/docs/attendee_handbook.html) · [source](docs/attendee_handbook.html) |
+| **Slide deck** (25 slides, standalone HTML) | [Open in browser](https://hesamhakim.github.io/agentic-pathology-workshop/docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html) · [source](docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html) |
 | **Per-flow READMEs** (same content, split by flow) | [`docs/workshop_materials/`](docs/workshop_materials/) |
 | **The four AML PDFs** | [`data/scenario_d/case_aml/`](data/scenario_d/case_aml/) |
 | **Slide spec (Markdown source)** | [`docs/slides/slide_specs.md`](docs/slides/slide_specs.md) |
