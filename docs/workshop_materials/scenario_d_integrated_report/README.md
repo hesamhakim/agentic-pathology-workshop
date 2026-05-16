@@ -1,70 +1,118 @@
 # Scenario D — Integrated Report → WHO
 
-A seven-component agentic workflow that reads the same four AML PDFs as
-Scenario 0 and emits a structured 11-section integrated report plus a
-per-sentence evidence trace plus a QA-flag section.
+The workshop's headline workflow. Seven custom components in two LLM stages. Reads the same four AML PDFs as Scenario 0 but emits a structured 11-section integrated report, a per-sentence evidence trace, and a QA-flag section.
 
 ## How to run
 
-1. Sign in to the workshop VM and open `D_integrated_report_to_who` from "My Projects."
+You don't upload PDFs in this one. The four AML files are pre-registered in the case manifest — typing the directive loads them automatically.
+
+1. Open `D_integrated_report_to_who` from "My Projects" on the workshop VM.
 2. Click **Playground**.
-3. **You don't upload PDFs.** Unlike Scenario 0, this flow auto-loads the case PDFs from a built-in case manifest. Just type a chat directive.
-4. Paste a directive from [`user_prompts.md`](user_prompts.md) — start with:
-   ```
-   run the aml case
-   ```
-5. Press send. Wait ~30–60 seconds for the seven-component pipeline to finish.
+3. Paste a directive from below. Press send.
+4. Wait 30–60 seconds for the pipeline to finish.
 
-## The pipeline
+## Directives to type
+
+### Start here
 
 ```
-ChatInput → PipelineConfig → PDF Intake (Stage 1) ──┐
-                                                     ├──► WHO Classifier (Stage 2) → QA Reviewer → Report Formatter → ChatOutput
-                       Molecular Parser ───────────┐ │
-                       Histology Synthesizer ──────┘ │
-                                                     └ (parallel post-processing)
+run the aml case
 ```
 
-Two of these seven components carry **editable system prompts** — every other field is glue. The two prompts are the workshop's "editable levers":
+This is the workshop's standard exercise. Loads the four AML PDFs, runs both LLM stages, emits the full integrated report + Part B trace + QA flags in markdown.
 
-| Stage | Component | Editable prompt | What changes when you edit |
-|---|---|---|---|
-| 1 | **PDF Intake** | [`pdf_intake_system_prompt.md`](pdf_intake_system_prompt.md) | How the four PDFs are parsed, what counts as a classifying variant, what cross-PDF observations are extracted |
-| 2 | **WHO Classifier** | [`who_classifier_system_prompt.md`](who_classifier_system_prompt.md) | How the structured extraction is turned into the 11-section report + Part B trace |
+### Output format variations
 
-## Materials
+```
+run the aml case as html
+```
+Styled HTML — screenshot or paste into a clinical doc.
 
-| File | What it is |
+```
+run the aml case as json
+```
+Machine-readable JSON only. This is what a downstream LIS would parse. Compare to the chatbot's reply from Scenario 0 — the prose is not parseable.
+
+```
+run the aml case as narrative
+```
+A single short clinical paragraph instead of 11 sections.
+
+```
+run the aml case, hide the qa flags
+```
+Suppresses the QA section in the rendered output. The QA Reviewer still runs and its findings are still in the underlying JSON; this just changes presentation.
+
+### Other cases the same workflow handles
+
+The pipeline isn't AML-specific. Same seven components, different PDFs.
+
+```
+run the glioma case
+```
+```
+run the medulloblastoma case
+```
+```
+run the breast case
+```
+
+The AML case is the one with all four planted pedagogical features, so it's the one to focus on during the workshop. Save the others for after.
+
+## What good AML output looks like
+
+A passing run should satisfy all of these:
+
+- Final diagnosis line contains **NPM1**
+- Final diagnosis line does **NOT** contain **DNMT3A** (it belongs in prognostic notes only)
+- Section 8 (Integrated Interpretation) mentions both blast numbers (**18%** from morphology, **22%** from flow) and reconciles them out loud
+- Part B trace has zero **UNSUPPORTED** rows
+- Prognostic notes section mentions **DNMT3A**
+- QA flags section is empty or only contains low-severity items
+
+If something's missing, that's a learning opportunity — keep reading.
+
+## Edit a prompt and re-run
+
+This is the workshop's "your turn" moment for Scenario D. The two LLM stages each carry an editable system prompt. Edit one, re-run, watch the output change.
+
+The cleanest one-line exercise:
+
+1. Run the baseline once with `run the aml case`. Note exactly which sentence in section 8 talks about the blast count.
+2. Click the **WHO Classifier (Integrator)** node on the canvas. Open the **System Prompt** field on the right.
+3. Add this sentence somewhere in the rules section:
+   > *Always begin section 8 with a one-sentence reconciliation of the morphologic blast count vs the flow blast count, naming both numbers explicitly.*
+4. Re-run with `run the aml case`. Section 8 should now lead with the numeric comparison; the Part B trace updates to match.
+
+That single edit ripples through the whole pipeline. No saving, no rebuild — changes apply on the next run.
+
+## When the output looks wrong
+
+| Symptom | First place to look |
 |---|---|
-| [`inputs.md`](inputs.md) | The four AML PDFs the flow auto-loads (same files Scenario 0 attaches) |
-| [`pdf_intake_system_prompt.md`](pdf_intake_system_prompt.md) | Stage 1's editable system prompt |
-| [`who_classifier_system_prompt.md`](who_classifier_system_prompt.md) | Stage 2's editable system prompt |
-| [`user_prompts.md`](user_prompts.md) | Chat directives + a step-by-step "edit a prompt and re-run" exercise |
+| `UNSUPPORTED` rows in Part B | Stage 2 wrote a sentence Stage 1's extraction didn't support. Tighten Rule 1 in the WHO Classifier prompt, or check the PDF Intake output for missing findings |
+| DNMT3A in the diagnosis line | Lane discipline slipped. Tighten Rule 4 in the WHO Classifier prompt |
+| Blast discordance not addressed | Stage 2 silently picked a number. Tighten Rule 2 in the WHO Classifier prompt |
+| Sections 1–7 look thin | Stage 1 didn't extract enough. Click the PDF Intake node after a run — its output is JSON you can read directly |
 
-## What the output looks like
+Click any node *after a run* and inspect its output. Every node's intermediate result is browsable from the right-side panel.
 
-A single chat message containing:
+## The two editable system prompts
 
-1. **Part A — the integrated report** (11 fixed sections):
-   - Patient and specimen
-   - Component studies reviewed
-   - Clinical context
-   - Morphology summary
-   - Flow / IHC summary
-   - Cytogenetics summary
-   - Molecular summary
-   - Integrated interpretation
-   - Final integrated diagnosis
-   - Prognostic / predictive notes
-   - Limitations / pending
-2. **Part B — the evidence trace** (table): one row per sentence in the interpretation + diagnosis, mapped to its supporting source IDs and a basis (`direct_finding`, `concordance`, `discordance_resolution`, `single_source_finding`, `classification_rule`, or `UNSUPPORTED`).
-3. **QA flags section**: programmatic checks (missing required findings, lane-discipline violations, UNSUPPORTED rows) plus an optional LLM critique.
+These are long enough (~80 lines each) that they live in separate files. Copy-paste into the corresponding node's System Prompt textarea to edit.
 
-Compare against the chatbot's reply from Scenario 0.
+- [Stage 1 — PDF Intake (extraction)](pdf_intake_system_prompt.md) — how the four PDFs are parsed into structured JSON, what counts as a classifying variant, what cross-PDF observations get extracted
+- [Stage 2 — WHO Classifier (integration)](who_classifier_system_prompt.md) — how the structured JSON becomes the 11-section report + Part B trace + lane discipline
 
-## Editing this flow
+Each linked file includes the full prompt text plus 3–5 concrete edits to try.
 
-Two flavours of edit:
+## The four AML PDFs (for reference)
 
-- **Quick prompt edits in the UI:** click the node → right-side panel → System Prompt textarea → paste edits → re-run. No save button; changes apply on next run.
-- **Deeper component edits in source:** the components live at [`langflow_flows/components/api_scenario_d/`](../../../langflow_flows/components/api_scenario_d/). Each is a small Python class.
+These are the same files Scenario 0 attaches by hand. Scenario D loads them automatically from the case manifest — you don't upload anything.
+
+- [01_bone_marrow_morphology.pdf](../../../data/scenario_d/case_aml/01_bone_marrow_morphology.pdf)
+- [02_flow_cytometry.pdf](../../../data/scenario_d/case_aml/02_flow_cytometry.pdf)
+- [03_cytogenetics_fish.pdf](../../../data/scenario_d/case_aml/03_cytogenetics_fish.pdf)
+- [04_molecular_ngs.pdf](../../../data/scenario_d/case_aml/04_molecular_ngs.pdf)
+
+The four planted pedagogical features (blast-count discordance, hedge resolution, NPM1 single-source classifier, DNMT3A lane-discipline trap) are documented in [`extracted_ground_truth.json`](../../../data/scenario_d/case_aml/extracted_ground_truth.json). Case design + system prompts: Omar.
