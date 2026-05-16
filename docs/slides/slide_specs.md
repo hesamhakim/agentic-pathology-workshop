@@ -1,11 +1,13 @@
-# Slide specification — API Summit 2026 workshop deck (v3 — agentic deep-dive)
+# Slide specification — API Summit 2026 workshop deck (v4 — components-focused)
 
-**Audience:** Pathology informatics attendees at the API Summit 2026 workshop. Clinical-leaning audience — pathologists, lab IT directors, informatics fellows. Not primarily programmers.
-**Length:** ~30 minutes of presenter time, **28 slides**.
+**Audience:** Pathology informatics attendees at the API Summit 2026 workshop. Clinical-leaning — pathologists, lab IT directors, informatics fellows. Not primarily programmers.
+**Length:** ~25 minutes of presenter time, **22 slides**.
 **Aspect ratio:** 16:9 (1920×1080).
-**Talk structure:** brief framing → brief concept → case → **one slide framing the chatbot warm-up** → **the agentic workflow in depth (the bulk of the deck): flow · input · output · config · trace · troubleshoot** → side-by-side discussion.
+**Talk structure:** brief framing → brief concept → case → **one slide framing the chatbot warm-up** → **the agentic workflow, focused on the components themselves and what each one does** → side-by-side discussion.
 
-**Key rebalance from v2:** the chatbot half of the workshop is a warm-up everyone is already familiar with — *people know what a chat panel looks like.* What's non-intuitive (and what attendees need explained) is the agentic workflow itself: how the flow is wired, where to put the input, where the output sections live, how to change the configuration, how to read the evidence trace, and how to troubleshoot when something goes wrong. This revision drops the chatbot screen-by-screen walkthrough (4 slides) and uses the freed real estate to expand the agentic deep-dive (now ~17 slides).
+**Key rebalance from v3:** Nothing from the running Playground is shown. The Playground UI itself is intuitive — you type a directive and you get a long markdown reply — and that part is covered better by the live demo than by static screenshots. The technical content lives in the **components** (what each one is, why we needed a custom node for it, what its system prompt encodes). v4 trims output / trace / QA / troubleshoot screen-walks and uses the freed space for one slide per component family.
+
+**Screenshot economy:** only two screenshots are needed in the deck — the canvas overview (slide 10) and a closeup of one editable system prompt (slide 15, PDF Intake). Everything else is diagrams, text, or live demo from the facilitator's screen.
 
 ---
 
@@ -36,8 +38,8 @@ Concrete requirements:
 | Soft amber fill | `#fff4e0` | Background tint for main-reasoner blocks |
 | Neutral gray | `#666666` | Body text |
 | Light gray fill | `#f4f6fa` | Background tint for deterministic/passive nodes |
-| Caution red | `#9b1a1a` | Failure callouts, troubleshoot pointers, lane-discipline trap |
-| Success green | `#1f6b1f` | Trace-present, healthy-state, success annotations |
+| Caution red | `#9b1a1a` | Failure callouts, lane-discipline trap |
+| Success green | `#1f6b1f` | Concordance, healthy-state, success annotations |
 | Pure white | `#ffffff` | Slide backgrounds |
 
 ### Typography
@@ -51,7 +53,7 @@ Concrete requirements:
 ### Page chrome
 
 - Lower-left: `API Summit 2026 · Javadi Lab`
-- Lower-right: slide number `N / 28`
+- Lower-right: slide number `N / 22`
 - Optional thin progress bar across the bottom showing where in the four phases (intro · concept · case · agentic deep-dive · discussion)
 - **No leaked URLs or timestamps** in the slide chrome (a defect from the v2 PDF render).
 
@@ -62,12 +64,19 @@ Concrete requirements:
 | `img/concept_chatbot_vs_agent.svg` | Single LLM call vs agentic workflow side-by-side | Topology reference for slide 4 |
 | `img/case_aml_overview.svg` | One patient, four converging PDFs, gold-standard dx | Topology reference for slide 6 |
 | `img/case_aml_features.svg` | Four planted features as 2×2 cards | Topology reference for slide 7 |
-| `img/pipeline_d.svg` | Scenario D pipeline (7 boxes, branch topology) | Topology reference for slide 11 |
-| `img/side_by_side.svg` | Two-row comparison + table | Topology reference for slide 27 |
+| `img/pipeline_d.svg` | Scenario D pipeline (7 boxes, branch topology) | Topology reference for slides 11–12 |
+| `img/side_by_side.svg` | Two-row comparison + table | Topology reference for slide 21 |
 
 All five are **wireframe references only**. Redraw every diagram from scratch.
 
-Ten LangFlow screenshots (all Scenario D — none of the chatbot) are needed. Capture instructions are in the screenshot inventory at the bottom of this file.
+**Two LangFlow screenshots only** — both from `D_integrated_report_to_who`:
+
+| File | Slide |
+|---|---|
+| `canvas_scenario_d.png` | 10 |
+| `pdf_intake_prompt.png` | 15 |
+
+Slides 17, 19, 20 do not have screenshots; the presenter narrates from a live LangFlow window during the talk.
 
 ---
 
@@ -85,7 +94,7 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
 - **Subtitle:** *A purpose-built workflow for multi-source clinical synthesis*
 - **Footer:** *API Summit 2026 — Pathology Informatics Track  ·  Javadi Lab*
 - **Visual:** Optional subtle clinical-style illustration (lab-bench icon, stack-of-PDFs glyph).
-- **Speaker notes:** "Welcome. ~30 minutes of slides up front, then hands-on time on the workshop VM, then side-by-side discussion at the end."
+- **Speaker notes:** "Welcome. ~25 minutes of slides up front, then hands-on time on the workshop VM, then side-by-side discussion at the end."
 
 ---
 
@@ -98,10 +107,10 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
   1. **Concept** — agentic ≠ chat. *5 min · this deck*
   2. **The case** — one patient, four reports. *5 min · this deck*
   3. **Try it as a chatbot first** — quick warm-up. *15 min ·* `0_general_chatbot`
-  4. **The agentic workflow** — flow · input · output · config · trace · troubleshoot. *45 min ·* `D_integrated_report_to_who`
-  5. **Side-by-side discussion**. *15 min*
+  4. **The agentic workflow** — canvas + components, what each one does. *40 min ·* `D_integrated_report_to_who`
+  5. **Side-by-side discussion.** *15 min*
 - **Callout box (bottom):** *Sign in at `https://pi-2026-workshop.javadilab.org` with your `pi-user-NNN` username and the password the facilitator just announced.*
-- **Speaker notes:** "The bulk of the time today is on the agentic workflow. The chatbot warm-up is intentionally brief — everyone already knows how a chat panel works. The agentic workflow is what's new and what's worth the deck space."
+- **Speaker notes:** "The bulk of the time today is on the agentic workflow. The chatbot warm-up is intentionally brief — everyone already knows how a chat panel works. The agentic workflow is what's new — specifically the components inside it and what each one's job is."
 
 ---
 
@@ -124,7 +133,7 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
 ### Slide 4 — Two ways to use an LLM
 
 - **Role:** The concept slide, in one image.
-- **Layout:** Full-width split visual. Left half: a stylized "chatbot" (one bubble → one brain → one reply). Right half: a stylized agentic graph (input → extract → branch → integrate → QA/trace → output). Vertical divider in the middle.
+- **Layout:** Full-width split visual. Left half: a stylized "chatbot" (one bubble → one brain → one reply). Right half: a stylized agentic graph (input → extract → branch → integrate → QA → output). Vertical divider in the middle.
 - **Title:** *Two ways to use an LLM*
 - **Left panel caption:** *Single LLM call · ChatGPT, Gemini, Claude, Copilot*
 - **Right panel caption:** *Agentic workflow · directed graph of LLM + deterministic steps*
@@ -221,9 +230,9 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
 - **Role:** Big pacing reset.
 - **Layout:** Centered, minimal, large "Part 2." Strong amber accent.
 - **Title (very large, 80 px+):** *Part 2*
-- **Subtitle:** *The agentic workflow*
-- **Footer line:** *≈45 minutes hands-on  ·  flow:* `D_integrated_report_to_who`
-- **Speaker notes:** "Same case. Same four PDFs. Same model. Now we'll see what happens when the work is structured."
+- **Subtitle:** *The agentic workflow — every component, one by one*
+- **Footer line:** *≈40 minutes hands-on  ·  flow:* `D_integrated_report_to_who`
+- **Speaker notes:** "Same case. Same four PDFs. Same model. Now we'll see the boxes the work has been split into — and why each one needed to be its own box."
 
 ---
 
@@ -238,7 +247,7 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
   3. Notice the data flowing **left to right**
 - **Screenshot:** [`canvas_scenario_d.png`]
 - **Annotations to overlay:** numbered circles 1–7 on each pipeline node in left-to-right order: ① Pipeline Config · ② PDF Intake · ③ Molecular Parser · ④ Histology Synth · ⑤ WHO Classifier · ⑥ QA Reviewer · ⑦ Report Formatter. Optional: a faint highlight around the Chat Input on the far left and the Chat Output on the far right as "bookends."
-- **Speaker notes:** "The canvas itself is the workflow's architecture. Every box is a stage with a single responsibility. Click on any node and a config panel opens on the right — we'll come back to that."
+- **Speaker notes:** "Seven components plus the standard ChatInput / ChatOutput bookends. Every box is a stage with a single responsibility. We'll walk through each one — what it does and why it had to be its own component."
 
 ---
 
@@ -247,20 +256,20 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
 - **Role:** Clean architecture diagram with one-line role descriptions.
 - **Layout:** Full-width redrawn pipeline diagram (NOT the SVG verbatim — redraw with icons, drop shadows, modern styling). Below each box, a one-line role description.
 - **Title:** *Seven components, two LLM stages*
-- **Visual (redrawn):** From `img/pipeline_d.svg`, drawn cleanly with icons:
-  - **Pipeline Config** — *parses your chat directive into a config*
-  - **PDF Intake** — *reads all 4 PDFs, emits structured findings with source tags* ⬅ **the heart of the workflow**
-  - **Molecular Parser** — *splits classifying vs prognostic variants*
-  - **Histology Synth** — *composes the morphology summary*
-  - **WHO Classifier** — *writes the integrated report + evidence trace* ⬅ **the second key step**
-  - **QA Reviewer** — *checks for failures (UNSUPPORTED rows, lane discipline)*
-  - **Report Formatter** — *renders the final output (markdown/JSON/HTML)*
-- **Color legend (small, bottom):** Blue = LLM call · Amber = main reasoner / QA · Gray = deterministic / I/O
-- **Speaker notes:** "Don't dwell on every box. The two that matter — and the two you can edit — are PDF Intake (Stage 1) and WHO Classifier (Stage 2). They're highlighted."
+- **Visual (redrawn):** From `img/pipeline_d.svg`, drawn cleanly with icons. Color the two main-reasoner boxes amber; the deterministic boxes gray; the secondary-LLM boxes blue.
+  - **Pipeline Config** — *parses your chat directive into a config* — LLM (small)
+  - **PDF Intake** — *reads all 4 PDFs, emits structured findings with source tags* ⬅ **Stage 1 (main reasoner)**
+  - **Molecular Parser** — *deterministic split: classifying vs prognostic variants* — pure Python
+  - **Histology Synth** — *composes the morphology summary* — LLM (small)
+  - **WHO Classifier** — *writes the integrated report + per-sentence trace* ⬅ **Stage 2 (main reasoner)**
+  - **QA Reviewer** — *programmatic checks + optional LLM critique* — hybrid
+  - **Report Formatter** — *renders the final output (markdown / JSON / HTML)* — pure Python
+- **Color legend (small, bottom):** Amber = main reasoner · Blue = secondary LLM · Gray = deterministic / I/O
+- **Speaker notes:** "Don't dwell on every box yet. The two that matter — and the two you can edit — are PDF Intake (Stage 1) and WHO Classifier (Stage 2). The rest is glue. We'll walk through each in turn."
 
 ---
 
-### Slide 12 — The two stages: extract → integrate
+### Slide 12 — Two stages, one pattern
 
 - **Role:** Explain the architectural pattern without going into the prompt text yet.
 - **Layout:** Two big illustrated panels side by side, joined by an arrow. Each panel has an icon and a short paragraph.
@@ -273,234 +282,174 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
   - Big icon: structured JSON → 11-section report + trace
   - *"Receives only the structured JSON (not the raw PDFs). Its prompt enforces explicit rules. Output: the 11-section integrated report plus a per-sentence evidence trace mapping each sentence to its source."*
 - **Footer line (italic):** *Two LLM calls. Each with one specific job. Each with one editable system prompt.*
-- **Speaker notes:** "This is THE architectural shift. The chatbot does everything in one prompt. The agentic workflow does the work in two stages, with a structured handoff in between. That handoff is what makes the trace possible."
+- **Speaker notes:** "This is THE architectural shift. The chatbot does everything in one prompt. The agentic workflow does the work in two stages, with a structured handoff in between. That handoff is what makes the per-sentence trace possible."
 
 ---
 
-### Slide 13 — Input: invoke the workflow
+### Slide 13 — Standard nodes vs custom components
 
-- **Role:** Show how to actually trigger a run.
-- **Layout:** Pull-quote prompt at the top, screenshot below.
-- **Title:** *Input — how to invoke*
-- **Pull quote (large, monospace pill):**
-  > *`run the aml case`*
-- **Body:** *Type that into Playground. Press send. The Pipeline Config parses your directive; the rest of the flow handles the four PDFs automatically from the case manifest — no file upload needed in Scenario D.*
-- **Screenshot:** [`scenario_d_running.png`]
-- **Annotations to overlay:** red circle around the typed `run the aml case` prompt; small label "≈30–60 s end-to-end."
-- **Speaker notes:** "In Scenario 0 you had to attach four PDFs. Here you don't — the case manifest already knows which PDFs belong to the AML case. The directive selects the case; everything else is automatic."
-
----
-
-### Slide 14 — Input: more directives the workflow accepts
-
-- **Role:** Show that the chat directive parser supports more than one case + a few output knobs.
-- **Layout:** A list of example directives, each in a monospace pill, paired with a short description.
-- **Title:** *Input — what else you can type*
-- **Body — directive examples:**
-  - `run the aml case` — *the default exercise*
-  - `run the glioma case` — *adult diffuse glioma, three component PDFs*
-  - `run the medulloblastoma case` — *pediatric medulloblastoma, three PDFs*
-  - `run the breast case` — *invasive ductal carcinoma, four PDFs*
-  - `run the aml case as html` — *render the output as styled HTML*
-  - `run the aml case as json` — *output only the structured JSON (for downstream LIS ingestion)*
-  - `run the aml case, hide the qa flags` — *suppress the QA section in the rendered report*
-- **Footer:** *Behind the scenes: Pipeline Config translates plain English into a strict JSON config that the rest of the pipeline consumes. The directive parser is itself one of the editable system prompts (see slide 23).*
-- **Speaker notes:** "Show one or two of these live if there's time. The point is the directive parser is a real component — it's an LLM call that translates English to JSON config. You can edit its prompt too."
+- **Role:** Frame the next six slides — why we built our own components rather than wiring stock LangFlow nodes.
+- **Layout:** Two-column comparison. Left column lists what we got from LangFlow out of the box; right column lists what we had to write ourselves and why.
+- **Title:** *Standard nodes did the easy half. We wrote the rest.*
+- **Left column** (heading: *Standard LangFlow nodes — used as-is*):
+  - **Chat Input** — receives the directive
+  - **Chat Output** — renders the final reply
+  - That's it. Two boxes.
+- **Right column** (heading: *Seven custom components we wrote*):
+  - **PipelineConfig** — *no stock "English-to-JSON config" node*
+  - **PDF Intake** — *no stock "read N PDFs with vision, emit cross-PDF findings" node*
+  - **Molecular Parser** — *no stock variant-classification helper*
+  - **Histology Synthesizer** — *needs a domain-shaped prompt*
+  - **WHO Classifier** — *the integrator is bespoke to the workflow*
+  - **QA Reviewer** — *programmatic checks against our schema*
+  - **Report Formatter** — *renders our specific 11-section output*
+- **Footer (italic):** *All seven live in `langflow_flows/components/api_scenario_d/` in the workshop repo. Each is a small Python class with a `display_name`, a `description`, typed inputs, and one `build_output` method.*
+- **Speaker notes:** "If you want to apply this pattern to your own work: stock nodes get you ~10% of the way. The interesting work is in writing the custom components — they're each 100–300 lines of Python. We'll look at one in detail in two slides."
 
 ---
 
-### Slide 15 — Output: what you get back
+### Slide 14 — Component 1 of 7: PipelineConfig
 
-- **Role:** High-level overview of what the agentic workflow produces, before zooming into each section.
-- **Layout:** Three-card row showing the three output components. Each card has an icon and a short description.
-- **Title:** *Output — three things at once*
-- **Three cards:**
-  1. **📄 Integrated report** — *11 fixed sections. Patient identification, component studies, clinical context, four per-modality summaries, integrated interpretation, final diagnosis, prognostic notes, limitations.*
-  2. **🔗 Part B evidence trace** — *One row per sentence in the interpretation and diagnosis. Each row maps to source IDs and a basis.*
-  3. **🛡️ QA flags** — *Deterministic checks for missing required findings, lane-discipline failures, and UNSUPPORTED trace rows.*
-- **Footer (italic):** *All three are produced in a single run. Same shape every time.*
-- **Speaker notes:** "We'll spend the next four slides walking through these one by one — in your own output."
-
----
-
-### Slide 16 — Output: report sections 1–7 (per-modality summaries)
-
-- **Role:** Show the structured per-modality block.
-- **Layout:** Large screenshot of the Playground reply, scrolled to the top of the model's response.
-- **Title:** *Output — sections 1–7 (the per-modality summaries)*
-- **Brief intro:** *Same section headings, same order, every run. Each modality gets its own paragraph. Parseable from markdown or from the JSON output.*
-- **Screenshot:** [`scenario_d_report_top.png`]
-- **Annotations to overlay:**
-  - Faint numbered band along the left edge labeling sections 1, 2, 3, 4, 5, 6, 7 as the eye scrolls down: Patient · Component Studies · Clinical Context · Morphology · Flow · Cytogenetics · Molecular
-  - Arrow with the label *"same structure every run — parseable downstream"*
-- **Speaker notes:** "If a downstream LIS wanted to ingest this, it could parse on these section names. Compare to the chatbot's reply, which has whatever structure the model felt like."
+- **Role:** First custom component. Smallest one. Used to introduce the "component anatomy" idea.
+- **Layout:** Left half: icon + role + key features. Right half: small mock detail-panel showing the typed inputs (Chat Input handle, model dropdown, temperature slider, system-prompt textarea, output handle).
+- **Title:** *PipelineConfig — translate plain English to a strict run config*
+- **Left column:**
+  - **Role:** parses the chat directive into a JSON config the rest of the pipeline consumes
+  - **Input:** `run the aml case as html, hide qa flags`
+  - **Output:** `{"case_id": "aml", "format": "html", "show_qa": false}`
+  - **Features:**
+    - One small LLM call (fast model, low cost)
+    - System prompt defines exactly which keys are allowed
+    - Unknown keys silently dropped → downstream defaults apply
+    - Editable prompt: add a new case or a new output knob
+- **Right column (mock detail panel):**
+  - `[ Chat Input ▸ message ]`
+  - `model:        openai/gpt-4o-mini`
+  - `temperature:  0.0`
+  - `system_prompt: (multiline) — editable`
+  - `[ ▸ Output: run_config (Data) ]`
+- **Speaker notes:** "Smallest component but a useful pattern: route plain English to strict JSON via a small LLM. We use the same pattern in three other workflows in the repo."
 
 ---
 
-### Slide 17 — Output: sections 8–9 (interpretation + diagnosis)
+### Slide 15 — Component 2 of 7: PDF Intake (Stage 1)
 
-- **Role:** The headline output — the diagnosis line and the interpretation that argues for it.
-- **Layout:** Large screenshot scrolled to sections 8 and 9.
-- **Title:** *Output — the integrated interpretation and diagnosis*
-- **Brief intro:** *Section 8 is the diagnostic argument. Section 9 is the final integrated diagnosis line. Sections 10–11 follow with prognostic notes and limitations.*
-- **Screenshot:** [`scenario_d_diagnosis.png`]
-- **Annotations to overlay:**
-  - Box around section 9 labeled *"the gold-standard call: Acute myeloid leukemia with mutated NPM1, with monocytic differentiation"*
-  - Highlight on where DNMT3A appears (in section 10 prognostic notes, NOT in section 9), labeled *"DNMT3A stays in prognostic notes — lane discipline enforced"*
-- **Speaker notes:** "Pause and let attendees find where DNMT3A landed in their own output. In Scenario 0 it might have drifted into the diagnosis. Here, the lane-discipline rule in the WHO Classifier's prompt forces it to stay in prognostic notes — AND the QA Reviewer catches it if anything slips through."
-
----
-
-### Slide 18 — Output: Part B evidence trace
-
-- **Role:** The headline auditability feature.
-- **Layout:** Large screenshot of the trace table, with one specific row pulled out into a side panel.
-- **Title:** *Output — the evidence trace*
-- **Brief intro:** *Every sentence in the interpretation and final diagnosis maps to its supporting source(s) and a basis for the support. This is what makes the report auditable.*
-- **Screenshot:** [`scenario_d_trace.png`]
-- **Annotations to overlay:**
-  - Box around one row in the trace table
-  - That row pulled out into a side panel showing the columns separately: *Sentence # · Sentence text · Supporting source IDs · Basis*
-  - Small annotation: *"every sentence in the interpretation has one of these rows"*
-- **Legend (small, beneath the screenshot):** *Basis values: `direct_finding`, `concordance`, `discordance_resolution`, `single_source_finding`, `classification_rule`, `UNSUPPORTED`*
-- **Speaker notes:** "Spend time here. Have attendees pick one row, read the sentence, then open the original PDF and find the supporting text. That's the auditability story made concrete. An `UNSUPPORTED` row is the QA reviewer's primary trigger."
+- **Role:** The headline custom component. Multi-PDF, multi-modal extractor.
+- **Layout:** Left half: features + closeup of the system-prompt screenshot. Right half: a small illustration of the input/output shape.
+- **Title:** *PDF Intake — read four PDFs together, emit structured findings*
+- **Left column — features:**
+  - **Reads all four PDFs in one LLM call.** Cross-PDF observations are first-class output.
+  - **Multimodal.** Sends both extracted text and embedded image bytes to the vision-capable model.
+  - **Per-source tagging.** Every finding carries a `source_id` and a verbatim phrase copied from the source.
+  - **Concordances + discordances + single-source findings** broken out as named fields, not free prose.
+  - **`classifying` boolean on every variant.** Distinguishes disease-defining from prognostic at extraction time.
+  - **Output is strict JSON.**
+- **Right column — screenshot:** [`pdf_intake_prompt.png`]
+- **Annotations to overlay on the screenshot:** ① arrow pointing at the `model` dropdown labeled "vision-capable model"; ② box around the System Prompt textarea labeled "the editable lever — Omar's extraction rules verbatim"; ③ small label near an output handle: "→ Data (structured JSON)".
+- **Footer (italic):** *This is the larger of the two main reasoners. Its system prompt is THE main editable lever for the workflow — if you change how this reads the PDFs, everything downstream sees a different world.*
+- **Speaker notes:** "Three things to notice here. One — it's multimodal: the prompt asks the model to look at the embedded images, not just OCRed text. Two — the output shape is rigidly schema-conformant: we get the same JSON every run. Three — the system prompt is editable in this textarea right here. We'll re-run with an edit later in the deck."
 
 ---
 
-### Slide 19 — Output: QA flags
+### Slide 16 — Components 3 & 4: parallel parsers
 
-- **Role:** Show the QA reviewer's flag list.
-- **Layout:** Screenshot of the QA flags section + a small explanatory sidebar.
-- **Title:** *Output — QA flags*
-- **Brief intro:** *Deterministic checks (no LLM call, runs in pure Python) plus an optional LLM critique. Catches the failure modes the case is designed to test.*
-- **Screenshot:** [`scenario_d_qa.png`]
-- **Annotations to overlay:**
-  - Box around the QA flags section
-  - If a flag is visible: annotation *"this is what an UNSUPPORTED row or a lane-discipline failure looks like"*
-  - If empty (`no flags raised`): annotation *"this run passed all deterministic checks — the integrator stayed in its lane"*
-- **Sidebar / footer:** *Checks performed: UNSUPPORTED trace rows · non-classifying variant in diagnosis line · missing required findings for tumor family · unaddressed discordances.*
-- **Speaker notes:** "Encourage attendees to look at their own QA section. In a good run there are zero high-severity flags. If anyone has a high flag, ask them to read it aloud — those are exactly the failure modes the system was built to catch."
-
----
-
-### Slide 20 — Config: where the editable knobs are
-
-- **Role:** Tell attendees where to click to change behavior.
-- **Layout:** Annotated canvas screenshot showing a node selected with the right-side detail panel open. Or, alternatively, a close-up of one node's panel with all the fields visible.
-- **Title:** *Config — every node has a detail panel*
-- **Brief intro:** *Click any node on the canvas. A detail panel opens on the right side, showing every input field (model, temperature, system prompt, etc.). Edit any field; changes apply on the next run.*
-- **Screenshot:** [`scenario_d_node_config.png`]
-- **Annotations to overlay:** numbered circles on the detail panel pointing at: ① the node name at the top, ② the model dropdown, ③ the temperature slider, ④ the **System Prompt** multi-line text area (the one you'll edit most often).
-- **Speaker notes:** "Most fields you won't touch. The one that matters is the System Prompt. Everything else is glue."
+- **Role:** Cover the two parallel-branch components on one slide. Both are post-extraction refinements.
+- **Layout:** Two-column. Each column = one component, with role + features + a small diagram.
+- **Title:** *Two parallel passes that prep Stage 1's output for the integrator*
+- **Left column** (*Molecular Parser*):
+  - **Type:** pure Python (no LLM call)
+  - **Role:** splits the extractor's `molecular_variants` array into two buckets
+    - `classifying_variants` — disease-defining
+    - `prognostic_variants` — reported but non-classifying
+  - **Why it exists:** lets the integrator apply lane discipline without re-deciding which is which
+- **Right column** (*Histology Synthesizer*):
+  - **Type:** small LLM call
+  - **Role:** distills the morphology- and IHC-bearing components into a single 4–7 sentence morphology paragraph
+  - **Why it exists:** for multi-PDF cases the morphology content is spread across two reports (morphology + flow); this composes them into one paragraph the integrator can fold in
+- **Footer (italic):** *Both branches run in parallel. The integrator (Stage 2) doesn't fire until both have delivered.*
+- **Speaker notes:** "These are the two parallel branches you see on the canvas. They're not glamorous. They exist because the integrator's job gets dramatically easier when its input is already split and pre-composed."
 
 ---
 
-### Slide 21 — Config: the two editable levers
+### Slide 17 — Component 5 of 7: WHO Classifier (Stage 2) — the editable lever
 
-- **Role:** The big-picture config slide — there are really only two prompts that matter.
-- **Layout:** Two-column. Left: PDF Intake's role + a thumbnail of its detail panel. Right: WHO Classifier's role + a thumbnail of its detail panel.
-- **Title:** *Two prompts you can edit. Everything else is glue.*
-- **Left column** (heading: *PDF Intake — Stage 1*):
-  - *Editing this prompt changes how the workflow reads the PDFs.*
-  - Example edits:
-    - Tighten the `classifying` rule so a borderline variant is excluded
-    - Add a new tumor family the extractor knows how to handle
-    - Change the verbatim_support phrase length
-  - **Visual:** small thumbnail of the PDF Intake detail panel, with the system prompt textarea highlighted.
-- **Right column** (heading: *WHO Classifier — Stage 2*):
-  - *Editing this prompt changes how the workflow writes the report.*
-  - Example edits:
-    - Add a sanity-check sentence comparing blast counts across sources
-    - Force a different section ordering
-    - Add or relax a lane-discipline rule
-  - **Visual:** small thumbnail of the WHO Classifier detail panel with the system prompt highlighted.
-- **Speaker notes:** "If attendees remember only one slide from the deck, this should be it. The entire 'configurability' of the workflow lives in these two prompts."
+- **Role:** The second main reasoner. The single most important editable component. **No screenshot — presenter will show the live LangFlow node.**
+- **Layout:** Single full-width slide. Left half: features and what the prompt enforces. Right half: a stylized code-block excerpt showing 5–6 key clauses from the system prompt.
+- **Title:** *WHO Classifier — write the integrated report and the trace*
+- **Left half — features:**
+  - **Receives only the Stage 1 JSON.** Not the raw PDFs.
+  - **Output Part A:** 11-section structured report (patient → component studies → clinical context → 4 per-modality summaries → interpretation → diagnosis → prognostic notes → limitations).
+  - **Output Part B:** one row per sentence in interpretation + diagnosis, mapping to source IDs.
+  - **Lane discipline enforced in the prompt** — non-classifying variants stay out of the diagnosis line.
+  - **Editable in the right-side detail panel** (presenter will show live).
+- **Right half — what its system prompt encodes (5 bullets in a code-block style):**
+  > * Use only what's in the Stage 1 JSON. No outside knowledge.
+  > * Resolve every discordance out loud — no silent picks.
+  > * Name every single-source finding. Be explicit.
+  > * Non-classifying variants stay in prognostic notes, never the diagnosis line.
+  > * Output: 11 fixed sections + Part B per-sentence trace.
+- **Speaker notes:** "This is the prompt that makes the per-sentence trace possible. I'll switch to LangFlow now and show you where this textarea is on the canvas. Editing this prompt changes the report's shape, the section ordering, and the trace's behavior."
 
 ---
 
-### Slide 22 — Config: PDF Intake prompt — what's in it
+### Slide 18 — Components 6 & 7: QA Reviewer and Report Formatter
 
-- **Role:** Show what Stage 1's system prompt actually contains.
-- **Layout:** Screenshot of the PDF Intake node's expanded system prompt on the left, with bullet-summary of the prompt's rules on the right.
-- **Title:** *Config — PDF Intake's prompt, at a glance*
-- **Screenshot:** [`pdf_intake_prompt.png`]
-- **Right column — bulleted summary of what the prompt enforces:**
-  - **Extract, don't interpret.** Each modality stays in its lane.
-  - **Every finding has a source ID + verbatim phrase.** No invented findings.
-  - **Concordances and discordances are first-class fields.** Every conflict gets a resolution + basis.
-  - **`classifying` boolean on every variant.** Distinguishes disease-defining from prognostic.
-  - **Output is strict JSON, schema-conformant.**
-- **Speaker notes:** "Read it once on the canvas. It's long, but every clause is enforcing one of the workflow's guarantees. Edit any clause and watch the downstream report change."
-
----
-
-### Slide 23 — Config: WHO Classifier prompt — what's in it
-
-- **Role:** Mirror of slide 22, for Stage 2.
-- **Layout:** Same as slide 22 but for the WHO Classifier.
-- **Title:** *Config — WHO Classifier's prompt, at a glance*
-- **Screenshot:** [`who_classifier_prompt.png`]
-- **Right column — bulleted summary:**
-  - **Use only what's in the Stage 1 JSON.** No outside knowledge.
-  - **Resolve every discordance out loud.** No silent picks.
-  - **Name every single-source finding.** Be explicit about what only one source could see.
-  - **Lane discipline.** Non-classifying variants stay in prognostic notes, never in the diagnosis line.
-  - **Output: 11 sections + Part B trace.** Every sentence in interpretation/diagnosis gets a trace row.
-- **Speaker notes:** "This is the prompt that makes the trace possible. If you edit it to ask for richer or differently-structured output, the trace will follow."
+- **Role:** Cover the last two components on one slide.
+- **Layout:** Two columns.
+- **Title:** *Auditability and output rendering*
+- **Left column** (*QA Reviewer*):
+  - **Type:** programmatic checks first; optional LLM critique second
+  - **What it checks (deterministic, no cost):**
+    - `UNSUPPORTED` rows in Part B (hard failure)
+    - Lane-discipline: non-classifying variants mentioned in the diagnosis line
+    - Required findings: per-tumor-family checklist from `tools/scenario_d/who_criteria.py`
+    - Discordance handling: every discordance Stage 1 found is addressed in interpretation
+  - **Optional LLM critique:** free-text findings the rule checks can't catch (e.g., overstated certainty). Toggle in advanced settings.
+- **Right column** (*Report Formatter*):
+  - **Type:** pure Python (no LLM call)
+  - **Role:** renders the integrator's structured output in one of four formats
+    - `integrated` — markdown with all 11 sections + Part B trace
+    - `narrative` — short clinical paragraph
+    - `json` — machine-readable (for downstream LIS ingestion)
+    - `html` — styled HTML for download
+  - **Format is selected by your chat directive** (e.g., `run the aml case as html`)
+- **Footer (italic):** *Auditability happens in two places: every claim has a trace row (Stage 2), and every trace row is checked against the schema (QA Reviewer).*
+- **Speaker notes:** "Notice the QA Reviewer is mostly deterministic. We don't use an LLM to check the LLM unless we have to — programmatic rules over our own schema are cheaper, faster, and easier to trust."
 
 ---
 
-### Slide 24 — Config: try editing a prompt
+### Slide 19 — Where the editable knobs live (live demo)
 
-- **Role:** Concrete experiment for attendees to run.
-- **Layout:** Three-step instruction with a screenshot of the editable prompt field.
+- **Role:** Tell attendees where to click. **No screenshot — presenter narrates from a live LangFlow window.**
+- **Layout:** Numbered instruction list, large type, plenty of whitespace.
+- **Title:** *Every component has a detail panel*
+- **Body — numbered:**
+  1. **Click any node** on the canvas. A panel slides in on the right side.
+  2. The panel shows every input field for that node: **model**, **temperature**, **max tokens**, **system prompt**, etc.
+  3. Most fields are glue — leave them alone. **The one that matters is the System Prompt** multi-line textarea.
+  4. **Edits apply on the next run** — no save button, no rebuild.
+- **Footer (italic):** *Two of the seven components have System Prompt fields worth editing — PDF Intake and WHO Classifier. Everything else is calibrated.*
+- **Speaker notes:** "I'll demo this live now — click on the WHO Classifier node, point at the right-side panel, and show the model dropdown, temperature slider, and the System Prompt textarea."
+
+---
+
+### Slide 20 — Try editing the WHO Classifier prompt
+
+- **Role:** Concrete experiment for attendees to run during the hands-on segment. **No screenshot — presenter demos the edit live.**
+- **Layout:** Three-step numbered instruction with one quoted insertion in a callout box.
 - **Title:** *Try it — edit a prompt and re-run*
 - **Numbered instruction:**
-  1. Click the **WHO Classifier** node on the canvas
-  2. Find the **System Prompt** field — a multi-line text area on the right detail panel
-  3. **Add this sentence** somewhere in the rules section: *"Always begin section 8 with a one-sentence reconciliation of the morphologic blast count vs the flow blast count."*
+  1. Click the **WHO Classifier** node on the canvas.
+  2. Find the **System Prompt** field in the right detail panel.
+  3. **Add this sentence** somewhere in the rules section:
+     > *"Always begin section 8 with a one-sentence reconciliation of the morphologic blast count vs the flow blast count."*
   4. Re-run with `run the aml case`. Watch section 8 change.
-- **Screenshot:** [`scenario_d_edit_prompt.png`] (can be same image as `who_classifier_prompt.png` with extra annotation)
-- **Annotations to overlay:** red circle around the system-prompt text area; arrow showing where the new sentence is inserted.
-- **Speaker notes:** "This is the moment when 'agentic workflow' becomes concrete. A single line of prompt change ripples through the entire pipeline. The output is structurally different, the trace updates automatically. Encourage attendees to experiment with their own edits."
+- **Footer (italic):** *A single line of prompt change ripples through the whole pipeline — the output is structurally different, and the Part B trace updates to match.*
+- **Speaker notes:** "This is the moment when 'agentic workflow' becomes concrete. A single line of prompt change ripples through the entire pipeline. The output is structurally different, the trace updates automatically. Encourage attendees to try their own edits — change the section ordering, tighten a lane-discipline rule, add a sanity-check sentence."
 
 ---
 
-### Slide 25 — Troubleshoot: when a node fails
-
-- **Role:** Tell attendees what to do when something goes wrong.
-- **Layout:** Numbered checklist on the left, small canvas thumbnail on the right showing a failed-state node.
-- **Title:** *Troubleshoot — when a node fails*
-- **Body — numbered list:**
-  1. **The node turns red** on the canvas with a small "!" badge.
-  2. **Click the badge** — the error message opens in a panel. It's usually one line: a missing field, a rate-limit hit, a malformed prompt.
-  3. **Common causes:**
-     - Rate limit on the proxy (wait 60 s and retry — the per-attendee TPM cap resets every minute)
-     - System prompt edited into invalid form (a stray quote, removed `json` keyword)
-     - PDF path no longer resolves (only relevant if attaching files manually)
-  4. **To reset:** click the **Reset** button at the top of the failed node's detail panel, or right-click the node → Reset to defaults.
-  5. **Last resort:** wave to the facilitator. They have a `reset_attendee.py` script that rebuilds your flows from scratch in 10 seconds.
-- **Visual:** small canvas thumbnail with one node showing a red border and an error badge — or a stylized diagram representation.
-- **Speaker notes:** "Most failures during the workshop will be rate-limit timeouts. The proxy caps each attendee at 30K tokens per minute. Wait 60 seconds, retry. The Reset button is the second tool to reach for."
-
----
-
-### Slide 26 — Troubleshoot: when the output is wrong
-
-- **Role:** Help attendees diagnose semantic failures (the output ran but is bad).
-- **Layout:** Three-step "what to look at" checklist with small annotated thumbnails.
-- **Title:** *Troubleshoot — when the output is wrong*
-- **Body — numbered list:**
-  1. **Check the QA flags section first.** If there's a high-severity flag, the workflow knows something is wrong — the flag will tell you what (UNSUPPORTED trace row, lane-discipline violation, missing required finding).
-  2. **Scan the Part B trace for `UNSUPPORTED` rows.** Each one is a sentence the integrator wrote that the extractor's structured findings didn't actually support — usually a hallucination.
-  3. **Inspect what Stage 1 produced.** Click the **PDF Intake** node after a run; its output is a JSON object you can read. If the `cross_report_observations` block is empty or wrong, the integrator was set up to fail.
-  4. **If you edited a prompt and the result got worse,** revert by clicking the Reset button on that node's detail panel.
-- **Footer (italic):** *Bad output is almost always traceable back to one of three things: a missing concordance/discordance in Stage 1's output, an UNSUPPORTED row in Part B, or a flagged QA failure.*
-- **Speaker notes:** "This is the slide attendees will need most after the workshop, when they're applying this pattern to their own work. Encourage them to take a photo."
-
----
-
-### Slide 27 — Same input. Two very different outputs.
+### Slide 21 — Same input. Two very different outputs.
 
 - **Role:** The headline comparison slide.
 - **Layout:** Full-bleed redrawn diagram showing the two pipelines stacked + a comparison table below.
@@ -514,12 +463,13 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
 | Structured machine-readable out | ❌ no | ✓ yes (JSON / 11 sections) |
 | Lane-discipline enforced | ❌ no | ✓ yes (QA flag) |
 | Run-to-run consistency | variable | ✓ deterministic where possible |
+| Where you customize behavior | the prompt you typed | seven labeled components |
 
-- **Speaker notes:** "Same model. Same input. The difference is workflow design."
+- **Speaker notes:** "Same model. Same input. The difference is workflow design — and that workflow design lives in the seven components we just walked through."
 
 ---
 
-### Slide 28 — Where this pattern generalizes
+### Slide 22 — Where this pattern generalizes
 
 - **Role:** Take-home + Q&A trigger.
 - **Layout:** Pull quote at top, short list below, footer with resources.
@@ -541,77 +491,36 @@ Each slide block has: **Role · Layout · Title · Body · Visual · Annotations
 
 ---
 
-## Screenshot inventory — 10 Scenario-D screenshots
+## Screenshot inventory — 2 Scenario-D screenshots
 
-Every screenshot in this deck is from the **`D_integrated_report_to_who`** flow on the workshop VM. **No chatbot screenshots are needed** (slide 8 is text-only). Capture each PNG unannotated; the annotation overlays (numbered circles, arrows, callouts, highlight boxes) are added by Claude Design at slide composition time.
+The deck uses **only two LangFlow screenshots**. Everything else is text, diagrams, or covered by the facilitator's live demo from a real LangFlow window during the talk.
 
-Target dimensions: **at least 1600 px wide** for canvas / wide-Playground shots; **at least 1200 px wide** for closeups. Lossless PNG, not JPEG.
+### Screenshot 1 — `canvas_scenario_d.png`  (slide 10) ✓ provided
 
-### Screenshot 1 — `canvas_scenario_d.png`  (slide 10)
+**Where in LangFlow:** open `D_integrated_report_to_who` on the workshop VM. Click the **fit-view** button at the bottom-right of the canvas until all seven workflow components are visible end-to-end in one frame.
 
-**Where in LangFlow:** open `D_integrated_report_to_who` on the workshop VM. Click the **fit-view** button at the bottom-right of the canvas (or Ctrl/⌘ + scroll-out) until **all seven workflow components are visible end-to-end in one frame**, with the arrows readable between them. Target ~2000 px wide.
+**Status:** uploaded to `docs/slides/img/screenshots/canvas_scenario_d.png`.
 
-**Capture:** the entire canvas in one frame. Do NOT scroll — one zoomed-out shot.
+### Screenshot 2 — `pdf_intake_prompt.png`  (slide 15) ✓ provided
 
-**Pre-existing partial captures in `img/screenshots/`** (file names like `Screenshot 2026-05-15 at 10.04.20 PM.png` etc.) are useful as backup but slide 10 needs a single unified panorama. Re-capture.
+**Where in LangFlow:** click the **PDF Intake** node. Right-side detail panel opens. Scroll until the **System Prompt** textarea is visible (expand the textarea if it offers an expand icon).
 
-### Screenshot 2 — `scenario_d_running.png`  (slide 13)
+**Status:** uploaded to `docs/slides/img/screenshots/pdf_intake_prompt.png`.
 
-**Where in LangFlow:** in `D_integrated_report_to_who`, click the **Playground** button (top-right of the canvas). The right-side chat panel opens.
+### Screenshots NOT in the deck
 
-**Capture:** type `run the aml case` into the chat input. **Capture just before pressing send** — the typed prompt is visible. Optionally, capture again **after pressing send** so the chat shows the user message in its sent-state bubble. Either is fine.
+The following images were considered in v3 and **explicitly dropped** in v4 — the facilitator's live LangFlow window covers them better:
 
-### Screenshot 3 — `scenario_d_report_top.png`  (slide 16)
+- `scenario_d_running.png` — Playground with prompt typed
+- `scenario_d_report_top.png` — sections 1–7
+- `scenario_d_diagnosis.png` — sections 8–9
+- `scenario_d_trace.png` — Part B evidence trace
+- `scenario_d_qa.png` — QA flags
+- `scenario_d_node_config.png` — right-side detail panel closeup
+- `who_classifier_prompt.png` — WHO Classifier system prompt closeup
+- `scenario_d_edit_prompt.png` — System prompt with cursor positioned for edit
 
-**Where in LangFlow:** same Playground panel, **after the pipeline has finished** (~30–60 s). The model's reply will be a long 11-section report.
-
-**Capture:** scroll to the **TOP** of the reply. The capture should show sections 1–7 of the report (Patient identification, Component studies reviewed, Clinical context, Morphology summary, Flow / IHC summary, Cytogenetics summary, Molecular summary). If only 5 fit comfortably on screen, that's fine — just label which ones are visible.
-
-### Screenshot 4 — `scenario_d_diagnosis.png`  (slide 17)
-
-**Where in LangFlow:** same Playground reply, scroll down further.
-
-**Capture:** show **section 8 (Integrated interpretation)** and **section 9 (Final integrated diagnosis)** together. Optionally a sliver of section 10 (Prognostic notes) at the bottom — this is where DNMT3A should appear, and the slide annotation will highlight that.
-
-### Screenshot 5 — `scenario_d_trace.png`  (slide 18)
-
-**Where in LangFlow:** same Playground reply, scroll to **"Part B — Evidence Trace"**.
-
-**Capture:** the trace table with as many rows as fit (target 6–10 rows). Columns visible: sentence number, sentence text, supporting source IDs, basis. If the table is wider than the chat panel, scroll horizontally and capture twice if needed; one shot showing the left portion (sentence + sources) is the minimum.
-
-### Screenshot 6 — `scenario_d_qa.png`  (slide 19)
-
-**Where in LangFlow:** same Playground reply, scroll to the very bottom — the **"QA Flags"** section.
-
-**Capture:** the QA flags section. Could be empty (`no QA flags raised`) or could contain low-severity flags. Both are fine.
-
-### Screenshot 7 — `scenario_d_node_config.png`  (slide 20)
-
-**Where in LangFlow:** click on **any one node** on the canvas (any of the seven works; WHO Classifier is a good choice since it has the most fields). A right-side detail panel opens showing every input field.
-
-**Capture:** the detail panel zoomed in enough that all input fields are readable — **model dropdown, temperature, max tokens, system prompt textarea, etc.** Target ~1200 px wide, focused on the panel.
-
-### Screenshot 8 — `pdf_intake_prompt.png`  (slide 22)
-
-**Where in LangFlow:** click the **PDF Intake** node. The right-side detail panel opens. Scroll within the panel until the **System Prompt** field is visible. Click the expand icon next to the System Prompt to open the multi-line text area.
-
-**Capture:** the expanded System Prompt of the PDF Intake node, with as much of the prompt text readable as fits. Target ~1200 px wide, focused on the textarea.
-
-**Pre-existing capture** in the screenshots folder (file `Screenshot 2026-05-15 at 10.04.20 PM.png`) shows partial PDF Intake including its system prompt — that's usable as a backup, but a focused close-up with the textarea fully expanded is better.
-
-### Screenshot 9 — `who_classifier_prompt.png`  (slide 23)
-
-**Where in LangFlow:** same as screenshot 8 but click the **WHO Classifier (Integrator)** node instead. Expand its System Prompt field.
-
-**Capture:** the expanded System Prompt of the WHO Classifier node, with as much of the prompt text readable as fits. Target ~1200 px wide.
-
-**Pre-existing capture** in the screenshots folder (file `Screenshot 2026-05-15 at 10.04.48 PM.png`) shows partial WHO Classifier including its system prompt — usable as backup; close-up is better.
-
-### Screenshot 10 — `scenario_d_edit_prompt.png`  (slide 24)
-
-**Where in LangFlow:** same as screenshot 9 (WHO Classifier with System Prompt expanded). The same image can be reused if you prefer; otherwise capture a separate one showing the cursor positioned to insert text into the textarea.
-
-**Capture:** the System Prompt textarea, ideally with a cursor visible near a spot where the example edit could be inserted. If reusing screenshot 9 instead, that's fine — Claude Design will add an annotation arrow pointing at the insertion point.
+If any of those become trivially easy to capture later, they can be slotted in as supplementary detail on the matching slide — but the deck is designed to work without them.
 
 ---
 
@@ -621,11 +530,12 @@ Target dimensions: **at least 1600 px wide** for canvas / wide-Playground shots;
 - **Right-margin clipping** was a defect on slides 3, 7, 20 of the v2 render. Ensure every body paragraph wraps within the slide's safe area.
 - **No partially-clipped insets.** If a sidebar thumbnail doesn't fit cleanly within the slide, drop it.
 - **All architectural diagrams should be redrawn from scratch** in your style. The matplotlib SVGs in `img/` are wireframe references only.
-- **Section break slides (9)** should feel distinctly different from content slides — bigger type, more whitespace, clear pacing reset.
+- **Section break slide (9)** should feel distinctly different from content slides — bigger type, more whitespace, clear pacing reset.
 - **Every screenshot gets at least one annotation overlay.** No raw screenshots on slides.
+- **Slides 14, 17, 19, 20 have no screenshot** by design — they show typed-out features, mock detail panels, or quoted prompt excerpts in a code-block-style box. Treat each as a deliberate layout opportunity, not as "missing content."
 
 ---
 
 ## What's out-of-sync
 
-The Marp markdown source at [`slides.md`](slides.md) is from the v1 (21-slide) draft. It is **out of sync** with this v3 spec. If a Marp fallback render is ever needed, regenerate `slides.md` from this document first.
+The Marp markdown source at [`slides.md`](slides.md) is from the v1 (21-slide) draft. It is **out of sync** with this v4 spec. If a Marp fallback render is ever needed, regenerate `slides.md` from this document first.
