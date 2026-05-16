@@ -61,3 +61,9 @@ node_modules/
 
 # Original proposal docx (md is the source of truth)
 API_Summit_Workshop_2026_Proposal_Agentic.docx
+
+# Slide deck build outputs (only the markdown sources + SVGs are committed)
+docs/slides/slides.pdf
+docs/slides/slides.html
+docs/slides/slides.pptx
+docs/slides/img/_preview/
