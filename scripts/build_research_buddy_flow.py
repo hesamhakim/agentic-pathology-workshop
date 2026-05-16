@@ -101,6 +101,72 @@ def make_node(
     }
 
 
+def enable_tool_mode(node: dict, action_name: str, action_description: str,
+                     action_args: dict | None = None) -> None:
+    """Convert a regular Component node into a tool-mode node.
+
+    Tool-mode replaces the node's normal outputs with a single
+    `component_as_tool: Tool` output that the Agent's `tools` handle
+    accepts. The starter "Simple Agent" project does this for the
+    Calculator; we mirror the exact same shape here so a non-legacy
+    Wikipedia + non-legacy Calculator can both be wired as tools.
+    """
+    nd = node["data"]["node"]
+    nd["tool_mode"] = True
+    nd["outputs"] = [
+        {
+            "allows_loop": False,
+            "cache": True,
+            "display_name": "Toolset",
+            "group_outputs": False,
+            "hidden": False,
+            "loop_types": None,
+            "method": "to_toolkit",
+            "name": "component_as_tool",
+            "options": None,
+            "required_inputs": None,
+            "selected": "Tool",
+            "tool_mode": True,
+            "types": ["Tool"],
+            "value": "__UNDEFINED__",
+        }
+    ]
+    nd["template"]["tools_metadata"] = {
+        "_input_type": "ToolsInput",
+        "advanced": False,
+        "display_name": "Actions",
+        "dynamic": False,
+        "info": (
+            "Modify tool names and descriptions to help agents "
+            "understand when to use each tool."
+        ),
+        "is_list": True,
+        "list_add_label": "Add More",
+        "name": "tools_metadata",
+        "override_skip": False,
+        "placeholder": "",
+        "real_time_refresh": True,
+        "required": False,
+        "show": True,
+        "title_case": False,
+        "tool_mode": False,
+        "trace_as_metadata": True,
+        "track_in_telemetry": False,
+        "type": "tools",
+        "value": [
+            {
+                "args": action_args or {},
+                "description": action_description,
+                "display_description": action_description,
+                "display_name": action_name,
+                "name": action_name,
+                "status": True,
+                "tags": [action_name],
+            }
+        ],
+    }
+
+
 def make_edge(
     source_node: dict,
     source_output_name: str,
@@ -199,8 +265,13 @@ def main() -> int:
 
         chat_in_tpl = get_component(all_components, "input_output", "ChatInput")
         agent_tpl = get_component(all_components, "models_and_agents", "Agent")
-        wiki_tpl = get_component(all_components, "tools", "WikipediaAPI")
-        calc_tpl = get_component(all_components, "tools", "CalculatorTool")
+        # NON-LEGACY tools. tools/WikipediaAPI and tools/CalculatorTool
+        # are marked legacy in LangFlow 1.9.2; the canvas drops their
+        # edges on load. Use the modern components with tool-mode
+        # enabled — same pattern as LangFlow's built-in "Simple Agent"
+        # starter project.
+        wiki_tpl = get_component(all_components, "wikipedia", "WikipediaComponent")
+        calc_tpl = get_component(all_components, "utilities", "CalculatorComponent")
         chat_out_tpl = get_component(all_components, "input_output", "ChatOutput")
 
         # Left-to-right layout. Tools sit below the Agent in a row of
@@ -216,8 +287,44 @@ def main() -> int:
                 "model": DEFAULT_AGENT_MODEL,
             },
         )
-        n_wiki = make_node(wiki_tpl, "WikipediaAPI", (400, 700))
-        n_calc = make_node(calc_tpl, "CalculatorTool", (800, 700))
+        n_wiki = make_node(wiki_tpl, "WikipediaComponent", (400, 700))
+        enable_tool_mode(
+            n_wiki,
+            action_name="fetch_content",
+            action_description=(
+                "WikipediaComponent. fetch_content() - Search Wikipedia "
+                "and return article summaries. Use this for factual "
+                "lookups: people, places, populations, definitions, etc."
+            ),
+            action_args={
+                "input_value": {
+                    "default": "",
+                    "description": "Search query for Wikipedia.",
+                    "title": "Input",
+                    "type": "string",
+                },
+            },
+        )
+        n_calc = make_node(calc_tpl, "CalculatorComponent", (800, 700))
+        enable_tool_mode(
+            n_calc,
+            action_name="evaluate_expression",
+            action_description=(
+                "CalculatorComponent. evaluate_expression() - Perform "
+                "basic arithmetic operations on a given expression."
+            ),
+            action_args={
+                "expression": {
+                    "default": "",
+                    "description": (
+                        "The arithmetic expression to evaluate "
+                        "(e.g., '4*4*(33/22)+12-20')."
+                    ),
+                    "title": "Expression",
+                    "type": "string",
+                },
+            },
+        )
         n_chatout = make_node(chat_out_tpl, "ChatOutput", (1200, 300))
 
         nodes = [n_chatin, n_agent, n_wiki, n_calc, n_chatout]
@@ -228,14 +335,14 @@ def main() -> int:
                 n_chatin, "message", ["Message"],
                 n_agent, "input_value", ["Message"],
             ),
-            # Wikipedia → Agent.tools (as a Tool)
+            # Wikipedia (tool mode) → Agent.tools
             make_edge(
-                n_wiki, "api_build_tool", ["Tool"],
+                n_wiki, "component_as_tool", ["Tool"],
                 n_agent, "tools", ["Tool"],
             ),
-            # Calculator → Agent.tools (as a Tool)
+            # Calculator (tool mode) → Agent.tools
             make_edge(
-                n_calc, "api_build_tool", ["Tool"],
+                n_calc, "component_as_tool", ["Tool"],
                 n_agent, "tools", ["Tool"],
             ),
             # Agent.response → Chat Output

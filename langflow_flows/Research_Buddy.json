@@ -4,14 +4,14 @@
   "data": {
     "nodes": [
       {
-        "id": "ChatInput-3b1154",
+        "id": "ChatInput-333106",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 300
         },
         "data": {
-          "id": "ChatInput-3b1154",
+          "id": "ChatInput-333106",
           "type": "ChatInput",
           "node": {
             "base_classes": [
@@ -291,14 +291,14 @@
         }
       },
       {
-        "id": "Agent-13eea7",
+        "id": "Agent-f39f43",
         "type": "genericNode",
         "position": {
           "x": 600,
           "y": 300
         },
         "data": {
-          "id": "Agent-13eea7",
+          "id": "Agent-f39f43",
           "type": "Agent",
           "node": {
             "base_classes": [
@@ -876,25 +876,24 @@
         }
       },
       {
-        "id": "WikipediaAPI-1dae86",
+        "id": "WikipediaComponent-005756",
         "type": "genericNode",
         "position": {
           "x": 400,
           "y": 700
         },
         "data": {
-          "id": "WikipediaAPI-1dae86",
-          "type": "WikipediaAPI",
+          "id": "WikipediaComponent-005756",
+          "type": "WikipediaComponent",
           "node": {
             "base_classes": [
-              "JSON",
-              "Tool"
+              "Table"
             ],
             "beta": false,
             "conditional_paths": [],
             "custom_fields": {},
             "description": "Call Wikipedia API.",
-            "display_name": "Wikipedia API",
+            "display_name": "Wikipedia",
             "documentation": "",
             "edited": false,
             "field_order": [
@@ -906,9 +905,9 @@
             ],
             "frozen": false,
             "icon": "Wikipedia",
-            "legacy": true,
+            "legacy": false,
             "metadata": {
-              "code_hash": "d7ae953444c9",
+              "code_hash": "e1b58c8ac595",
               "dependencies": {
                 "dependencies": [
                   {
@@ -922,7 +921,7 @@
                 ],
                 "total_dependencies": 2
               },
-              "module": "lfx.components.tools.wikipedia_api.WikipediaAPIComponent"
+              "module": "lfx.components.wikipedia.wikipedia.WikipediaComponent"
             },
             "minimized": false,
             "output_types": [],
@@ -930,24 +929,14 @@
               {
                 "allows_loop": false,
                 "cache": true,
-                "display_name": "JSON",
+                "display_name": "Toolset",
                 "group_outputs": false,
-                "method": "run_model",
-                "name": "api_run_model",
-                "selected": "JSON",
-                "tool_mode": true,
-                "types": [
-                  "JSON"
-                ],
-                "value": "__UNDEFINED__"
-              },
-              {
-                "allows_loop": false,
-                "cache": true,
-                "display_name": "Tool",
-                "group_outputs": false,
-                "method": "build_tool",
-                "name": "api_build_tool",
+                "hidden": false,
+                "loop_types": null,
+                "method": "to_toolkit",
+                "name": "component_as_tool",
+                "options": null,
+                "required_inputs": null,
                 "selected": "Tool",
                 "tool_mode": true,
                 "types": [
@@ -957,9 +946,6 @@
               }
             ],
             "pinned": false,
-            "replacement": [
-              "wikipedia.WikipediaComponent"
-            ],
             "template": {
               "_type": "Component",
               "code": {
@@ -978,7 +964,7 @@
                 "show": true,
                 "title_case": false,
                 "type": "code",
-                "value": "from typing import cast\n\nfrom langchain_community.tools import WikipediaQueryRun\nfrom langchain_community.utilities.wikipedia import WikipediaAPIWrapper\n\nfrom lfx.base.langchain_utilities.model import LCToolComponent\nfrom lfx.field_typing import Tool\nfrom lfx.inputs.inputs import BoolInput, IntInput, MessageTextInput, MultilineInput\nfrom lfx.schema.data import Data\n\n\nclass WikipediaAPIComponent(LCToolComponent):\n    display_name = \"Wikipedia API\"\n    description = \"Call Wikipedia API.\"\n    name = \"WikipediaAPI\"\n    icon = \"Wikipedia\"\n    legacy = True\n    replacement = [\"wikipedia.WikipediaComponent\"]\n\n    inputs = [\n        MultilineInput(\n            name=\"input_value\",\n            display_name=\"Input\",\n        ),\n        MessageTextInput(name=\"lang\", display_name=\"Language\", value=\"en\"),\n        IntInput(name=\"k\", display_name=\"Number of results\", value=4, required=True),\n        BoolInput(name=\"load_all_available_meta\", display_name=\"Load all available meta\", value=False, advanced=True),\n        IntInput(\n            name=\"doc_content_chars_max\", display_name=\"Document content characters max\", value=4000, advanced=True\n        ),\n    ]\n\n    def run_model(self) -> list[Data]:\n        wrapper = self._build_wrapper()\n        docs = wrapper.load(self.input_value)\n        data = [Data.from_document(doc) for doc in docs]\n        self.status = data\n        return data\n\n    def build_tool(self) -> Tool:\n        wrapper = self._build_wrapper()\n        return cast(\"Tool\", WikipediaQueryRun(api_wrapper=wrapper))\n\n    def _build_wrapper(self) -> WikipediaAPIWrapper:\n        return WikipediaAPIWrapper(\n            top_k_results=self.k,\n            lang=self.lang,\n            load_all_available_meta=self.load_all_available_meta,\n            doc_content_chars_max=self.doc_content_chars_max,\n        )\n"
+                "value": "from langchain_community.utilities.wikipedia import WikipediaAPIWrapper\n\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.inputs.inputs import BoolInput, IntInput, MessageTextInput, MultilineInput\nfrom lfx.io import Output\nfrom lfx.schema.data import Data\nfrom lfx.schema.dataframe import DataFrame\n\n\nclass WikipediaComponent(Component):\n    display_name = \"Wikipedia\"\n    description = \"Call Wikipedia API.\"\n    icon = \"Wikipedia\"\n\n    inputs = [\n        MultilineInput(\n            name=\"input_value\",\n            display_name=\"Input\",\n            tool_mode=True,\n        ),\n        MessageTextInput(name=\"lang\", display_name=\"Language\", value=\"en\"),\n        IntInput(name=\"k\", display_name=\"Number of results\", value=4, required=True),\n        BoolInput(name=\"load_all_available_meta\", display_name=\"Load all available meta\", value=False, advanced=True),\n        IntInput(\n            name=\"doc_content_chars_max\", display_name=\"Document content characters max\", value=4000, advanced=True\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Table\", name=\"dataframe\", method=\"fetch_content_dataframe\"),\n    ]\n\n    def run_model(self) -> DataFrame:\n        return self.fetch_content_dataframe()\n\n    def _build_wrapper(self) -> WikipediaAPIWrapper:\n        return WikipediaAPIWrapper(\n            top_k_results=self.k,\n            lang=self.lang,\n            load_all_available_meta=self.load_all_available_meta,\n            doc_content_chars_max=self.doc_content_chars_max,\n        )\n\n    def fetch_content(self) -> list[Data]:\n        wrapper = self._build_wrapper()\n        docs = wrapper.load(self.input_value)\n        data = [Data.from_document(doc) for doc in docs]\n        self.status = data\n        return data\n\n    def fetch_content_dataframe(self) -> DataFrame:\n        data = self.fetch_content()\n        return DataFrame(data)\n"
               },
               "doc_content_chars_max": {
                 "_input_type": "IntInput",
@@ -1022,7 +1008,7 @@
                 "required": false,
                 "show": true,
                 "title_case": false,
-                "tool_mode": false,
+                "tool_mode": true,
                 "trace_as_input": true,
                 "trace_as_metadata": true,
                 "track_in_telemetry": false,
@@ -1093,65 +1079,92 @@
                 "track_in_telemetry": true,
                 "type": "bool",
                 "value": false
+              },
+              "tools_metadata": {
+                "_input_type": "ToolsInput",
+                "advanced": false,
+                "display_name": "Actions",
+                "dynamic": false,
+                "info": "Modify tool names and descriptions to help agents understand when to use each tool.",
+                "is_list": true,
+                "list_add_label": "Add More",
+                "name": "tools_metadata",
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "tools",
+                "value": [
+                  {
+                    "args": {
+                      "input_value": {
+                        "default": "",
+                        "description": "Search query for Wikipedia.",
+                        "title": "Input",
+                        "type": "string"
+                      }
+                    },
+                    "description": "WikipediaComponent. fetch_content() - Search Wikipedia and return article summaries. Use this for factual lookups: people, places, populations, definitions, etc.",
+                    "display_description": "WikipediaComponent. fetch_content() - Search Wikipedia and return article summaries. Use this for factual lookups: people, places, populations, definitions, etc.",
+                    "display_name": "fetch_content",
+                    "name": "fetch_content",
+                    "status": true,
+                    "tags": [
+                      "fetch_content"
+                    ]
+                  }
+                ]
               }
             },
-            "tool_mode": false
+            "tool_mode": true
           },
           "showNode": true
         }
       },
       {
-        "id": "CalculatorTool-cc1ae5",
+        "id": "CalculatorComponent-8df05f",
         "type": "genericNode",
         "position": {
           "x": 800,
           "y": 700
         },
         "data": {
-          "id": "CalculatorTool-cc1ae5",
-          "type": "CalculatorTool",
+          "id": "CalculatorComponent-8df05f",
+          "type": "CalculatorComponent",
           "node": {
             "base_classes": [
-              "JSON",
-              "Tool"
+              "JSON"
             ],
             "beta": false,
             "conditional_paths": [],
             "custom_fields": {},
             "description": "Perform basic arithmetic operations on a given expression.",
             "display_name": "Calculator",
-            "documentation": "",
+            "documentation": "https://docs.langflow.org/calculator",
             "edited": false,
             "field_order": [
               "expression"
             ],
             "frozen": false,
             "icon": "calculator",
-            "legacy": true,
+            "legacy": false,
             "metadata": {
-              "code_hash": "ce5b7bf595b4",
+              "code_hash": "37caa1aba62c",
               "dependencies": {
                 "dependencies": [
-                  {
-                    "name": "pytest",
-                    "version": "8.4.2"
-                  },
-                  {
-                    "name": "langchain_core",
-                    "version": "1.3.2"
-                  },
-                  {
-                    "name": "pydantic",
-                    "version": "2.12.5"
-                  },
                   {
                     "name": "lfx",
                     "version": null
                   }
                 ],
-                "total_dependencies": 4
+                "total_dependencies": 1
               },
-              "module": "lfx.components.tools.calculator.CalculatorToolComponent"
+              "module": "lfx.components.utilities.calculator_core.CalculatorComponent"
             },
             "minimized": false,
             "output_types": [],
@@ -1159,24 +1172,14 @@
               {
                 "allows_loop": false,
                 "cache": true,
-                "display_name": "JSON",
+                "display_name": "Toolset",
                 "group_outputs": false,
-                "method": "run_model",
-                "name": "api_run_model",
-                "selected": "JSON",
-                "tool_mode": true,
-                "types": [
-                  "JSON"
-                ],
-                "value": "__UNDEFINED__"
-              },
-              {
-                "allows_loop": false,
-                "cache": true,
-                "display_name": "Tool",
-                "group_outputs": false,
-                "method": "build_tool",
-                "name": "api_build_tool",
+                "hidden": false,
+                "loop_types": null,
+                "method": "to_toolkit",
+                "name": "component_as_tool",
+                "options": null,
+                "required_inputs": null,
                 "selected": "Tool",
                 "tool_mode": true,
                 "types": [
@@ -1186,9 +1189,6 @@
               }
             ],
             "pinned": false,
-            "replacement": [
-              "helpers.CalculatorComponent"
-            ],
             "template": {
               "_type": "Component",
               "code": {
@@ -1207,7 +1207,7 @@
                 "show": true,
                 "title_case": false,
                 "type": "code",
-                "value": "import ast\nimport operator\n\nimport pytest\nfrom langchain_core.tools import ToolException\nfrom pydantic import BaseModel, Field\n\nfrom lfx.base.langchain_utilities.model import LCToolComponent\nfrom lfx.field_typing import Tool\nfrom lfx.inputs.inputs import MessageTextInput\nfrom lfx.log.logger import logger\nfrom lfx.schema.data import Data\n\n\nclass CalculatorToolComponent(LCToolComponent):\n    display_name = \"Calculator\"\n    description = \"Perform basic arithmetic operations on a given expression.\"\n    icon = \"calculator\"\n    name = \"CalculatorTool\"\n    legacy = True\n    replacement = [\"helpers.CalculatorComponent\"]\n\n    inputs = [\n        MessageTextInput(\n            name=\"expression\",\n            display_name=\"Expression\",\n            info=\"The arithmetic expression to evaluate (e.g., '4*4*(33/22)+12-20').\",\n        ),\n    ]\n\n    class CalculatorToolSchema(BaseModel):\n        expression: str = Field(..., description=\"The arithmetic expression to evaluate.\")\n\n    def run_model(self) -> list[Data]:\n        return self._evaluate_expression(self.expression)\n\n    def build_tool(self) -> Tool:\n        try:\n            from langchain_core.tools import StructuredTool\n        except Exception:  # noqa: BLE001\n            pytest.skip(\"langchain is not available\")\n\n        return StructuredTool.from_function(\n            name=\"calculator\",\n            description=\"Evaluate basic arithmetic expressions. Input should be a string containing the expression.\",\n            func=self._eval_expr_with_error,\n            args_schema=self.CalculatorToolSchema,\n        )\n\n    def _eval_expr(self, node):\n        if isinstance(node, ast.Num):\n            return node.n\n        if isinstance(node, ast.BinOp):\n            left_val = self._eval_expr(node.left)\n            right_val = self._eval_expr(node.right)\n            return self.operators[type(node.op)](left_val, right_val)\n        if isinstance(node, ast.UnaryOp):\n            operand_val = self._eval_expr(node.operand)\n            return self.operators[type(node.op)](operand_val)\n        if isinstance(node, ast.Call):\n            msg = (\n                \"Function calls like sqrt(), sin(), cos() etc. are not supported. \"\n                \"Only basic arithmetic operations (+, -, *, /, **) are allowed.\"\n            )\n            raise TypeError(msg)\n        msg = f\"Unsupported operation or expression type: {type(node).__name__}\"\n        raise TypeError(msg)\n\n    def _eval_expr_with_error(self, expression: str) -> list[Data]:\n        try:\n            return self._evaluate_expression(expression)\n        except Exception as e:\n            raise ToolException(str(e)) from e\n\n    def _evaluate_expression(self, expression: str) -> list[Data]:\n        try:\n            # Parse the expression and evaluate it\n            tree = ast.parse(expression, mode=\"eval\")\n            result = self._eval_expr(tree.body)\n\n            # Format the result to a reasonable number of decimal places\n            formatted_result = f\"{result:.6f}\".rstrip(\"0\").rstrip(\".\")\n\n            self.status = formatted_result\n            return [Data(data={\"result\": formatted_result})]\n\n        except (SyntaxError, TypeError, KeyError) as e:\n            error_message = f\"Invalid expression: {e}\"\n            self.status = error_message\n            return [Data(data={\"error\": error_message, \"input\": expression})]\n        except ZeroDivisionError:\n            error_message = \"Error: Division by zero\"\n            self.status = error_message\n            return [Data(data={\"error\": error_message, \"input\": expression})]\n        except Exception as e:  # noqa: BLE001\n            logger.debug(\"Error evaluating expression\", exc_info=True)\n            error_message = f\"Error: {e}\"\n            self.status = error_message\n            return [Data(data={\"error\": error_message, \"input\": expression})]\n\n    def __init__(self, *args, **kwargs):\n        super().__init__(*args, **kwargs)\n        self.operators = {\n            ast.Add: operator.add,\n            ast.Sub: operator.sub,\n            ast.Mult: operator.mul,\n            ast.Div: operator.truediv,\n            ast.Pow: operator.pow,\n        }\n"
+                "value": "import ast\nimport operator\nfrom collections.abc import Callable\n\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.inputs.inputs import MessageTextInput\nfrom lfx.io import Output\nfrom lfx.schema.data import Data\n\n\nclass CalculatorComponent(Component):\n    display_name = \"Calculator\"\n    description = \"Perform basic arithmetic operations on a given expression.\"\n    documentation: str = \"https://docs.langflow.org/calculator\"\n    icon = \"calculator\"\n\n    # Cache operators dictionary as a class variable\n    OPERATORS: dict[type[ast.operator], Callable] = {\n        ast.Add: operator.add,\n        ast.Sub: operator.sub,\n        ast.Mult: operator.mul,\n        ast.Div: operator.truediv,\n        ast.Pow: operator.pow,\n    }\n\n    inputs = [\n        MessageTextInput(\n            name=\"expression\",\n            display_name=\"Expression\",\n            info=\"The arithmetic expression to evaluate (e.g., '4*4*(33/22)+12-20').\",\n            tool_mode=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"JSON\", name=\"result\", type_=Data, method=\"evaluate_expression\"),\n    ]\n\n    def _eval_expr(self, node: ast.AST) -> float:\n        \"\"\"Evaluate an AST node recursively.\"\"\"\n        if isinstance(node, ast.Constant):\n            if isinstance(node.value, int | float):\n                return float(node.value)\n            error_msg = f\"Unsupported constant type: {type(node.value).__name__}\"\n            raise TypeError(error_msg)\n        if isinstance(node, ast.Num):  # For backwards compatibility\n            if isinstance(node.n, int | float):\n                return float(node.n)\n            error_msg = f\"Unsupported number type: {type(node.n).__name__}\"\n            raise TypeError(error_msg)\n\n        if isinstance(node, ast.BinOp):\n            op_type = type(node.op)\n            if op_type not in self.OPERATORS:\n                error_msg = f\"Unsupported binary operator: {op_type.__name__}\"\n                raise TypeError(error_msg)\n\n            left = self._eval_expr(node.left)\n            right = self._eval_expr(node.right)\n            return self.OPERATORS[op_type](left, right)\n\n        error_msg = f\"Unsupported operation or expression type: {type(node).__name__}\"\n        raise TypeError(error_msg)\n\n    def evaluate_expression(self) -> Data:\n        \"\"\"Evaluate the mathematical expression and return the result.\"\"\"\n        try:\n            tree = ast.parse(self.expression, mode=\"eval\")\n            result = self._eval_expr(tree.body)\n\n            formatted_result = f\"{float(result):.6f}\".rstrip(\"0\").rstrip(\".\")\n            self.log(f\"Calculation result: {formatted_result}\")\n\n            self.status = formatted_result\n            return Data(data={\"result\": formatted_result})\n\n        except ZeroDivisionError:\n            error_message = \"Error: Division by zero\"\n            self.status = error_message\n            return Data(data={\"error\": error_message, \"input\": self.expression})\n\n        except (SyntaxError, TypeError, KeyError, ValueError, AttributeError, OverflowError) as e:\n            error_message = f\"Invalid expression: {e!s}\"\n            self.status = error_message\n            return Data(data={\"error\": error_message, \"input\": self.expression})\n\n    def build(self):\n        \"\"\"Return the main evaluation function.\"\"\"\n        return self.evaluate_expression\n"
               },
               "expression": {
                 "_input_type": "MessageTextInput",
@@ -1227,28 +1227,68 @@
                 "required": false,
                 "show": true,
                 "title_case": false,
-                "tool_mode": false,
+                "tool_mode": true,
                 "trace_as_input": true,
                 "trace_as_metadata": true,
                 "track_in_telemetry": false,
                 "type": "str",
                 "value": ""
+              },
+              "tools_metadata": {
+                "_input_type": "ToolsInput",
+                "advanced": false,
+                "display_name": "Actions",
+                "dynamic": false,
+                "info": "Modify tool names and descriptions to help agents understand when to use each tool.",
+                "is_list": true,
+                "list_add_label": "Add More",
+                "name": "tools_metadata",
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "tools",
+                "value": [
+                  {
+                    "args": {
+                      "expression": {
+                        "default": "",
+                        "description": "The arithmetic expression to evaluate (e.g., '4*4*(33/22)+12-20').",
+                        "title": "Expression",
+                        "type": "string"
+                      }
+                    },
+                    "description": "CalculatorComponent. evaluate_expression() - Perform basic arithmetic operations on a given expression.",
+                    "display_description": "CalculatorComponent. evaluate_expression() - Perform basic arithmetic operations on a given expression.",
+                    "display_name": "evaluate_expression",
+                    "name": "evaluate_expression",
+                    "status": true,
+                    "tags": [
+                      "evaluate_expression"
+                    ]
+                  }
+                ]
               }
             },
-            "tool_mode": false
+            "tool_mode": true
           },
           "showNode": true
         }
       },
       {
-        "id": "ChatOutput-5b156e",
+        "id": "ChatOutput-a82005",
         "type": "genericNode",
         "position": {
           "x": 1200,
           "y": 300
         },
         "data": {
-          "id": "ChatOutput-5b156e",
+          "id": "ChatOutput-a82005",
           "type": "ChatOutput",
           "node": {
             "base_classes": [
@@ -1536,14 +1576,14 @@
     ],
     "edges": [
       {
-        "source": "ChatInput-3b1154",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-3b1154\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "Agent-13eea7",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153Agent-13eea7\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "ChatInput-333106",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-333106\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "Agent-f39f43",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153Agent-f39f43\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ChatInput",
-            "id": "ChatInput-3b1154",
+            "id": "ChatInput-333106",
             "name": "message",
             "output_types": [
               "Message"
@@ -1551,83 +1591,83 @@
           },
           "targetHandle": {
             "fieldName": "input_value",
-            "id": "Agent-13eea7",
+            "id": "Agent-f39f43",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__ChatInput-3b1154{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-3b1154\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-Agent-13eea7{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153Agent-13eea7\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__ChatInput-333106{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-333106\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-Agent-f39f43{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153Agent-f39f43\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "WikipediaAPI-1dae86",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153WikipediaAPI\u0153,\u0153id\u0153:\u0153WikipediaAPI-1dae86\u0153,\u0153name\u0153:\u0153api_build_tool\u0153,\u0153output_types\u0153:[\u0153Tool\u0153]}",
-        "target": "Agent-13eea7",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153tools\u0153,\u0153id\u0153:\u0153Agent-13eea7\u0153,\u0153inputTypes\u0153:[\u0153Tool\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "WikipediaComponent-005756",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153WikipediaComponent\u0153,\u0153id\u0153:\u0153WikipediaComponent-005756\u0153,\u0153name\u0153:\u0153component_as_tool\u0153,\u0153output_types\u0153:[\u0153Tool\u0153]}",
+        "target": "Agent-f39f43",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153tools\u0153,\u0153id\u0153:\u0153Agent-f39f43\u0153,\u0153inputTypes\u0153:[\u0153Tool\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
-            "dataType": "WikipediaAPI",
-            "id": "WikipediaAPI-1dae86",
-            "name": "api_build_tool",
+            "dataType": "WikipediaComponent",
+            "id": "WikipediaComponent-005756",
+            "name": "component_as_tool",
             "output_types": [
               "Tool"
             ]
           },
           "targetHandle": {
             "fieldName": "tools",
-            "id": "Agent-13eea7",
+            "id": "Agent-f39f43",
             "inputTypes": [
               "Tool"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__WikipediaAPI-1dae86{\u0153dataType\u0153:\u0153WikipediaAPI\u0153,\u0153id\u0153:\u0153WikipediaAPI-1dae86\u0153,\u0153name\u0153:\u0153api_build_tool\u0153,\u0153output_types\u0153:[\u0153Tool\u0153]}-Agent-13eea7{\u0153fieldName\u0153:\u0153tools\u0153,\u0153id\u0153:\u0153Agent-13eea7\u0153,\u0153inputTypes\u0153:[\u0153Tool\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__WikipediaComponent-005756{\u0153dataType\u0153:\u0153WikipediaComponent\u0153,\u0153id\u0153:\u0153WikipediaComponent-005756\u0153,\u0153name\u0153:\u0153component_as_tool\u0153,\u0153output_types\u0153:[\u0153Tool\u0153]}-Agent-f39f43{\u0153fieldName\u0153:\u0153tools\u0153,\u0153id\u0153:\u0153Agent-f39f43\u0153,\u0153inputTypes\u0153:[\u0153Tool\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "CalculatorTool-cc1ae5",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153CalculatorTool\u0153,\u0153id\u0153:\u0153CalculatorTool-cc1ae5\u0153,\u0153name\u0153:\u0153api_build_tool\u0153,\u0153output_types\u0153:[\u0153Tool\u0153]}",
-        "target": "Agent-13eea7",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153tools\u0153,\u0153id\u0153:\u0153Agent-13eea7\u0153,\u0153inputTypes\u0153:[\u0153Tool\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "CalculatorComponent-8df05f",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153CalculatorComponent\u0153,\u0153id\u0153:\u0153CalculatorComponent-8df05f\u0153,\u0153name\u0153:\u0153component_as_tool\u0153,\u0153output_types\u0153:[\u0153Tool\u0153]}",
+        "target": "Agent-f39f43",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153tools\u0153,\u0153id\u0153:\u0153Agent-f39f43\u0153,\u0153inputTypes\u0153:[\u0153Tool\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
-            "dataType": "CalculatorTool",
-            "id": "CalculatorTool-cc1ae5",
-            "name": "api_build_tool",
+            "dataType": "CalculatorComponent",
+            "id": "CalculatorComponent-8df05f",
+            "name": "component_as_tool",
             "output_types": [
               "Tool"
             ]
           },
           "targetHandle": {
             "fieldName": "tools",
-            "id": "Agent-13eea7",
+            "id": "Agent-f39f43",
             "inputTypes": [
               "Tool"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__CalculatorTool-cc1ae5{\u0153dataType\u0153:\u0153CalculatorTool\u0153,\u0153id\u0153:\u0153CalculatorTool-cc1ae5\u0153,\u0153name\u0153:\u0153api_build_tool\u0153,\u0153output_types\u0153:[\u0153Tool\u0153]}-Agent-13eea7{\u0153fieldName\u0153:\u0153tools\u0153,\u0153id\u0153:\u0153Agent-13eea7\u0153,\u0153inputTypes\u0153:[\u0153Tool\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__CalculatorComponent-8df05f{\u0153dataType\u0153:\u0153CalculatorComponent\u0153,\u0153id\u0153:\u0153CalculatorComponent-8df05f\u0153,\u0153name\u0153:\u0153component_as_tool\u0153,\u0153output_types\u0153:[\u0153Tool\u0153]}-Agent-f39f43{\u0153fieldName\u0153:\u0153tools\u0153,\u0153id\u0153:\u0153Agent-f39f43\u0153,\u0153inputTypes\u0153:[\u0153Tool\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "Agent-13eea7",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153Agent\u0153,\u0153id\u0153:\u0153Agent-13eea7\u0153,\u0153name\u0153:\u0153response\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "ChatOutput-5b156e",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-5b156e\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "Agent-f39f43",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153Agent\u0153,\u0153id\u0153:\u0153Agent-f39f43\u0153,\u0153name\u0153:\u0153response\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "ChatOutput-a82005",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-a82005\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "Agent",
-            "id": "Agent-13eea7",
+            "id": "Agent-f39f43",
             "name": "response",
             "output_types": [
               "Message"
@@ -1635,14 +1675,14 @@
           },
           "targetHandle": {
             "fieldName": "input_value",
-            "id": "ChatOutput-5b156e",
+            "id": "ChatOutput-a82005",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__Agent-13eea7{\u0153dataType\u0153:\u0153Agent\u0153,\u0153id\u0153:\u0153Agent-13eea7\u0153,\u0153name\u0153:\u0153response\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-5b156e{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-5b156e\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__Agent-f39f43{\u0153dataType\u0153:\u0153Agent\u0153,\u0153id\u0153:\u0153Agent-f39f43\u0153,\u0153name\u0153:\u0153response\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-a82005{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-a82005\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
