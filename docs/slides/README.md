@@ -1,89 +1,130 @@
 # Workshop slide deck
 
 The deck for the API Summit 2026 workshop talk on agentic AI in
-integrated pathology reporting. ~21 slides, ~20 minutes of presenter
-time. Focus: integrated pathology reporting (Scenarios A/B/C are
-backed by infrastructure but not presented in this deck).
+integrated pathology reporting. **26 slides, ~30 minutes of presenter
+time.** Heavily hands-on — most of the deck guides attendees step
+by step through Scenario 0 and Scenario D in the actual LangFlow UI.
 
-## Two artifacts, two paths
+## Current source-of-truth
 
-There are two parallel paths to a finished deck. Pick the one that
-matches how you want to iterate.
+[`slide_specs.md`](slide_specs.md) is the authoritative spec. Hand
+it to Claude Design (or any other design tool) together with the
+SVG topology references in `img/` and the 11 LangFlow screenshots
+in `img/screenshots/` (once captured).
 
-### Path A — design handoff (recommended)
+The earlier 21-slide draft (Marp markdown at `slides.md`) is
+**now out-of-sync**. Treat it as historical. Don't render it.
 
-The primary artifact is [`slide_specs.md`](slide_specs.md), a detailed
-slide-by-slide specification (title, body, layout, visual references,
-speaker notes). Hand it to Claude Design (or any other AI design tool)
-along with the five SVG references in `img/`, get a polished deck back.
+## What to give Claude Design
 
-This is the cleaner-looking option and lets a design tool do the
-visual heavy lifting.
+When you hand off the deck:
 
-### Path B — Marp render (fallback)
+1. **`slide_specs.md`** — the spec (this is the primary input)
+2. **All five SVGs from `img/`** — `concept_chatbot_vs_agent.svg`,
+   `case_aml_overview.svg`, `case_aml_features.svg`, `pipeline_d.svg`,
+   `side_by_side.svg`. **Important:** tell Claude Design these are
+   *topology references only* — show what connects to what — and
+   should be redrawn from scratch in a polished clinical-infographic
+   style. Do NOT embed them verbatim.
+3. **The 11 screenshots from `img/screenshots/`** (specs below).
+   These can be captured once and dropped in.
 
-The same content in Marp markdown form is at [`slides.md`](slides.md).
-Render to PDF/HTML/PPTX with:
+## Screenshots — 11 needed, one per hands-on slide
+
+Capture instructions for every screenshot are in
+[`slide_specs.md` § "Screenshot inventory"](slide_specs.md#screenshot-inventory--11-screenshots-one-per-hands-on-slide).
+Capture the raw PNGs (no annotations). Claude Design adds the
+arrows, numbered callouts, and highlight overlays at slide
+composition time.
+
+| # | Filename | Slide | Topic |
+|---|---|---|---|
+| 1 | `lookup_general_chatbot.png` | 10 | My Projects view + opening `0_general_chatbot` |
+| 2 | `chatbot_attach_pdfs.png` | 11 | Paperclip + 4 PDFs queued |
+| 3 | `chatbot_prompt_sent.png` | 12 | Typed prompt visible before send |
+| 4 | `chatbot_reply.png` | 13 | The chatbot's reply |
+| 5 | `canvas_scenario_d.png` | 16 | Full LangFlow canvas of Scenario D |
+| 6 | `scenario_d_running.png` | 19 | The `run the aml case` prompt + pipeline executing |
+| 7 | `scenario_d_report_top.png` | 20 | Sections 1–7 of the integrated report |
+| 8 | `scenario_d_diagnosis.png` | 21 | Sections 8–9 (interpretation + final diagnosis) |
+| 9 | `scenario_d_trace.png` | 22 | Part B — Evidence Trace table |
+| 10 | `scenario_d_qa.png` | 23 | QA flags section |
+| 11 | `scenario_d_edit_prompt.png` | 24 | WHO Classifier system-prompt textarea |
+
+## Rebalanced deck structure
+
+- **Intro + concept (slides 1–6)**: ~6 slides, tightened from the previous
+  9-slide block. Theory is kept brief; the case study comes early.
+- **Case (slides 7–8)**: ~2 slides. Patient + four reports + planted features.
+- **Part 1 hands-on — chatbot (slides 9–14)**: 6 slides, step-by-step:
+  open the flow, attach PDFs, type the prompt, read the reply, ask
+  four diagnostic questions.
+- **Part 2 hands-on — agentic workflow (slides 15–24)**: 10 slides,
+  step-by-step: open the canvas, understand the seven components,
+  identify the two editable levers, run the case, walk through the
+  output (top of report, diagnosis line, evidence trace, QA flags),
+  and edit a prompt + re-run.
+- **Wrap (slides 25–26)**: side-by-side comparison + take-home.
+
+## Visual style direction — key points
+
+The previous draft's diagrams were programmer-drawn matplotlib
+figures. The revised spec calls for **clinical-infographic style** —
+icons in every node, generous whitespace, subtle drop shadows,
+rounded corners, real typography hierarchy. Every screenshot
+gets annotation overlays (numbered circles, arrows, highlight
+boxes). All architectural diagrams redrawn from scratch.
+
+Full visual style direction is in
+[`slide_specs.md` § "Design system"](slide_specs.md#design-system).
+
+## Marp source (out-of-sync)
+
+[`slides.md`](slides.md) is the markdown source from the previous
+21-slide draft. **It is out of sync with the current spec.** If you
+need a Marp fallback render, regenerate `slides.md` to match
+`slide_specs.md` first.
+
+The build script at `scripts/build_slides.sh` still works if you
+update `slides.md` first:
 
 ```bash
-# 1. Regenerate diagrams (commits SVGs to img/; pass --png for previews)
 /mnt/data/envs/general/bin/python scripts/build_slide_diagrams.py
-
-# 2. Render to PDF + HTML + PPTX via Marp CLI in Docker
 bash scripts/build_slides.sh
+# outputs: docs/slides/slides.{pdf,html,pptx}
 ```
-
-Outputs (gitignored): `slides.{pdf,html,pptx}`.
-
-This option works without an external design tool but the output is
-plainer.
-
-## Editing
-
-If you edit the content, edit it in **one** place and propagate:
-
-- For path A: edit `slide_specs.md`. Keep `slides.md` in sync if you
-  rely on it as a fallback.
-- For path B: edit `slides.md`. Re-render via `build_slides.sh`.
-
-## Screenshots from the workshop VM
-
-Three PNGs are referenced from the deck but not yet committed.
-Specs (what to capture, target dimensions, exact filenames) are in
-[`slide_specs.md`](slide_specs.md) §"Screenshots needed from the
-workshop VM". Drop them in `img/screenshots/` with the filenames:
-
-- `playground_scenario_0.png`
-- `canvas_scenario_d.png`
-- `playground_scenario_d.png`
 
 ## Layout
 
 ```
 docs/slides/
 ├── README.md                                this file
-├── slide_specs.md                           detailed spec for design handoff
-├── slides.md                                Marp source (alternative)
+├── slide_specs.md                           ← authoritative spec
+├── slides.md                                Marp source (OUT-OF-SYNC)
+├── claude_desing/                           previous design output (PDF)
 └── img/
-    ├── concept_chatbot_vs_agent.svg         generated reference
-    ├── case_aml_overview.svg                generated reference
-    ├── case_aml_features.svg                generated reference
-    ├── pipeline_d.svg                       generated reference
-    ├── side_by_side.svg                     generated reference
-    ├── _preview/                            PNG previews (gitignored)
+    ├── concept_chatbot_vs_agent.svg         wireframe ref — redraw at design time
+    ├── case_aml_overview.svg                wireframe ref — redraw at design time
+    ├── case_aml_features.svg                wireframe ref — redraw at design time
+    ├── pipeline_d.svg                       wireframe ref — redraw at design time
+    ├── side_by_side.svg                     wireframe ref — redraw at design time
+    ├── _preview/                            matplotlib PNG previews (gitignored)
     └── screenshots/
-        ├── playground_scenario_0.png        user-provided
+        ├── lookup_general_chatbot.png       user-provided
+        ├── chatbot_attach_pdfs.png          user-provided
+        ├── chatbot_prompt_sent.png          user-provided
+        ├── chatbot_reply.png                user-provided
         ├── canvas_scenario_d.png            user-provided
-        └── playground_scenario_d.png        user-provided
+        ├── scenario_d_running.png           user-provided
+        ├── scenario_d_report_top.png        user-provided
+        ├── scenario_d_diagnosis.png         user-provided
+        ├── scenario_d_trace.png             user-provided
+        ├── scenario_d_qa.png                user-provided
+        └── scenario_d_edit_prompt.png       user-provided
 ```
-
-The five generated SVGs are committed so the design handoff has
-visual references without anyone needing to re-run the matplotlib
-generator.
 
 ## Credits
 
 - AML case design + planted features: Omar (see
   [`docs/Integrated_report_demo_Omar/`](../Integrated_report_demo_Omar/))
-- Marp CLI: https://github.com/marp-team/marp-cli
 - Workshop infrastructure: LangFlow 1.9 · OpenRouter · Phoenix · KeyBroker proxy
