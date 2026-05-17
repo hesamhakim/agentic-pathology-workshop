@@ -264,12 +264,21 @@ class ScenarioD_v2_PDFIntake(Component):
         ),
     ]
 
+    # group_outputs=True puts each output on its own visible handle on the
+    # right side of the node. Without it (default False), LangFlow collapses
+    # multi-output nodes into a single dropdown — which hides the fan-out
+    # architecture that's the whole point of this component pedagogically.
     outputs = [
-        Output(display_name="Morphology",   name="morphology_data",   method="emit_morphology"),
-        Output(display_name="Flow",         name="flow_data",         method="emit_flow"),
-        Output(display_name="Cytogenetics", name="cytogenetics_data", method="emit_cytogenetics"),
-        Output(display_name="Molecular",    name="molecular_data",    method="emit_molecular"),
-        Output(display_name="Cross-Report", name="cross_report_data", method="emit_cross_report"),
+        Output(display_name="Morphology",   name="morphology_data",
+               method="emit_morphology",    group_outputs=True),
+        Output(display_name="Flow",         name="flow_data",
+               method="emit_flow",          group_outputs=True),
+        Output(display_name="Cytogenetics", name="cytogenetics_data",
+               method="emit_cytogenetics",  group_outputs=True),
+        Output(display_name="Molecular",    name="molecular_data",
+               method="emit_molecular",     group_outputs=True),
+        Output(display_name="Cross-Report", name="cross_report_data",
+               method="emit_cross_report",  group_outputs=True),
     ]
 
     # ---------------------------------------------------------------

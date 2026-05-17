@@ -4,14 +4,14 @@
   "data": {
     "nodes": [
       {
-        "id": "ChatInput-b3bbe5",
+        "id": "ChatInput-afe722",
         "type": "genericNode",
         "position": {
           "x": 50,
           "y": 500
         },
         "data": {
-          "id": "ChatInput-b3bbe5",
+          "id": "ChatInput-afe722",
           "type": "ChatInput",
           "node": {
             "base_classes": [
@@ -291,14 +291,14 @@
         }
       },
       {
-        "id": "PipelineConfig_S-D.V2-dc5fb6",
+        "id": "PipelineConfig_S-D.V2-19c5f0",
         "type": "genericNode",
         "position": {
           "x": 450,
           "y": 500
         },
         "data": {
-          "id": "PipelineConfig_S-D.V2-dc5fb6",
+          "id": "PipelineConfig_S-D.V2-19c5f0",
           "type": "PipelineConfig S-D.V2",
           "node": {
             "template": {
@@ -496,14 +496,14 @@
         }
       },
       {
-        "id": "PDFIntake_S-D.V2-c6c0d5",
+        "id": "PDFIntake_S-D.V2-2c872f",
         "type": "genericNode",
         "position": {
           "x": 900,
           "y": 500
         },
         "data": {
-          "id": "PDFIntake_S-D.V2-c6c0d5",
+          "id": "PDFIntake_S-D.V2-2c872f",
           "type": "PDFIntake S-D.V2",
           "node": {
             "template": {
@@ -558,7 +558,7 @@
                 "list": false,
                 "show": true,
                 "multiline": true,
-                "value": "\"\"\"Scenario D v2 \u2014 PDFIntake (multi-source fan-out, post-refactor 2026-05-16).\n\nLoads all component reports for the chosen case, then runs FIVE LLM calls:\n\n  1. Morphology extraction (source #1)   \u2500\u25ba morphology_data output\n  2. Flow extraction (source #2)         \u2500\u25ba flow_data output\n  3. Cytogenetics extraction (source #3) \u2500\u25ba cytogenetics_data output\n  4. Molecular extraction (source #4)    \u2500\u25ba molecular_data output\n  5. Cross-report analysis (reads the 4 per-source extractions)\n                                         \u2500\u25ba cross_report_data output\n\nThe four per-source extractions share a single editable system prompt\n(see DEFAULT_PER_SOURCE_PROMPT). The cross-report call has its own\neditable prompt (DEFAULT_CROSS_REPORT_PROMPT). These two prompts are\nthe workshop's main editable levers for Stage 1.\n\nThe 4 per-source outputs map positionally to the case manifest's\nsource order. For AML that order is: MORPH, FLOW, CYTO, MOLEC. For\nnon-AML cases the labels are loose (e.g. glioma's NEURO source flows\nthrough the morphology output) \u2014 the workshop targets AML, where the\nmapping is exact.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\nfrom typing import Any\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import (\n    DEFAULT_DATA_DIR,\n    chat_completion_text,\n    openai_client,\n    resolve_data_dir,\n)\n\n\nDEFAULT_PER_SOURCE_PROMPT = \"\"\"You are the EXTRACTION stage of a multi-stage\nintegrated-reporting pipeline. You receive raw text from ONE component\npathology report and must produce a single structured JSON object\ndescribing what THAT one report says. Do NOT compare across reports;\nthe cross-report analyzer does that. Do NOT interpret or smooth over\nhedges; capture them as the report states them.\n\nYou will be told via the header which source you are reading (e.g.\n\"MORPH \u2014 Bone marrow morphology\", \"FLOW \u2014 Flow cytometry\",\n\"MOLEC \u2014 Molecular NGS\"). Use that information to tailor what counts\nas a \"key finding\": morphologic features and lineage hedges for\nMORPH; gated blast % and immunophenotype for FLOW; karyotype and\nFISH probes for CYTO; gene-level variants for MOLEC.\n\nRULES\n\n1. EXTRACT, DO NOT INTERPRET. If morphology hedges on lineage,\n   capture the hedge as written. If a blast count is given as a\n   range, record it as a range. Do not reconcile against anything.\n\n2. EVERY FINDING CARRIES VERBATIM SUPPORT. Each entry in\n   \"key_findings\" must include a \"verbatim_support\" string \u2014 a short\n   phrase copied word-for-word from the source's raw text. If you\n   cannot find verbatim support for a claim, do not include it.\n\n3. THE classifying BOOLEAN ON VARIANTS (molecular sources only).\n   For each molecular variant, set classifying=true ONLY if that\n   variant by itself defines or changes the WHO / ICC disease\n   category for the relevant tumor family. Examples:\n     - AML: NPM1 = true; FLT3-ITD = false (prognostic); DNMT3A = false.\n     - Glioma: IDH1/2 = true; 1p/19q codel = true; CDKN2A/B homo del\n       = true (grade-4 driver); TP53 = false.\n     - Medulloblastoma: PTCH1 (SHH activator) = true; SHH signature\n       = true; TP53 (in SHH context) = false as classifying.\n     - Breast: PIK3CA = false (actionable, not classifying for entity name).\n   Always set prognostic_note for non-classifying variants.\n\n4. RETURN ONLY THE JSON OBJECT \u2014 no commentary, no markdown fences,\n   no backticks. Use the word \"json\" anywhere in your reasoning.\n\nOUTPUT SHAPE:\n\n{\n  \"source_id\": \"<the source_id you were told to extract>\",\n  \"display_name\": \"<the display name you were told>\",\n  \"summary\": \"<one-paragraph component summary>\",\n  \"key_findings\": [\n    {\"text\": \"...\",\n     \"verbatim_support\": \"<copied phrase>\",\n     \"category\": \"lineage|blast_burden|genetics|grade|biomarker|limitation|other\"}\n  ],\n  \"stated_limitations\": \"<paragraph; empty string if none>\",\n  \"molecular_variants\": [\n    {\"gene\": \"...\", \"variant\": \"...\", \"vaf\": \"...\", \"tier\": \"...\",\n     \"classifying\": <bool>, \"prognostic_note\": \"...\",\n     \"verbatim_support\": \"...\"}\n  ]\n}\n\nNote: `molecular_variants` should be an empty array for non-molecular\nsources. Preserve exact gene symbols and HGVS strings; do not\nparaphrase. If a value is ambiguous, omit it rather than guess.\n\"\"\"\n\n\nDEFAULT_CROSS_REPORT_PROMPT = \"\"\"You are the CROSS-REPORT ANALYSIS stage\nof an integrated-reporting pipeline. You receive the per-source JSON\nextractions for all component reports of one diagnostic episode (the\noutput of the four upstream extractor calls) and must produce ONE\nstructured JSON object describing the relationships across them.\n\nYou do NOT extract new findings here. You read the per-source\nfindings already extracted and identify three classes of relationship:\n\nRULES\n\n1. concordances: things two or more sources agree on. Each carries a\n   short statement and supporting_source_ids.\n\n2. discordances: apparent conflicts. Each must carry a topic, the\n   positions each source takes, a resolution, and a resolution_basis\n   (the reason it holds: a classification rule, expected\n   methodological variance between a manual and a gated count,\n   hemodilution of an aspirate, etc.). State whether the discordance\n   actually changes the diagnosis.\n\n3. single_source_findings: decisive findings that appear in exactly\n   one source and are invisible to the others. For each, name the\n   only_source_id, list invisible_to (the other source_ids), and\n   state diagnostic_impact in one sentence.\n\nRETURN ONLY THE JSON OBJECT \u2014 no commentary, no markdown fences,\nno backticks. Use the word \"json\" anywhere in your reasoning.\n\nOUTPUT SHAPE:\n\n{\n  \"concordances\": [\n    {\"statement\": \"...\", \"supporting_source_ids\": [...]}\n  ],\n  \"discordances\": [\n    {\"topic\": \"...\",\n     \"positions\": [{\"source_id\": \"...\", \"position\": \"...\"}],\n     \"resolution\": \"...\",\n     \"resolution_basis\": \"...\",\n     \"changes_diagnosis\": <bool>}\n  ],\n  \"single_source_findings\": [\n    {\"finding\": \"...\", \"only_source_id\": \"...\", \"invisible_to\": [...],\n     \"diagnostic_impact\": \"...\"}\n  ]\n}\n\"\"\"\n\n\n# Tumor family hint derived from case_id when extraction fails or\n# the case has no explicit tumor_family field. Keeps downstream alive.\n_TUMOR_FAMILY_BY_CASE = {\n    \"case_aml\": \"aml\",\n    \"case_glioma\": \"glioma\",\n    \"case_medulloblastoma\": \"medulloblastoma\",\n    \"case_breast\": \"breast\",\n}\n\n# Positional mapping from case manifest order to output names. The AML\n# manifest is [MORPH, FLOW, CYTO, MOLEC] so this slots perfectly.\n# Non-AML cases produce empty outputs for missing positions.\nOUTPUT_NAMES = [\"morphology_data\", \"flow_data\", \"cytogenetics_data\", \"molecular_data\"]\n\n\ndef _empty_per_source(source_id: str = \"\", display_name: str = \"\") -> dict:\n    return {\n        \"source_id\": source_id,\n        \"display_name\": display_name,\n        \"summary\": \"\",\n        \"key_findings\": [],\n        \"stated_limitations\": \"\",\n        \"molecular_variants\": [],\n        \"_extraction_failed\": True,\n    }\n\n\ndef _empty_cross_report() -> dict:\n    return {\n        \"concordances\": [],\n        \"discordances\": [],\n        \"single_source_findings\": [],\n        \"_extraction_failed\": True,\n    }\n\n\nclass ScenarioD_v2_PDFIntake(Component):\n    display_name = \"PDF Intake\"\n    description = (\n        \"Stage 1 \u2014 loads ALL component reports for the chosen case and runs \"\n        \"FOUR per-source extraction LLM calls (one per report type) plus ONE \"\n        \"cross-report analysis. Emits five separate Data outputs that the \"\n        \"downstream parsers + WHO Classifier consume. The two editable system \"\n        \"prompts (per-source + cross-report) are the workshop's main Stage-1 \"\n        \"levers.\"\n    )\n    icon = \"file-text\"\n    name = \"PDFIntake S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"run_config\",\n            display_name=\"Run Config\",\n            input_types=[\"Data\"],\n            required=False,\n            info=\"Optional. Connect Pipeline Config to override Case ID from the chat directive.\",\n        ),\n        StrInput(\n            name=\"data_dir\",\n            display_name=\"Data Directory\",\n            value=DEFAULT_DATA_DIR,\n            advanced=True,\n        ),\n        StrInput(\n            name=\"case_id\",\n            display_name=\"Case ID\",\n            value=\"case_aml\",\n            info=\"One of: case_aml, case_glioma, case_medulloblastoma, case_breast.\",\n        ),\n        StrInput(\n            name=\"model\",\n            display_name=\"Extraction Model\",\n            value=\"openai/gpt-4o-mini\",\n            info=(\n                \"LLM used for the FOUR per-source extraction calls and the \"\n                \"ONE cross-report analysis call. gpt-4o-mini is a good \"\n                \"balance; use gpt-4o for higher fidelity at higher cost.\"\n            ),\n        ),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=2000, advanced=True),\n        MultilineInput(\n            name=\"per_source_prompt\",\n            display_name=\"Per-Source Extraction Prompt\",\n            value=DEFAULT_PER_SOURCE_PROMPT,\n            info=(\n                \"EDIT ME. THIS IS ONE OF THE MAIN LEVERS. Reshape what gets \"\n                \"extracted from each individual component report. Applies to \"\n                \"all four per-source LLM calls (the model adapts based on the \"\n                \"source_id header).\"\n            ),\n        ),\n        MultilineInput(\n            name=\"cross_report_prompt\",\n            display_name=\"Cross-Report Analysis Prompt\",\n            value=DEFAULT_CROSS_REPORT_PROMPT,\n            info=(\n                \"EDIT ME. THIS IS THE SECOND STAGE-1 LEVER. Reshape how \"\n                \"concordances, discordances, and single-source findings are \"\n                \"detected after per-source extraction completes.\"\n            ),\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Morphology\",   name=\"morphology_data\",   method=\"emit_morphology\"),\n        Output(display_name=\"Flow\",         name=\"flow_data\",         method=\"emit_flow\"),\n        Output(display_name=\"Cytogenetics\", name=\"cytogenetics_data\", method=\"emit_cytogenetics\"),\n        Output(display_name=\"Molecular\",    name=\"molecular_data\",    method=\"emit_molecular\"),\n        Output(display_name=\"Cross-Report\", name=\"cross_report_data\", method=\"emit_cross_report\"),\n    ]\n\n    # ---------------------------------------------------------------\n    # Internal: run all 5 LLM calls once; cache results on the\n    # component instance. Each output method below pulls from the\n    # cache (or triggers it on first access).\n    # ---------------------------------------------------------------\n    def _run_all(self) -> dict[str, Any]:\n        cached = getattr(self, \"_intake_cache\", None)\n        if cached is not None:\n            return cached\n\n        from tools.scenario_d import pdf_io\n\n        run_config = (self.run_config.data.get(\"run_config\", {}) if self.run_config else {})\n        case_id = run_config.get(\"case_id\", self.case_id)\n\n        base = resolve_data_dir(self.data_dir)\n        sources = pdf_io.load_case_raw_texts(base, case_id)\n\n        header_common = {\n            \"case_id\": case_id,\n            \"expected_tumor_family\": _TUMOR_FAMILY_BY_CASE.get(case_id, \"\"),\n            \"all_source_ids_in_case\": [s[\"source_id\"] for s in sources],\n        }\n\n        client = openai_client()\n\n        # ---- 4 per-source extractions (sequential; ~8s each) ----\n        per_source: dict[str, dict] = {}\n        for src in sources:\n            extracted = self._extract_one_source(client, src, header_common)\n            per_source[src[\"source_id\"]] = extracted\n\n        # ---- 1 cross-report analysis ----\n        cross_report = self._extract_cross_report(client, per_source, header_common)\n\n        cached = {\n            \"case_id\": case_id,\n            \"tumor_family\": _TUMOR_FAMILY_BY_CASE.get(case_id, \"\"),\n            \"sources\": sources,\n            \"per_source_by_id\": per_source,\n            \"cross_report\": cross_report,\n            \"run_config\": run_config,\n        }\n        self._intake_cache = cached\n        return cached\n\n    def _extract_one_source(self, client, source: dict, header_common: dict) -> dict:\n        \"\"\"One LLM call extracting structured findings from a single source.\"\"\"\n        header = json.dumps(\n            {**header_common,\n             \"you_are_extracting_source_id\": source[\"source_id\"],\n             \"you_are_extracting_display_name\": source[\"display_name\"]},\n            indent=2,\n        )\n        user_content = (\n            \"Header (for grounding only):\\n\" + header +\n            \"\\n\\nRaw source text follows.\\n\" +\n            \"========== SOURCE \" + source[\"source_id\"] +\n            \" \u2014 \" + source[\"display_name\"] + \" ==========\\n\" +\n            source[\"raw_text\"]\n        )\n        try:\n            raw = chat_completion_text(\n                client,\n                model=self.model,\n                system_prompt=self.per_source_prompt or DEFAULT_PER_SOURCE_PROMPT,\n                user_content=user_content,\n                temperature=self.temperature,\n                max_tokens=self.max_tokens,\n                json_mode=True,\n                span_name=f\"scenario_d.pdf_intake.per_source.{source['source_id']}\",\n            )\n            extracted = json.loads(raw)\n            if not isinstance(extracted, dict):\n                raise ValueError(\"per-source extraction did not return a JSON object\")\n            # Backstop required fields\n            extracted.setdefault(\"source_id\", source[\"source_id\"])\n            extracted.setdefault(\"display_name\", source[\"display_name\"])\n            extracted.setdefault(\"key_findings\", [])\n            extracted.setdefault(\"molecular_variants\", [])\n            extracted.setdefault(\"stated_limitations\", \"\")\n            extracted.setdefault(\"summary\", \"\")\n            return extracted\n        except Exception as e:  # noqa: BLE001\n            fallback = _empty_per_source(source[\"source_id\"], source[\"display_name\"])\n            fallback[\"_extraction_error\"] = f\"{type(e).__name__}: {e}\"\n            return fallback\n\n    def _extract_cross_report(self, client, per_source_by_id: dict[str, dict],\n                              header_common: dict) -> dict:\n        \"\"\"One LLM call analyzing relationships across the 4 per-source extractions.\"\"\"\n        payload = json.dumps(\n            {**header_common, \"per_source_extractions\": per_source_by_id},\n            indent=2,\n        )\n        try:\n            raw = chat_completion_text(\n                client,\n                model=self.model,\n                system_prompt=self.cross_report_prompt or DEFAULT_CROSS_REPORT_PROMPT,\n                user_content=\"Per-source extractions follow.\\n\" + payload,\n                temperature=self.temperature,\n                max_tokens=self.max_tokens,\n                json_mode=True,\n                span_name=\"scenario_d.pdf_intake.cross_report\",\n            )\n            cr = json.loads(raw)\n            if not isinstance(cr, dict):\n                raise ValueError(\"cross-report extraction did not return a JSON object\")\n            cr.setdefault(\"concordances\", [])\n            cr.setdefault(\"discordances\", [])\n            cr.setdefault(\"single_source_findings\", [])\n            return cr\n        except Exception as e:  # noqa: BLE001\n            fallback = _empty_cross_report()\n            fallback[\"_extraction_error\"] = f\"{type(e).__name__}: {e}\"\n            return fallback\n\n    # ---------------------------------------------------------------\n    # Output methods. Each maps a position in the case manifest to a\n    # named output. AML's [MORPH, FLOW, CYTO, MOLEC] aligns 1:1.\n    # ---------------------------------------------------------------\n    def _emit_per_source(self, position: int) -> Data:\n        state = self._run_all()\n        sources = state[\"sources\"]\n        if position < len(sources):\n            src = sources[position]\n            extracted = state[\"per_source_by_id\"].get(src[\"source_id\"], _empty_per_source())\n        else:\n            # Case manifest doesn't have a source at this position\n            # (non-AML cases with fewer than 4 sources). Emit empty placeholder.\n            extracted = _empty_per_source()\n        return Data(data={\n            \"case_id\":      state[\"case_id\"],\n            \"tumor_family\": state[\"tumor_family\"],\n            \"extracted\":    extracted,\n            \"run_config\":   state[\"run_config\"],\n        })\n\n    def emit_morphology(self) -> Data:   return self._emit_per_source(0)\n    def emit_flow(self) -> Data:         return self._emit_per_source(1)\n    def emit_cytogenetics(self) -> Data: return self._emit_per_source(2)\n    def emit_molecular(self) -> Data:    return self._emit_per_source(3)\n\n    def emit_cross_report(self) -> Data:\n        state = self._run_all()\n        return Data(data={\n            \"case_id\":      state[\"case_id\"],\n            \"tumor_family\": state[\"tumor_family\"],\n            \"cross_report\": state[\"cross_report\"],\n            \"all_source_ids\": [s[\"source_id\"] for s in state[\"sources\"]],\n            \"run_config\":   state[\"run_config\"],\n        })\n",
+                "value": "\"\"\"Scenario D v2 \u2014 PDFIntake (multi-source fan-out, post-refactor 2026-05-16).\n\nLoads all component reports for the chosen case, then runs FIVE LLM calls:\n\n  1. Morphology extraction (source #1)   \u2500\u25ba morphology_data output\n  2. Flow extraction (source #2)         \u2500\u25ba flow_data output\n  3. Cytogenetics extraction (source #3) \u2500\u25ba cytogenetics_data output\n  4. Molecular extraction (source #4)    \u2500\u25ba molecular_data output\n  5. Cross-report analysis (reads the 4 per-source extractions)\n                                         \u2500\u25ba cross_report_data output\n\nThe four per-source extractions share a single editable system prompt\n(see DEFAULT_PER_SOURCE_PROMPT). The cross-report call has its own\neditable prompt (DEFAULT_CROSS_REPORT_PROMPT). These two prompts are\nthe workshop's main editable levers for Stage 1.\n\nThe 4 per-source outputs map positionally to the case manifest's\nsource order. For AML that order is: MORPH, FLOW, CYTO, MOLEC. For\nnon-AML cases the labels are loose (e.g. glioma's NEURO source flows\nthrough the morphology output) \u2014 the workshop targets AML, where the\nmapping is exact.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\nfrom typing import Any\n\nfrom langflow.custom import Component\nfrom langflow.io import (\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\nfrom langflow.schema.data import Data\n\nfrom tools.scenario_d.v2_helpers import (\n    DEFAULT_DATA_DIR,\n    chat_completion_text,\n    openai_client,\n    resolve_data_dir,\n)\n\n\nDEFAULT_PER_SOURCE_PROMPT = \"\"\"You are the EXTRACTION stage of a multi-stage\nintegrated-reporting pipeline. You receive raw text from ONE component\npathology report and must produce a single structured JSON object\ndescribing what THAT one report says. Do NOT compare across reports;\nthe cross-report analyzer does that. Do NOT interpret or smooth over\nhedges; capture them as the report states them.\n\nYou will be told via the header which source you are reading (e.g.\n\"MORPH \u2014 Bone marrow morphology\", \"FLOW \u2014 Flow cytometry\",\n\"MOLEC \u2014 Molecular NGS\"). Use that information to tailor what counts\nas a \"key finding\": morphologic features and lineage hedges for\nMORPH; gated blast % and immunophenotype for FLOW; karyotype and\nFISH probes for CYTO; gene-level variants for MOLEC.\n\nRULES\n\n1. EXTRACT, DO NOT INTERPRET. If morphology hedges on lineage,\n   capture the hedge as written. If a blast count is given as a\n   range, record it as a range. Do not reconcile against anything.\n\n2. EVERY FINDING CARRIES VERBATIM SUPPORT. Each entry in\n   \"key_findings\" must include a \"verbatim_support\" string \u2014 a short\n   phrase copied word-for-word from the source's raw text. If you\n   cannot find verbatim support for a claim, do not include it.\n\n3. THE classifying BOOLEAN ON VARIANTS (molecular sources only).\n   For each molecular variant, set classifying=true ONLY if that\n   variant by itself defines or changes the WHO / ICC disease\n   category for the relevant tumor family. Examples:\n     - AML: NPM1 = true; FLT3-ITD = false (prognostic); DNMT3A = false.\n     - Glioma: IDH1/2 = true; 1p/19q codel = true; CDKN2A/B homo del\n       = true (grade-4 driver); TP53 = false.\n     - Medulloblastoma: PTCH1 (SHH activator) = true; SHH signature\n       = true; TP53 (in SHH context) = false as classifying.\n     - Breast: PIK3CA = false (actionable, not classifying for entity name).\n   Always set prognostic_note for non-classifying variants.\n\n4. RETURN ONLY THE JSON OBJECT \u2014 no commentary, no markdown fences,\n   no backticks. Use the word \"json\" anywhere in your reasoning.\n\nOUTPUT SHAPE:\n\n{\n  \"source_id\": \"<the source_id you were told to extract>\",\n  \"display_name\": \"<the display name you were told>\",\n  \"summary\": \"<one-paragraph component summary>\",\n  \"key_findings\": [\n    {\"text\": \"...\",\n     \"verbatim_support\": \"<copied phrase>\",\n     \"category\": \"lineage|blast_burden|genetics|grade|biomarker|limitation|other\"}\n  ],\n  \"stated_limitations\": \"<paragraph; empty string if none>\",\n  \"molecular_variants\": [\n    {\"gene\": \"...\", \"variant\": \"...\", \"vaf\": \"...\", \"tier\": \"...\",\n     \"classifying\": <bool>, \"prognostic_note\": \"...\",\n     \"verbatim_support\": \"...\"}\n  ]\n}\n\nNote: `molecular_variants` should be an empty array for non-molecular\nsources. Preserve exact gene symbols and HGVS strings; do not\nparaphrase. If a value is ambiguous, omit it rather than guess.\n\"\"\"\n\n\nDEFAULT_CROSS_REPORT_PROMPT = \"\"\"You are the CROSS-REPORT ANALYSIS stage\nof an integrated-reporting pipeline. You receive the per-source JSON\nextractions for all component reports of one diagnostic episode (the\noutput of the four upstream extractor calls) and must produce ONE\nstructured JSON object describing the relationships across them.\n\nYou do NOT extract new findings here. You read the per-source\nfindings already extracted and identify three classes of relationship:\n\nRULES\n\n1. concordances: things two or more sources agree on. Each carries a\n   short statement and supporting_source_ids.\n\n2. discordances: apparent conflicts. Each must carry a topic, the\n   positions each source takes, a resolution, and a resolution_basis\n   (the reason it holds: a classification rule, expected\n   methodological variance between a manual and a gated count,\n   hemodilution of an aspirate, etc.). State whether the discordance\n   actually changes the diagnosis.\n\n3. single_source_findings: decisive findings that appear in exactly\n   one source and are invisible to the others. For each, name the\n   only_source_id, list invisible_to (the other source_ids), and\n   state diagnostic_impact in one sentence.\n\nRETURN ONLY THE JSON OBJECT \u2014 no commentary, no markdown fences,\nno backticks. Use the word \"json\" anywhere in your reasoning.\n\nOUTPUT SHAPE:\n\n{\n  \"concordances\": [\n    {\"statement\": \"...\", \"supporting_source_ids\": [...]}\n  ],\n  \"discordances\": [\n    {\"topic\": \"...\",\n     \"positions\": [{\"source_id\": \"...\", \"position\": \"...\"}],\n     \"resolution\": \"...\",\n     \"resolution_basis\": \"...\",\n     \"changes_diagnosis\": <bool>}\n  ],\n  \"single_source_findings\": [\n    {\"finding\": \"...\", \"only_source_id\": \"...\", \"invisible_to\": [...],\n     \"diagnostic_impact\": \"...\"}\n  ]\n}\n\"\"\"\n\n\n# Tumor family hint derived from case_id when extraction fails or\n# the case has no explicit tumor_family field. Keeps downstream alive.\n_TUMOR_FAMILY_BY_CASE = {\n    \"case_aml\": \"aml\",\n    \"case_glioma\": \"glioma\",\n    \"case_medulloblastoma\": \"medulloblastoma\",\n    \"case_breast\": \"breast\",\n}\n\n# Positional mapping from case manifest order to output names. The AML\n# manifest is [MORPH, FLOW, CYTO, MOLEC] so this slots perfectly.\n# Non-AML cases produce empty outputs for missing positions.\nOUTPUT_NAMES = [\"morphology_data\", \"flow_data\", \"cytogenetics_data\", \"molecular_data\"]\n\n\ndef _empty_per_source(source_id: str = \"\", display_name: str = \"\") -> dict:\n    return {\n        \"source_id\": source_id,\n        \"display_name\": display_name,\n        \"summary\": \"\",\n        \"key_findings\": [],\n        \"stated_limitations\": \"\",\n        \"molecular_variants\": [],\n        \"_extraction_failed\": True,\n    }\n\n\ndef _empty_cross_report() -> dict:\n    return {\n        \"concordances\": [],\n        \"discordances\": [],\n        \"single_source_findings\": [],\n        \"_extraction_failed\": True,\n    }\n\n\nclass ScenarioD_v2_PDFIntake(Component):\n    display_name = \"PDF Intake\"\n    description = (\n        \"Stage 1 \u2014 loads ALL component reports for the chosen case and runs \"\n        \"FOUR per-source extraction LLM calls (one per report type) plus ONE \"\n        \"cross-report analysis. Emits five separate Data outputs that the \"\n        \"downstream parsers + WHO Classifier consume. The two editable system \"\n        \"prompts (per-source + cross-report) are the workshop's main Stage-1 \"\n        \"levers.\"\n    )\n    icon = \"file-text\"\n    name = \"PDFIntake S-D.V2\"\n\n    inputs = [\n        HandleInput(\n            name=\"run_config\",\n            display_name=\"Run Config\",\n            input_types=[\"Data\"],\n            required=False,\n            info=\"Optional. Connect Pipeline Config to override Case ID from the chat directive.\",\n        ),\n        StrInput(\n            name=\"data_dir\",\n            display_name=\"Data Directory\",\n            value=DEFAULT_DATA_DIR,\n            advanced=True,\n        ),\n        StrInput(\n            name=\"case_id\",\n            display_name=\"Case ID\",\n            value=\"case_aml\",\n            info=\"One of: case_aml, case_glioma, case_medulloblastoma, case_breast.\",\n        ),\n        StrInput(\n            name=\"model\",\n            display_name=\"Extraction Model\",\n            value=\"openai/gpt-4o-mini\",\n            info=(\n                \"LLM used for the FOUR per-source extraction calls and the \"\n                \"ONE cross-report analysis call. gpt-4o-mini is a good \"\n                \"balance; use gpt-4o for higher fidelity at higher cost.\"\n            ),\n        ),\n        FloatInput(name=\"temperature\", display_name=\"Temperature\", value=0.0),\n        IntInput(name=\"max_tokens\", display_name=\"Max Tokens\", value=2000, advanced=True),\n        MultilineInput(\n            name=\"per_source_prompt\",\n            display_name=\"Per-Source Extraction Prompt\",\n            value=DEFAULT_PER_SOURCE_PROMPT,\n            info=(\n                \"EDIT ME. THIS IS ONE OF THE MAIN LEVERS. Reshape what gets \"\n                \"extracted from each individual component report. Applies to \"\n                \"all four per-source LLM calls (the model adapts based on the \"\n                \"source_id header).\"\n            ),\n        ),\n        MultilineInput(\n            name=\"cross_report_prompt\",\n            display_name=\"Cross-Report Analysis Prompt\",\n            value=DEFAULT_CROSS_REPORT_PROMPT,\n            info=(\n                \"EDIT ME. THIS IS THE SECOND STAGE-1 LEVER. Reshape how \"\n                \"concordances, discordances, and single-source findings are \"\n                \"detected after per-source extraction completes.\"\n            ),\n        ),\n    ]\n\n    # group_outputs=True puts each output on its own visible handle on the\n    # right side of the node. Without it (default False), LangFlow collapses\n    # multi-output nodes into a single dropdown \u2014 which hides the fan-out\n    # architecture that's the whole point of this component pedagogically.\n    outputs = [\n        Output(display_name=\"Morphology\",   name=\"morphology_data\",\n               method=\"emit_morphology\",    group_outputs=True),\n        Output(display_name=\"Flow\",         name=\"flow_data\",\n               method=\"emit_flow\",          group_outputs=True),\n        Output(display_name=\"Cytogenetics\", name=\"cytogenetics_data\",\n               method=\"emit_cytogenetics\",  group_outputs=True),\n        Output(display_name=\"Molecular\",    name=\"molecular_data\",\n               method=\"emit_molecular\",     group_outputs=True),\n        Output(display_name=\"Cross-Report\", name=\"cross_report_data\",\n               method=\"emit_cross_report\",  group_outputs=True),\n    ]\n\n    # ---------------------------------------------------------------\n    # Internal: run all 5 LLM calls once; cache results on the\n    # component instance. Each output method below pulls from the\n    # cache (or triggers it on first access).\n    # ---------------------------------------------------------------\n    def _run_all(self) -> dict[str, Any]:\n        cached = getattr(self, \"_intake_cache\", None)\n        if cached is not None:\n            return cached\n\n        from tools.scenario_d import pdf_io\n\n        run_config = (self.run_config.data.get(\"run_config\", {}) if self.run_config else {})\n        case_id = run_config.get(\"case_id\", self.case_id)\n\n        base = resolve_data_dir(self.data_dir)\n        sources = pdf_io.load_case_raw_texts(base, case_id)\n\n        header_common = {\n            \"case_id\": case_id,\n            \"expected_tumor_family\": _TUMOR_FAMILY_BY_CASE.get(case_id, \"\"),\n            \"all_source_ids_in_case\": [s[\"source_id\"] for s in sources],\n        }\n\n        client = openai_client()\n\n        # ---- 4 per-source extractions (sequential; ~8s each) ----\n        per_source: dict[str, dict] = {}\n        for src in sources:\n            extracted = self._extract_one_source(client, src, header_common)\n            per_source[src[\"source_id\"]] = extracted\n\n        # ---- 1 cross-report analysis ----\n        cross_report = self._extract_cross_report(client, per_source, header_common)\n\n        cached = {\n            \"case_id\": case_id,\n            \"tumor_family\": _TUMOR_FAMILY_BY_CASE.get(case_id, \"\"),\n            \"sources\": sources,\n            \"per_source_by_id\": per_source,\n            \"cross_report\": cross_report,\n            \"run_config\": run_config,\n        }\n        self._intake_cache = cached\n        return cached\n\n    def _extract_one_source(self, client, source: dict, header_common: dict) -> dict:\n        \"\"\"One LLM call extracting structured findings from a single source.\"\"\"\n        header = json.dumps(\n            {**header_common,\n             \"you_are_extracting_source_id\": source[\"source_id\"],\n             \"you_are_extracting_display_name\": source[\"display_name\"]},\n            indent=2,\n        )\n        user_content = (\n            \"Header (for grounding only):\\n\" + header +\n            \"\\n\\nRaw source text follows.\\n\" +\n            \"========== SOURCE \" + source[\"source_id\"] +\n            \" \u2014 \" + source[\"display_name\"] + \" ==========\\n\" +\n            source[\"raw_text\"]\n        )\n        try:\n            raw = chat_completion_text(\n                client,\n                model=self.model,\n                system_prompt=self.per_source_prompt or DEFAULT_PER_SOURCE_PROMPT,\n                user_content=user_content,\n                temperature=self.temperature,\n                max_tokens=self.max_tokens,\n                json_mode=True,\n                span_name=f\"scenario_d.pdf_intake.per_source.{source['source_id']}\",\n            )\n            extracted = json.loads(raw)\n            if not isinstance(extracted, dict):\n                raise ValueError(\"per-source extraction did not return a JSON object\")\n            # Backstop required fields\n            extracted.setdefault(\"source_id\", source[\"source_id\"])\n            extracted.setdefault(\"display_name\", source[\"display_name\"])\n            extracted.setdefault(\"key_findings\", [])\n            extracted.setdefault(\"molecular_variants\", [])\n            extracted.setdefault(\"stated_limitations\", \"\")\n            extracted.setdefault(\"summary\", \"\")\n            return extracted\n        except Exception as e:  # noqa: BLE001\n            fallback = _empty_per_source(source[\"source_id\"], source[\"display_name\"])\n            fallback[\"_extraction_error\"] = f\"{type(e).__name__}: {e}\"\n            return fallback\n\n    def _extract_cross_report(self, client, per_source_by_id: dict[str, dict],\n                              header_common: dict) -> dict:\n        \"\"\"One LLM call analyzing relationships across the 4 per-source extractions.\"\"\"\n        payload = json.dumps(\n            {**header_common, \"per_source_extractions\": per_source_by_id},\n            indent=2,\n        )\n        try:\n            raw = chat_completion_text(\n                client,\n                model=self.model,\n                system_prompt=self.cross_report_prompt or DEFAULT_CROSS_REPORT_PROMPT,\n                user_content=\"Per-source extractions follow.\\n\" + payload,\n                temperature=self.temperature,\n                max_tokens=self.max_tokens,\n                json_mode=True,\n                span_name=\"scenario_d.pdf_intake.cross_report\",\n            )\n            cr = json.loads(raw)\n            if not isinstance(cr, dict):\n                raise ValueError(\"cross-report extraction did not return a JSON object\")\n            cr.setdefault(\"concordances\", [])\n            cr.setdefault(\"discordances\", [])\n            cr.setdefault(\"single_source_findings\", [])\n            return cr\n        except Exception as e:  # noqa: BLE001\n            fallback = _empty_cross_report()\n            fallback[\"_extraction_error\"] = f\"{type(e).__name__}: {e}\"\n            return fallback\n\n    # ---------------------------------------------------------------\n    # Output methods. Each maps a position in the case manifest to a\n    # named output. AML's [MORPH, FLOW, CYTO, MOLEC] aligns 1:1.\n    # ---------------------------------------------------------------\n    def _emit_per_source(self, position: int) -> Data:\n        state = self._run_all()\n        sources = state[\"sources\"]\n        if position < len(sources):\n            src = sources[position]\n            extracted = state[\"per_source_by_id\"].get(src[\"source_id\"], _empty_per_source())\n        else:\n            # Case manifest doesn't have a source at this position\n            # (non-AML cases with fewer than 4 sources). Emit empty placeholder.\n            extracted = _empty_per_source()\n        return Data(data={\n            \"case_id\":      state[\"case_id\"],\n            \"tumor_family\": state[\"tumor_family\"],\n            \"extracted\":    extracted,\n            \"run_config\":   state[\"run_config\"],\n        })\n\n    def emit_morphology(self) -> Data:   return self._emit_per_source(0)\n    def emit_flow(self) -> Data:         return self._emit_per_source(1)\n    def emit_cytogenetics(self) -> Data: return self._emit_per_source(2)\n    def emit_molecular(self) -> Data:    return self._emit_per_source(3)\n\n    def emit_cross_report(self) -> Data:\n        state = self._run_all()\n        return Data(data={\n            \"case_id\":      state[\"case_id\"],\n            \"tumor_family\": state[\"tumor_family\"],\n            \"cross_report\": state[\"cross_report\"],\n            \"all_source_ids\": [s[\"source_id\"] for s in state[\"sources\"]],\n            \"run_config\":   state[\"run_config\"],\n        })\n",
                 "fileTypes": [],
                 "file_path": "",
                 "password": false,
@@ -735,7 +735,7 @@
                 "value": "__UNDEFINED__",
                 "cache": true,
                 "allows_loop": false,
-                "group_outputs": false,
+                "group_outputs": true,
                 "tool_mode": true
               },
               {
@@ -749,7 +749,7 @@
                 "value": "__UNDEFINED__",
                 "cache": true,
                 "allows_loop": false,
-                "group_outputs": false,
+                "group_outputs": true,
                 "tool_mode": true
               },
               {
@@ -763,7 +763,7 @@
                 "value": "__UNDEFINED__",
                 "cache": true,
                 "allows_loop": false,
-                "group_outputs": false,
+                "group_outputs": true,
                 "tool_mode": true
               },
               {
@@ -777,7 +777,7 @@
                 "value": "__UNDEFINED__",
                 "cache": true,
                 "allows_loop": false,
-                "group_outputs": false,
+                "group_outputs": true,
                 "tool_mode": true
               },
               {
@@ -791,7 +791,7 @@
                 "value": "__UNDEFINED__",
                 "cache": true,
                 "allows_loop": false,
-                "group_outputs": false,
+                "group_outputs": true,
                 "tool_mode": true
               }
             ],
@@ -810,7 +810,7 @@
             "edited": false,
             "metadata": {
               "module": "custom_components.pdf_intake",
-              "code_hash": "83720ac0f08f",
+              "code_hash": "616a0a9beaa4",
               "dependencies": {
                 "total_dependencies": 2,
                 "dependencies": [
@@ -831,14 +831,14 @@
         }
       },
       {
-        "id": "MorphologyParser_S-D.V2-5fdd7d",
+        "id": "MorphologyParser_S-D.V2-e177b2",
         "type": "genericNode",
         "position": {
           "x": 1500,
           "y": 50
         },
         "data": {
-          "id": "MorphologyParser_S-D.V2-5fdd7d",
+          "id": "MorphologyParser_S-D.V2-e177b2",
           "type": "MorphologyParser S-D.V2",
           "node": {
             "template": {
@@ -1036,14 +1036,14 @@
         }
       },
       {
-        "id": "FlowParser_S-D.V2-5407f7",
+        "id": "FlowParser_S-D.V2-18f6f0",
         "type": "genericNode",
         "position": {
           "x": 1500,
           "y": 300
         },
         "data": {
-          "id": "FlowParser_S-D.V2-5407f7",
+          "id": "FlowParser_S-D.V2-18f6f0",
           "type": "FlowParser S-D.V2",
           "node": {
             "template": {
@@ -1241,14 +1241,14 @@
         }
       },
       {
-        "id": "CytogeneticsParser_S-D.V2-6a2e39",
+        "id": "CytogeneticsParser_S-D.V2-dd37a2",
         "type": "genericNode",
         "position": {
           "x": 1500,
           "y": 550
         },
         "data": {
-          "id": "CytogeneticsParser_S-D.V2-6a2e39",
+          "id": "CytogeneticsParser_S-D.V2-dd37a2",
           "type": "CytogeneticsParser S-D.V2",
           "node": {
             "template": {
@@ -1446,14 +1446,14 @@
         }
       },
       {
-        "id": "MolecularParser_S-D.V2-c46c0e",
+        "id": "MolecularParser_S-D.V2-614db6",
         "type": "genericNode",
         "position": {
           "x": 1500,
           "y": 800
         },
         "data": {
-          "id": "MolecularParser_S-D.V2-c46c0e",
+          "id": "MolecularParser_S-D.V2-614db6",
           "type": "MolecularParser S-D.V2",
           "node": {
             "template": {
@@ -1553,14 +1553,14 @@
         }
       },
       {
-        "id": "TextInput-02f044",
+        "id": "TextInput-254a6e",
         "type": "genericNode",
         "position": {
           "x": 1500,
           "y": 1050
         },
         "data": {
-          "id": "TextInput-02f044",
+          "id": "TextInput-254a6e",
           "type": "TextInput",
           "node": {
             "base_classes": [
@@ -1689,14 +1689,14 @@
         }
       },
       {
-        "id": "WHOClassifier_S-D.V2-a6caca",
+        "id": "WHOClassifier_S-D.V2-b27daa",
         "type": "genericNode",
         "position": {
           "x": 2100,
           "y": 500
         },
         "data": {
-          "id": "WHOClassifier_S-D.V2-a6caca",
+          "id": "WHOClassifier_S-D.V2-b27daa",
           "type": "WHOClassifier S-D.V2",
           "node": {
             "template": {
@@ -2009,14 +2009,14 @@
         }
       },
       {
-        "id": "QAReviewer_S-D.V2-45cfcc",
+        "id": "QAReviewer_S-D.V2-9b5031",
         "type": "genericNode",
         "position": {
           "x": 2650,
           "y": 500
         },
         "data": {
-          "id": "QAReviewer_S-D.V2-45cfcc",
+          "id": "QAReviewer_S-D.V2-9b5031",
           "type": "QAReviewer S-D.V2",
           "node": {
             "template": {
@@ -2257,14 +2257,14 @@
         }
       },
       {
-        "id": "ReportFormatter_S-D.V2-5ba4e3",
+        "id": "ReportFormatter_S-D.V2-14a9dd",
         "type": "genericNode",
         "position": {
           "x": 3200,
           "y": 500
         },
         "data": {
-          "id": "ReportFormatter_S-D.V2-5ba4e3",
+          "id": "ReportFormatter_S-D.V2-14a9dd",
           "type": "ReportFormatter S-D.V2",
           "node": {
             "template": {
@@ -2416,14 +2416,14 @@
         }
       },
       {
-        "id": "ChatOutput-4d819f",
+        "id": "ChatOutput-0e4b2a",
         "type": "genericNode",
         "position": {
           "x": 3750,
           "y": 500
         },
         "data": {
-          "id": "ChatOutput-4d819f",
+          "id": "ChatOutput-0e4b2a",
           "type": "ChatOutput",
           "node": {
             "base_classes": [
@@ -2711,14 +2711,14 @@
     ],
     "edges": [
       {
-        "source": "ChatInput-b3bbe5",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-b3bbe5\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "PipelineConfig_S-D.V2-dc5fb6",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-dc5fb6\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "ChatInput-afe722",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-afe722\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "PipelineConfig_S-D.V2-19c5f0",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-19c5f0\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ChatInput",
-            "id": "ChatInput-b3bbe5",
+            "id": "ChatInput-afe722",
             "name": "message",
             "output_types": [
               "Message"
@@ -2726,27 +2726,27 @@
           },
           "targetHandle": {
             "fieldName": "user_message",
-            "id": "PipelineConfig_S-D.V2-dc5fb6",
+            "id": "PipelineConfig_S-D.V2-19c5f0",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__ChatInput-b3bbe5{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-b3bbe5\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-PipelineConfig_S-D.V2-dc5fb6{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-dc5fb6\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__ChatInput-afe722{\u0153dataType\u0153:\u0153ChatInput\u0153,\u0153id\u0153:\u0153ChatInput-afe722\u0153,\u0153name\u0153:\u0153message\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-PipelineConfig_S-D.V2-19c5f0{\u0153fieldName\u0153:\u0153user_message\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-19c5f0\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PipelineConfig_S-D.V2-dc5fb6",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-dc5fb6\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "PDFIntake_S-D.V2-c6c0d5",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PipelineConfig_S-D.V2-19c5f0",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-19c5f0\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "PDFIntake_S-D.V2-2c872f",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PipelineConfig S-D.V2",
-            "id": "PipelineConfig_S-D.V2-dc5fb6",
+            "id": "PipelineConfig_S-D.V2-19c5f0",
             "name": "run_config",
             "output_types": [
               "Data"
@@ -2754,27 +2754,27 @@
           },
           "targetHandle": {
             "fieldName": "run_config",
-            "id": "PDFIntake_S-D.V2-c6c0d5",
+            "id": "PDFIntake_S-D.V2-2c872f",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PipelineConfig_S-D.V2-dc5fb6{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-dc5fb6\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-PDFIntake_S-D.V2-c6c0d5{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PipelineConfig_S-D.V2-19c5f0{\u0153dataType\u0153:\u0153PipelineConfig S-D.V2\u0153,\u0153id\u0153:\u0153PipelineConfig_S-D.V2-19c5f0\u0153,\u0153name\u0153:\u0153run_config\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-PDFIntake_S-D.V2-2c872f{\u0153fieldName\u0153:\u0153run_config\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PDFIntake_S-D.V2-c6c0d5",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153name\u0153:\u0153morphology_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "MorphologyParser_S-D.V2-5fdd7d",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153morphology_data\u0153,\u0153id\u0153:\u0153MorphologyParser_S-D.V2-5fdd7d\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PDFIntake_S-D.V2-2c872f",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153name\u0153:\u0153morphology_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "MorphologyParser_S-D.V2-e177b2",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153morphology_data\u0153,\u0153id\u0153:\u0153MorphologyParser_S-D.V2-e177b2\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PDFIntake S-D.V2",
-            "id": "PDFIntake_S-D.V2-c6c0d5",
+            "id": "PDFIntake_S-D.V2-2c872f",
             "name": "morphology_data",
             "output_types": [
               "Data"
@@ -2782,27 +2782,27 @@
           },
           "targetHandle": {
             "fieldName": "morphology_data",
-            "id": "MorphologyParser_S-D.V2-5fdd7d",
+            "id": "MorphologyParser_S-D.V2-e177b2",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PDFIntake_S-D.V2-c6c0d5{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153name\u0153:\u0153morphology_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-MorphologyParser_S-D.V2-5fdd7d{\u0153fieldName\u0153:\u0153morphology_data\u0153,\u0153id\u0153:\u0153MorphologyParser_S-D.V2-5fdd7d\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PDFIntake_S-D.V2-2c872f{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153name\u0153:\u0153morphology_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-MorphologyParser_S-D.V2-e177b2{\u0153fieldName\u0153:\u0153morphology_data\u0153,\u0153id\u0153:\u0153MorphologyParser_S-D.V2-e177b2\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PDFIntake_S-D.V2-c6c0d5",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153name\u0153:\u0153flow_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "FlowParser_S-D.V2-5407f7",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153flow_data\u0153,\u0153id\u0153:\u0153FlowParser_S-D.V2-5407f7\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PDFIntake_S-D.V2-2c872f",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153name\u0153:\u0153flow_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "FlowParser_S-D.V2-18f6f0",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153flow_data\u0153,\u0153id\u0153:\u0153FlowParser_S-D.V2-18f6f0\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PDFIntake S-D.V2",
-            "id": "PDFIntake_S-D.V2-c6c0d5",
+            "id": "PDFIntake_S-D.V2-2c872f",
             "name": "flow_data",
             "output_types": [
               "Data"
@@ -2810,27 +2810,27 @@
           },
           "targetHandle": {
             "fieldName": "flow_data",
-            "id": "FlowParser_S-D.V2-5407f7",
+            "id": "FlowParser_S-D.V2-18f6f0",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PDFIntake_S-D.V2-c6c0d5{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153name\u0153:\u0153flow_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-FlowParser_S-D.V2-5407f7{\u0153fieldName\u0153:\u0153flow_data\u0153,\u0153id\u0153:\u0153FlowParser_S-D.V2-5407f7\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PDFIntake_S-D.V2-2c872f{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153name\u0153:\u0153flow_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-FlowParser_S-D.V2-18f6f0{\u0153fieldName\u0153:\u0153flow_data\u0153,\u0153id\u0153:\u0153FlowParser_S-D.V2-18f6f0\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PDFIntake_S-D.V2-c6c0d5",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153name\u0153:\u0153cytogenetics_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "CytogeneticsParser_S-D.V2-6a2e39",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153cytogenetics_data\u0153,\u0153id\u0153:\u0153CytogeneticsParser_S-D.V2-6a2e39\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PDFIntake_S-D.V2-2c872f",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153name\u0153:\u0153cytogenetics_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "CytogeneticsParser_S-D.V2-dd37a2",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153cytogenetics_data\u0153,\u0153id\u0153:\u0153CytogeneticsParser_S-D.V2-dd37a2\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PDFIntake S-D.V2",
-            "id": "PDFIntake_S-D.V2-c6c0d5",
+            "id": "PDFIntake_S-D.V2-2c872f",
             "name": "cytogenetics_data",
             "output_types": [
               "Data"
@@ -2838,27 +2838,27 @@
           },
           "targetHandle": {
             "fieldName": "cytogenetics_data",
-            "id": "CytogeneticsParser_S-D.V2-6a2e39",
+            "id": "CytogeneticsParser_S-D.V2-dd37a2",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PDFIntake_S-D.V2-c6c0d5{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153name\u0153:\u0153cytogenetics_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-CytogeneticsParser_S-D.V2-6a2e39{\u0153fieldName\u0153:\u0153cytogenetics_data\u0153,\u0153id\u0153:\u0153CytogeneticsParser_S-D.V2-6a2e39\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PDFIntake_S-D.V2-2c872f{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153name\u0153:\u0153cytogenetics_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-CytogeneticsParser_S-D.V2-dd37a2{\u0153fieldName\u0153:\u0153cytogenetics_data\u0153,\u0153id\u0153:\u0153CytogeneticsParser_S-D.V2-dd37a2\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PDFIntake_S-D.V2-c6c0d5",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153name\u0153:\u0153molecular_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "MolecularParser_S-D.V2-c46c0e",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153molecular_data\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-c46c0e\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PDFIntake_S-D.V2-2c872f",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153name\u0153:\u0153molecular_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "MolecularParser_S-D.V2-614db6",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153molecular_data\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-614db6\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PDFIntake S-D.V2",
-            "id": "PDFIntake_S-D.V2-c6c0d5",
+            "id": "PDFIntake_S-D.V2-2c872f",
             "name": "molecular_data",
             "output_types": [
               "Data"
@@ -2866,27 +2866,27 @@
           },
           "targetHandle": {
             "fieldName": "molecular_data",
-            "id": "MolecularParser_S-D.V2-c46c0e",
+            "id": "MolecularParser_S-D.V2-614db6",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PDFIntake_S-D.V2-c6c0d5{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153name\u0153:\u0153molecular_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-MolecularParser_S-D.V2-c46c0e{\u0153fieldName\u0153:\u0153molecular_data\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-c46c0e\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PDFIntake_S-D.V2-2c872f{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153name\u0153:\u0153molecular_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-MolecularParser_S-D.V2-614db6{\u0153fieldName\u0153:\u0153molecular_data\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-614db6\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "PDFIntake_S-D.V2-c6c0d5",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153name\u0153:\u0153cross_report_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "WHOClassifier_S-D.V2-a6caca",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153cross_report\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "PDFIntake_S-D.V2-2c872f",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153name\u0153:\u0153cross_report_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "WHOClassifier_S-D.V2-b27daa",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153cross_report\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "PDFIntake S-D.V2",
-            "id": "PDFIntake_S-D.V2-c6c0d5",
+            "id": "PDFIntake_S-D.V2-2c872f",
             "name": "cross_report_data",
             "output_types": [
               "Data"
@@ -2894,27 +2894,27 @@
           },
           "targetHandle": {
             "fieldName": "cross_report",
-            "id": "WHOClassifier_S-D.V2-a6caca",
+            "id": "WHOClassifier_S-D.V2-b27daa",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__PDFIntake_S-D.V2-c6c0d5{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-c6c0d5\u0153,\u0153name\u0153:\u0153cross_report_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-WHOClassifier_S-D.V2-a6caca{\u0153fieldName\u0153:\u0153cross_report\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__PDFIntake_S-D.V2-2c872f{\u0153dataType\u0153:\u0153PDFIntake S-D.V2\u0153,\u0153id\u0153:\u0153PDFIntake_S-D.V2-2c872f\u0153,\u0153name\u0153:\u0153cross_report_data\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-WHOClassifier_S-D.V2-b27daa{\u0153fieldName\u0153:\u0153cross_report\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "MorphologyParser_S-D.V2-5fdd7d",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153MorphologyParser S-D.V2\u0153,\u0153id\u0153:\u0153MorphologyParser_S-D.V2-5fdd7d\u0153,\u0153name\u0153:\u0153morphology_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "WHOClassifier_S-D.V2-a6caca",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153morphology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "MorphologyParser_S-D.V2-e177b2",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153MorphologyParser S-D.V2\u0153,\u0153id\u0153:\u0153MorphologyParser_S-D.V2-e177b2\u0153,\u0153name\u0153:\u0153morphology_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "WHOClassifier_S-D.V2-b27daa",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153morphology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "MorphologyParser S-D.V2",
-            "id": "MorphologyParser_S-D.V2-5fdd7d",
+            "id": "MorphologyParser_S-D.V2-e177b2",
             "name": "morphology_synthesis",
             "output_types": [
               "Message"
@@ -2922,27 +2922,27 @@
           },
           "targetHandle": {
             "fieldName": "morphology_synthesis",
-            "id": "WHOClassifier_S-D.V2-a6caca",
+            "id": "WHOClassifier_S-D.V2-b27daa",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__MorphologyParser_S-D.V2-5fdd7d{\u0153dataType\u0153:\u0153MorphologyParser S-D.V2\u0153,\u0153id\u0153:\u0153MorphologyParser_S-D.V2-5fdd7d\u0153,\u0153name\u0153:\u0153morphology_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-a6caca{\u0153fieldName\u0153:\u0153morphology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__MorphologyParser_S-D.V2-e177b2{\u0153dataType\u0153:\u0153MorphologyParser S-D.V2\u0153,\u0153id\u0153:\u0153MorphologyParser_S-D.V2-e177b2\u0153,\u0153name\u0153:\u0153morphology_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-b27daa{\u0153fieldName\u0153:\u0153morphology_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "FlowParser_S-D.V2-5407f7",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153FlowParser S-D.V2\u0153,\u0153id\u0153:\u0153FlowParser_S-D.V2-5407f7\u0153,\u0153name\u0153:\u0153flow_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "WHOClassifier_S-D.V2-a6caca",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153flow_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "FlowParser_S-D.V2-18f6f0",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153FlowParser S-D.V2\u0153,\u0153id\u0153:\u0153FlowParser_S-D.V2-18f6f0\u0153,\u0153name\u0153:\u0153flow_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "WHOClassifier_S-D.V2-b27daa",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153flow_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "FlowParser S-D.V2",
-            "id": "FlowParser_S-D.V2-5407f7",
+            "id": "FlowParser_S-D.V2-18f6f0",
             "name": "flow_synthesis",
             "output_types": [
               "Message"
@@ -2950,27 +2950,27 @@
           },
           "targetHandle": {
             "fieldName": "flow_synthesis",
-            "id": "WHOClassifier_S-D.V2-a6caca",
+            "id": "WHOClassifier_S-D.V2-b27daa",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__FlowParser_S-D.V2-5407f7{\u0153dataType\u0153:\u0153FlowParser S-D.V2\u0153,\u0153id\u0153:\u0153FlowParser_S-D.V2-5407f7\u0153,\u0153name\u0153:\u0153flow_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-a6caca{\u0153fieldName\u0153:\u0153flow_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__FlowParser_S-D.V2-18f6f0{\u0153dataType\u0153:\u0153FlowParser S-D.V2\u0153,\u0153id\u0153:\u0153FlowParser_S-D.V2-18f6f0\u0153,\u0153name\u0153:\u0153flow_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-b27daa{\u0153fieldName\u0153:\u0153flow_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "CytogeneticsParser_S-D.V2-6a2e39",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153CytogeneticsParser S-D.V2\u0153,\u0153id\u0153:\u0153CytogeneticsParser_S-D.V2-6a2e39\u0153,\u0153name\u0153:\u0153cytogenetics_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "WHOClassifier_S-D.V2-a6caca",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153cytogenetics_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "CytogeneticsParser_S-D.V2-dd37a2",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153CytogeneticsParser S-D.V2\u0153,\u0153id\u0153:\u0153CytogeneticsParser_S-D.V2-dd37a2\u0153,\u0153name\u0153:\u0153cytogenetics_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "WHOClassifier_S-D.V2-b27daa",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153cytogenetics_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "CytogeneticsParser S-D.V2",
-            "id": "CytogeneticsParser_S-D.V2-6a2e39",
+            "id": "CytogeneticsParser_S-D.V2-dd37a2",
             "name": "cytogenetics_synthesis",
             "output_types": [
               "Message"
@@ -2978,27 +2978,27 @@
           },
           "targetHandle": {
             "fieldName": "cytogenetics_synthesis",
-            "id": "WHOClassifier_S-D.V2-a6caca",
+            "id": "WHOClassifier_S-D.V2-b27daa",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__CytogeneticsParser_S-D.V2-6a2e39{\u0153dataType\u0153:\u0153CytogeneticsParser S-D.V2\u0153,\u0153id\u0153:\u0153CytogeneticsParser_S-D.V2-6a2e39\u0153,\u0153name\u0153:\u0153cytogenetics_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-a6caca{\u0153fieldName\u0153:\u0153cytogenetics_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__CytogeneticsParser_S-D.V2-dd37a2{\u0153dataType\u0153:\u0153CytogeneticsParser S-D.V2\u0153,\u0153id\u0153:\u0153CytogeneticsParser_S-D.V2-dd37a2\u0153,\u0153name\u0153:\u0153cytogenetics_synthesis\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-b27daa{\u0153fieldName\u0153:\u0153cytogenetics_synthesis\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "MolecularParser_S-D.V2-c46c0e",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-c46c0e\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "WHOClassifier_S-D.V2-a6caca",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "MolecularParser_S-D.V2-614db6",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-614db6\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "WHOClassifier_S-D.V2-b27daa",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "MolecularParser S-D.V2",
-            "id": "MolecularParser_S-D.V2-c46c0e",
+            "id": "MolecularParser_S-D.V2-614db6",
             "name": "molecular",
             "output_types": [
               "Data"
@@ -3006,27 +3006,27 @@
           },
           "targetHandle": {
             "fieldName": "molecular",
-            "id": "WHOClassifier_S-D.V2-a6caca",
+            "id": "WHOClassifier_S-D.V2-b27daa",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__MolecularParser_S-D.V2-c46c0e{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-c46c0e\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-WHOClassifier_S-D.V2-a6caca{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__MolecularParser_S-D.V2-614db6{\u0153dataType\u0153:\u0153MolecularParser S-D.V2\u0153,\u0153id\u0153:\u0153MolecularParser_S-D.V2-614db6\u0153,\u0153name\u0153:\u0153molecular\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-WHOClassifier_S-D.V2-b27daa{\u0153fieldName\u0153:\u0153molecular\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "TextInput-02f044",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153TextInput\u0153,\u0153id\u0153:\u0153TextInput-02f044\u0153,\u0153name\u0153:\u0153text\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "WHOClassifier_S-D.V2-a6caca",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153who_instructions\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "TextInput-254a6e",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153TextInput\u0153,\u0153id\u0153:\u0153TextInput-254a6e\u0153,\u0153name\u0153:\u0153text\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "WHOClassifier_S-D.V2-b27daa",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153who_instructions\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "TextInput",
-            "id": "TextInput-02f044",
+            "id": "TextInput-254a6e",
             "name": "text",
             "output_types": [
               "Message"
@@ -3034,27 +3034,27 @@
           },
           "targetHandle": {
             "fieldName": "who_instructions",
-            "id": "WHOClassifier_S-D.V2-a6caca",
+            "id": "WHOClassifier_S-D.V2-b27daa",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__TextInput-02f044{\u0153dataType\u0153:\u0153TextInput\u0153,\u0153id\u0153:\u0153TextInput-02f044\u0153,\u0153name\u0153:\u0153text\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-a6caca{\u0153fieldName\u0153:\u0153who_instructions\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__TextInput-254a6e{\u0153dataType\u0153:\u0153TextInput\u0153,\u0153id\u0153:\u0153TextInput-254a6e\u0153,\u0153name\u0153:\u0153text\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-WHOClassifier_S-D.V2-b27daa{\u0153fieldName\u0153:\u0153who_instructions\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "WHOClassifier_S-D.V2-a6caca",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153name\u0153:\u0153integrated\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "QAReviewer_S-D.V2-45cfcc",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153integrated\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-45cfcc\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "WHOClassifier_S-D.V2-b27daa",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153name\u0153:\u0153integrated\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "QAReviewer_S-D.V2-9b5031",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153integrated\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-9b5031\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "WHOClassifier S-D.V2",
-            "id": "WHOClassifier_S-D.V2-a6caca",
+            "id": "WHOClassifier_S-D.V2-b27daa",
             "name": "integrated",
             "output_types": [
               "Data"
@@ -3062,27 +3062,27 @@
           },
           "targetHandle": {
             "fieldName": "integrated",
-            "id": "QAReviewer_S-D.V2-45cfcc",
+            "id": "QAReviewer_S-D.V2-9b5031",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__WHOClassifier_S-D.V2-a6caca{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-a6caca\u0153,\u0153name\u0153:\u0153integrated\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-QAReviewer_S-D.V2-45cfcc{\u0153fieldName\u0153:\u0153integrated\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-45cfcc\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__WHOClassifier_S-D.V2-b27daa{\u0153dataType\u0153:\u0153WHOClassifier S-D.V2\u0153,\u0153id\u0153:\u0153WHOClassifier_S-D.V2-b27daa\u0153,\u0153name\u0153:\u0153integrated\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-QAReviewer_S-D.V2-9b5031{\u0153fieldName\u0153:\u0153integrated\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-9b5031\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "QAReviewer_S-D.V2-45cfcc",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-45cfcc\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
-        "target": "ReportFormatter_S-D.V2-5ba4e3",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-5ba4e3\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "QAReviewer_S-D.V2-9b5031",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-9b5031\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}",
+        "target": "ReportFormatter_S-D.V2-14a9dd",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-14a9dd\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "QAReviewer S-D.V2",
-            "id": "QAReviewer_S-D.V2-45cfcc",
+            "id": "QAReviewer_S-D.V2-9b5031",
             "name": "reviewed",
             "output_types": [
               "Data"
@@ -3090,27 +3090,27 @@
           },
           "targetHandle": {
             "fieldName": "reviewed",
-            "id": "ReportFormatter_S-D.V2-5ba4e3",
+            "id": "ReportFormatter_S-D.V2-14a9dd",
             "inputTypes": [
               "Data"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__QAReviewer_S-D.V2-45cfcc{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-45cfcc\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-ReportFormatter_S-D.V2-5ba4e3{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-5ba4e3\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__QAReviewer_S-D.V2-9b5031{\u0153dataType\u0153:\u0153QAReviewer S-D.V2\u0153,\u0153id\u0153:\u0153QAReviewer_S-D.V2-9b5031\u0153,\u0153name\u0153:\u0153reviewed\u0153,\u0153output_types\u0153:[\u0153Data\u0153]}-ReportFormatter_S-D.V2-14a9dd{\u0153fieldName\u0153:\u0153reviewed\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-14a9dd\u0153,\u0153inputTypes\u0153:[\u0153Data\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
       },
       {
-        "source": "ReportFormatter_S-D.V2-5ba4e3",
-        "sourceHandle": "{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-5ba4e3\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
-        "target": "ChatOutput-4d819f",
-        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-4d819f\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "source": "ReportFormatter_S-D.V2-14a9dd",
+        "sourceHandle": "{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-14a9dd\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}",
+        "target": "ChatOutput-0e4b2a",
+        "targetHandle": "{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-0e4b2a\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "data": {
           "sourceHandle": {
             "dataType": "ReportFormatter S-D.V2",
-            "id": "ReportFormatter_S-D.V2-5ba4e3",
+            "id": "ReportFormatter_S-D.V2-14a9dd",
             "name": "report",
             "output_types": [
               "Message"
@@ -3118,14 +3118,14 @@
           },
           "targetHandle": {
             "fieldName": "input_value",
-            "id": "ChatOutput-4d819f",
+            "id": "ChatOutput-0e4b2a",
             "inputTypes": [
               "Message"
             ],
             "type": "other"
           }
         },
-        "id": "xy-edge__ReportFormatter_S-D.V2-5ba4e3{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-5ba4e3\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-4d819f{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-4d819f\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
+        "id": "xy-edge__ReportFormatter_S-D.V2-14a9dd{\u0153dataType\u0153:\u0153ReportFormatter S-D.V2\u0153,\u0153id\u0153:\u0153ReportFormatter_S-D.V2-14a9dd\u0153,\u0153name\u0153:\u0153report\u0153,\u0153output_types\u0153:[\u0153Message\u0153]}-ChatOutput-0e4b2a{\u0153fieldName\u0153:\u0153input_value\u0153,\u0153id\u0153:\u0153ChatOutput-0e4b2a\u0153,\u0153inputTypes\u0153:[\u0153Message\u0153],\u0153type\u0153:\u0153other\u0153}",
         "animated": false,
         "className": "",
         "selected": false
