@@ -1,11 +1,12 @@
 # Workshop materials
 
-Three folders, one per flow. Each folder's `README.md` is self-contained — open it and you have everything you need to run that flow.
+Two folders, one per presented flow. Each folder's `README.md` is self-contained — open it and you have everything you need to run that flow.
 
 | Folder | What it is | Open it for |
 |---|---|---|
-| [`scenario_0_chatbot/`](scenario_0_chatbot/) | General Chatbot warm-up | The four AML PDFs to download + the prompt to type |
-| [`research_buddy/`](research_buddy/) | Build-it-yourself reference flow | Step-by-step build instructions + the agent's system prompt + test prompts |
-| [`scenario_d_integrated_report/`](scenario_d_integrated_report/) | Integrated Report → WHO (the headline) | Chat directives to type + the edit-and-rerun exercise |
+| [`chatbot/`](chatbot/) | General Chatbot warm-up | The four AML PDFs to download + the prompt to type |
+| [`pathology_report_integration/`](pathology_report_integration/) | The agentic case study (the workshop's headline flow) | Chat directives, the 9-component architecture, the editable prompts, and the "build it yourself" instructions |
 
-Scenarios A, B, and C are bonus material that ships with the workshop repo but isn't part of the live talk. They get a brief mention in the standalone [attendee handbook](../attendee_handbook.html) — download and open it in any browser.
+The "build it yourself" hands-on segment happens inside the `pathology_report_integration` folder — attendees rebuild the same flow on a blank canvas from the pre-imported components panel.
+
+Four `extras_*` flows are also pre-imported into every attendee account (variant tournament, longitudinal notes, case routing, wikipedia agent) as bonus material that isn't part of the live talk. They get a brief mention in the standalone [attendee handbook](../attendee_handbook.html).

@@ -41,15 +41,15 @@ PDFs, prompts, copy buttons
 
 ---
 
-All attendees, each with their own LangFlow account on a shared workshop VM, work through three flows in sequence. Same four PDFs go in. Three very different outputs come out. The point is the gap between them.
+All attendees, each with their own LangFlow account on a shared workshop VM, work through two flows plus a hands-on build segment. Same four PDFs go in. Two very different outputs come out. The point is the gap between them — and then attendees recreate the agentic flow from blank to feel the architecture themselves.
 
 ## What attendees do
 
 **1 · Chatbot (warm-up, ~7 min).** Attach four AML PDFs in chat, ask for an integrated diagnostic report, get a prose reply. Different every run, no citations, prognostic variants drift into the diagnosis line. This is the "before."
 
-**2 · Agentic workflow — Integrated Report → WHO (~25 min).** The same four PDFs feed a seven-component pipeline. Two LLM stages (extraction, then integration), plus parallel post-processing and a QA reviewer. Output: a structured 11-section integrated report, a per-sentence evidence trace mapping every claim back to a source PDF, and a QA-flag section that catches lane-discipline violations and unsupported sentences. Attendees see the two editable system prompts in the canvas; the workshop exercise is to edit one and watch the output change.
+**2 · Agentic workflow — Pathology Report Integration (~25 min).** The same four PDFs feed a 9-component custom pipeline plus a stock TextInput holding WHO 5e classification rules. PDF Intake fans out into four per-modality parsers (morphology, flow, cytogenetics, molecular) plus a cross-report observations channel. The WHO Classifier integrates the six inputs into a structured 11-section integrated report with a per-sentence evidence trace and a QA-flag section that catches lane-discipline violations and unsupported sentences. Attendees see the three editable text blocks in the canvas (per-source extraction prompt, cross-report analysis prompt, WHO Classifier system prompt, plus the WHO Instructions text); the workshop exercise is to edit one and watch the output change.
 
-**3 · Build a workflow yourself — Research Buddy (~10 min).** A tiny five-node agentic flow from stock LangFlow components — Chat Input, Agent, Wikipedia, Calculator, Chat Output. About seven minutes to build from scratch, with the completed reference shipped in each account if anyone gets stuck. Demonstrates the agentic pattern at its smallest scale: an LLM that picks tools at runtime.
+**3 · Build the agentic workflow yourself (~10 min).** With the same 9 custom components already in your sidebar, recreate `pathology_report_integration` from a blank canvas. Drag the components, wire 15 edges, paste the WHO Instructions, and run. The completed reference is shipped in each account if anyone gets stuck.
 
 ## Where to find things
 
@@ -67,15 +67,15 @@ The handbook is the single thing an attendee actually needs. Open it in any brow
 
 ## Workshop infrastructure
 
-Each attendee gets a pre-provisioned LangFlow account on `pi-2026-workshop.javadilab.org` with all six flows imported and ready: `0_general_chatbot`, `D_integrated_report_to_who`, `Research_Buddy`, plus three bonus scenarios (`A_variant_tournament`, `B_longitudinal_ghost`, `C_digital_thread_v2`) that aren't presented from stage but live on for self-exploration.
+Each attendee gets a pre-provisioned LangFlow account on `pi-2026-workshop.javadilab.org` with six flows imported: the two workshop flows (`chatbot`, `pathology_report_integration`) plus four bonus flows that aren't part of the live talk (`extras_wikipedia_agent`, `extras_variant_tournament`, `extras_longitudinal_notes`, `extras_case_routing`) but are kept for self-exploration.
 
 Behind the VM sits a small stack:
 
 - **LangFlow 1.9.2** for the agent canvas and Playground UI
 - **KeyBroker** — an in-house FastAPI proxy that holds the real OpenRouter key and enforces a per-attendee rate limit, so no attendee handles credentials directly
-- **Arize Phoenix** ships with the stack but is currently disabled (`OTEL_SDK_DISABLED=true`) because LangFlow's own instrumentation floods it with health-check spans; the workshop's auditability story lives in the Part B evidence trace inside Scenario D's output, not in Phoenix tracing
+- **Arize Phoenix** ships with the stack but is currently disabled (`OTEL_SDK_DISABLED=true`) because LangFlow's own instrumentation floods it with health-check spans; the workshop's auditability story lives in the Part B evidence trace inside the integrated report, not in Phoenix tracing
 
-The proxy is what makes the build-your-own exercise frictionless — attendees pick OpenAI in the Agent's Language Model dropdown, leave the API Key field blank, and the broker handles everything.
+The proxy is what makes the build-your-own exercise frictionless — attendees never touch credentials; the broker handles everything.
 
 ## Authors
 
