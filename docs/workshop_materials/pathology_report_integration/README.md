@@ -10,7 +10,7 @@ fans out into four per-modality parsers, and emits a structured
 You don't upload PDFs. The four AML files are pre-registered in the
 case manifest — typing the directive loads them automatically.
 
-1. Open `pathology_report_integration` from "My Projects" on the workshop VM.
+1. Open `pathology_report_integration` from "Starter Project" on the workshop VM.
 2. Click **Playground**.
 3. Paste a directive (below) and press send.
 4. Wait 30–90 seconds. (Stage 1 now runs five LLM calls — four per-source extractions plus one cross-report analysis — then four parser calls, then the Stage 2 integration, plus QA. ~9 LLM calls total.)
@@ -114,7 +114,7 @@ Steps:
 7. Open the Text Input node, paste the WHO 5e instructions (from [`docs/who5e_instructions.md`](../../who5e_instructions.md)), and wire its `text` output → WHO Classifier's `who_instructions` input.
 8. Click **Playground**. Run `run the aml case`.
 
-**Stuck?** Open `pathology_report_integration` from "My Projects" side-by-side — it's the completed reference.
+**Stuck?** Open `pathology_report_integration` from "Starter Project" side-by-side — it's the completed reference.
 
 ## When the output looks wrong
 

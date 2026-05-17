@@ -598,7 +598,7 @@
 <p>Open <a href="https://pi-2026-workshop.javadilab.org">https://pi-2026-workshop.javadilab.org</a> in any browser. Your facilitator will hand out usernames in the form <code>pi-user-NNN</code> and a shared password.</p>
 
 <h3 id="open-flow">2. Open a flow</h3>
-<p>After login you'll see "My Projects." Six flows are pre-loaded for you:</p>
+<p>After login you'll see "Starter Project." Six flows are pre-loaded for you:</p>
 <ul>
   <li><code>chatbot</code> — the Part 1 warm-up</li>
   <li><code>pathology_report_integration</code> — the Part 2 agentic workflow (you also rebuild this from scratch in Part 3)</li>
@@ -646,7 +646,7 @@
 
 <h3 id="chatbot-run">How to run, what to notice</h3>
 <ol class="steps">
-  <li>Open <code>chatbot</code> from "My Projects."</li>
+  <li>Open <code>chatbot</code> from "Starter Project."</li>
   <li>Click <strong>Playground</strong>.</li>
   <li>Click the paperclip icon and attach all four PDFs.</li>
   <li>Paste the prompt above. Press send.</li>
@@ -855,7 +855,7 @@ Every node's intermediate output is browsable from the right-side panel. This is
 
 <p>You've just run <code>pathology_report_integration</code> end-to-end in Part 2. Now build the same flow from a blank canvas, six steps. The nine custom components are already in your sidebar; the WHO Instructions text is a stock Text Input. About ten minutes of drag-and-wire — no Python required.</p>
 
-<p>Stuck? Open the completed <code>pathology_report_integration</code> from "My Projects" side-by-side and compare your wiring.</p>
+<p>Stuck? Open the completed <code>pathology_report_integration</code> from "Starter Project" side-by-side and compare your wiring.</p>
 
 <pre class="ascii">[Chat Input] → [Pipeline Config] → [PDF Intake] ──┬─► [Morphology Parser]   ─┐
                                     (5 outputs)    ├─► [Flow Parser]          ─┤
@@ -873,7 +873,7 @@ Every node's intermediate output is browsable from the right-side panel. This is
 <!-- ============ STEP 1 ============ -->
 <div class="build-step">
   <h4>Step 1 — Start a blank flow and add the inputs</h4>
-  <p>From the dashboard ("My Projects"), click <strong>+ New flow</strong> and pick the blank template.</p>
+  <p>From the dashboard ("Starter Project"), click <strong>+ New flow</strong> and pick the blank template.</p>
   <p class="step-action"><strong>Drag:</strong> from <strong>Input / Output</strong>, drag in <strong>Chat Input</strong>. From <strong>api_scenario_d</strong> on the left sidebar, drag in <strong>Pipeline Config</strong>.</p>
   <p class="step-action"><strong>Wire:</strong> Chat Input's <code>message</code> output → Pipeline Config's <code>user_message</code> input.</p>
   <div class="build-step-diagram">
@@ -1258,7 +1258,7 @@ Always set prognostic_note when classifying is "false" or "vus".</div>
   </tbody>
 </table>
 
-<p>Open any of them from "My Projects" and click <strong>Playground</strong>. Each scenario's prompts and editable levers are documented in the repo at <code>langflow_flows/components/api_scenario_{a,b,c}/</code>.</p>
+<p>Open any of them from "Starter Project" and click <strong>Playground</strong>. Each scenario's prompts and editable levers are documented in the repo at <code>langflow_flows/components/api_scenario_{a,b,c}/</code>.</p>
 
 <!-- ============================================================
      TROUBLESHOOTING

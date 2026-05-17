@@ -25,7 +25,7 @@ This is the same task Scenario D tackles. Identical input, identical ask, very d
 
 ## How to run
 
-1. Open `chatbot` from "My Projects" on the workshop VM.
+1. Open `chatbot` from "Starter Project" on the workshop VM.
 2. Click **Playground**.
 3. Click the paperclip icon and attach all four PDFs.
 4. Paste the prompt above. Press send.
