@@ -203,6 +203,11 @@
   .prompt.user {
     border-left-color: var(--blue-light);
   }
+  .prompt.code {
+    border-left-color: #6f42c1;
+    background: #f8f5ff;
+    border-color: #d8cdf0;
+  }
   .prompt-label {
     display: inline-block;
     font-family: var(--font-sans);
@@ -217,6 +222,109 @@
     width: 100%;
   }
   .prompt.system .prompt-label { color: var(--amber-dark); }
+  .prompt.code   .prompt-label { color: #6f42c1; }
+  /* ---------- Collapsible prompts (long blocks closed by default) ---------- */
+  details.prompt-collapsible {
+    margin: 14px 0 18px;
+    border-radius: var(--r-card);
+    background: var(--gray-fill);
+    border: 1px solid var(--gray-line);
+    border-left: 4px solid var(--blue-light);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  details.prompt-collapsible.system { border-left-color: var(--amber); background: #fffaf2; border-color: #f0d8a0; }
+  details.prompt-collapsible.user   { border-left-color: var(--blue-light); }
+  details.prompt-collapsible.code   { border-left-color: #6f42c1; background: #f8f5ff; border-color: #d8cdf0; }
+  details.prompt-collapsible > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 18px;
+    user-select: none;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  details.prompt-collapsible > summary::-webkit-details-marker { display: none; }
+  details.prompt-collapsible > summary::before {
+    content: "▸";
+    color: var(--gray-2);
+    font-size: 12px;
+    transition: transform 0.15s;
+    display: inline-block;
+  }
+  details.prompt-collapsible[open] > summary::before {
+    transform: rotate(90deg);
+  }
+  details.prompt-collapsible > summary .badge {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    font-weight: 700;
+    color: var(--gray-2);
+    background: rgba(255,255,255,0.6);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--gray-line);
+  }
+  details.prompt-collapsible.system > summary .badge { color: var(--amber-dark); border-color: #f0d8a0; }
+  details.prompt-collapsible.code   > summary .badge { color: #6f42c1; border-color: #d8cdf0; }
+  details.prompt-collapsible > summary .summary-title {
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 14.5px;
+  }
+  details.prompt-collapsible > summary .summary-hint {
+    color: var(--gray-2);
+    font-size: 12.5px;
+    font-style: italic;
+    margin-left: auto;
+  }
+  details.prompt-collapsible > .collapsible-body {
+    padding: 0 20px 16px;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    color: var(--ink);
+    position: relative;
+  }
+  details.prompt-collapsible > .collapsible-body.prose {
+    font-family: var(--font-sans);
+    white-space: normal;
+  }
+  /* ---------- Inline SVG schematic diagrams (build-from-scratch steps) ---------- */
+  .build-step-diagram {
+    margin: 12px 0 4px;
+    background: var(--gray-fill);
+    border: 1px solid var(--gray-line);
+    border-radius: var(--r-card);
+    padding: 16px;
+    text-align: center;
+  }
+  .build-step-diagram svg { max-width: 100%; height: auto; }
+  .build-step {
+    margin: 24px 0;
+    padding: 14px 18px;
+    background: #fcfcfd;
+    border: 1px solid var(--gray-line);
+    border-left: 4px solid var(--blue);
+    border-radius: var(--r-card);
+  }
+  .build-step h4 {
+    margin: 0 0 6px;
+    color: var(--blue);
+    font-size: 16px;
+  }
+  .build-step .step-action {
+    margin: 8px 0 4px;
+    color: var(--gray);
+    font-size: 14.5px;
+  }
+  .build-step .step-action strong { color: var(--ink); }
   .copy-btn {
     position: absolute;
     top: 12px;
@@ -375,6 +483,11 @@
     a { color: inherit; text-decoration: none; }
     .prompt { page-break-inside: avoid; }
     h2, h3, .part-banner { page-break-after: avoid; }
+    /* Force all collapsibles open when printing */
+    details.prompt-collapsible[open],
+    details.prompt-collapsible { overflow: visible; }
+    details.prompt-collapsible > .collapsible-body { display: block !important; }
+    details.prompt-collapsible > summary::before { display: none; }
   }
   /* ---------- Responsive ---------- */
   @media (max-width: 900px) {
@@ -420,12 +533,11 @@
     </li>
     <li><a href="#part3">Part 3 · Build your own</a>
       <ol>
-        <li><a href="#rb-build">Build steps</a></li>
-        <li><a href="#rb-instructions">Agent instructions</a></li>
-        <li><a href="#rb-tests">Test prompts</a></li>
-        <li><a href="#rb-gotchas">Gotchas</a></li>
+        <li><a href="#rb-build">Build steps (six)</a></li>
+        <li><a href="#rb-instructions">WHO Instructions text</a></li>
+        <li><a href="#rb-test">Test it</a></li>
         <li><a href="#rb-edits">Edits to try</a></li>
-        <li><a href="#rb-tools">Tool actions</a></li>
+        <li><a href="#rb-alternatives">Alternative code</a></li>
       </ol>
     </li>
     <li><a href="#bonus">Bonus: A/B/C</a></li>
@@ -647,37 +759,45 @@ The chatbot's own system prompt is intentionally generic — six sentences telli
 <p>That single edit ripples through the whole pipeline. No saving, no rebuild — changes apply on the next run.</p>
 
 <h3 id="d-stage1-prompt">Stage 1 — PDF Intake has TWO editable prompts</h3>
-<p>The new PDF Intake fires five LLM calls under the hood: four per-source extractions and one cross-report analysis. Each kind of call uses a separate editable system prompt — both visible in the right-side detail panel when you click the PDF Intake node:</p>
+<p>The PDF Intake node fires <strong>five LLM calls</strong> internally: four per-source extractions plus one cross-report analysis. Each kind of call has its own editable prompt in the right-side detail panel.</p>
 
-<ol>
-  <li><strong>Per-Source Extraction Prompt</strong>: applies to all four per-source LLM calls. Tells the model how to read ONE component report (morphology, flow, cytogenetics, or molecular) and emit a structured JSON of that source's findings. The model adapts based on the source_id header in each call. Rules cover: extract-not-interpret, verbatim_support on every finding, classifying=true/false on every variant.</li>
-  <li><strong>Cross-Report Analysis Prompt</strong>: runs after the four per-source extractions finish. Reads the four per-source JSONs and emits concordances, discordances (with resolution + basis), and single-source findings.</li>
-</ol>
-
-<p>The full text of both prompts lives in the component source at <code>langflow_flows/components/api_scenario_d/d2_pdf_intake.py</code> (look for <code>DEFAULT_PER_SOURCE_PROMPT</code> and <code>DEFAULT_CROSS_REPORT_PROMPT</code>). It's also visible directly in the LangFlow canvas — click the PDF Intake node and the textareas show the current values.</p>
-
-<p>To edit: open one of the textareas in the PDF Intake's right-side panel, paste your edited version, then run. Edits to the per-source prompt change what gets extracted from every PDF; edits to the cross-report prompt change how concordances and discordances are derived. The cross-report prompt is where lane-discipline detection lives.</p>
+<details class="prompt-collapsible system">
+  <summary>
+    <span class="badge">System prompts</span>
+    <span class="summary-title">How the two PDF Intake prompts work + how to edit them</span>
+    <span class="summary-hint">(click to expand)</span>
+  </summary>
+  <div class="collapsible-body prose">
+    <p><strong>Per-Source Extraction Prompt</strong> — applies to all four per-source LLM calls. Tells the model how to read ONE component report (morphology, flow, cytogenetics, or molecular) and emit a structured JSON of that source's findings. The model adapts based on the source_id header in each call. Rules cover: extract-not-interpret, verbatim_support on every finding, classifying=true/false on every variant.</p>
+    <p><strong>Cross-Report Analysis Prompt</strong> — runs after the four per-source extractions finish. Reads the four per-source JSONs and emits concordances, discordances (with resolution + basis), and single-source findings.</p>
+    <p>Full text of both prompts lives in <code>langflow_flows/components/api_scenario_d/d2_pdf_intake.py</code> (see <code>DEFAULT_PER_SOURCE_PROMPT</code> and <code>DEFAULT_CROSS_REPORT_PROMPT</code>) and is visible in the PDF Intake node's right-side panel.</p>
+    <p><strong>To edit:</strong> click the PDF Intake node → right-side panel → either System Prompt textarea → paste your edited version → run. Edits to the per-source prompt change what gets extracted from every PDF; edits to the cross-report prompt change how concordances, discordances, and single-source findings are derived.</p>
+  </div>
+</details>
 
 <h3 id="d-stage2-prompt">Stage 2 — WHO Classifier system prompt</h3>
-<p>How the four parser outputs + cross-report data + WHO Instructions become the integrated report and the per-sentence trace. To edit: click the <strong>WHO Classifier (Integrator)</strong> node → right-side panel → System Prompt textarea.</p>
+<p>The WHO Classifier takes six inputs (four parser outputs + cross-report data + WHO Instructions text) and emits the integrated report + Part B evidence trace. To edit: click the <strong>WHO Classifier (Integrator)</strong> node → System Prompt textarea.</p>
 
-<p>The full text of the system prompt lives in the component source at <code>langflow_flows/components/api_scenario_d/d2_who_classifier.py</code> (look for <code>DEFAULT_SYSTEM_PROMPT</code>) and is visible directly in the LangFlow canvas — click the WHO Classifier node and the textarea shows the current value.</p>
-
-<p>Key rules the prompt enforces (paraphrased):</p>
-
-<ol>
-  <li><strong>Use only what you were given.</strong> Every clinical claim in the interpretation and final diagnosis must trace to one of the four parser inputs, the cross-report data, or a classification rule from the WHO Instructions block.</li>
-  <li><strong>Resolve discordances out loud.</strong> Each discordance the cross-report block surfaces must be addressed explicitly — name the conflicting numbers, state the resolution, state why it holds.</li>
-  <li><strong>Name single-source findings.</strong> Any finding the cross-report marks as single-source must be flagged plainly in the interpretation.</li>
-  <li><strong>Lane discipline.</strong> A variant in the <code>prognostic_variants</code> list (from the Molecular Parser) belongs in molecular summary + prognostic notes, NEVER in the final diagnosis line.</li>
-  <li><strong>Diagnosis in classification terms.</strong> Apply the WHO Instructions block to translate the combined findings into formal WHO/ICC language.</li>
-  <li><strong>Carry limitations forward.</strong> Any stated limitations from any modality are reflected in <code>limitations_pending</code>.</li>
-  <li><strong>Evidence trace integrity.</strong> Every sentence in the interpretation and final diagnosis must have a row in the evidence trace; any row marked <code>UNSUPPORTED</code> is a pipeline failure caught by the QA Reviewer downstream.</li>
-</ol>
-
-<p><strong>What this prompt buys you.</strong> Rule 1 turns "no hallucinations" from a hope into a structural constraint. Rule 2 forces the 18% vs 22% blast discordance into the interpretation explicitly. Rule 3 makes NPM1 / FLT3-ITD's single-source role visible in the diagnosis. Rule 4 is the lane-discipline rule that keeps DNMT3A out of the diagnosis line. Rule 5 is what makes the WHO Instructions text node meaningful — without it, the integrator would have no reference to apply.</p>
-
-<p>Note that WHO 5e classification rules themselves are NOT in this system prompt — they're in the separate WHO Instructions Text Input node feeding into the WHO Classifier. Edit those rules directly in that node without touching this prompt.</p>
+<details class="prompt-collapsible system">
+  <summary>
+    <span class="badge">System prompt</span>
+    <span class="summary-title">The seven rules the WHO Classifier prompt enforces</span>
+    <span class="summary-hint">(click to expand)</span>
+  </summary>
+  <div class="collapsible-body prose">
+    <p>Full text lives in <code>langflow_flows/components/api_scenario_d/d2_who_classifier.py</code> (see <code>DEFAULT_SYSTEM_PROMPT</code>). Paraphrased:</p>
+    <ol>
+      <li><strong>Use only what you were given.</strong> Every clinical claim in interpretation/diagnosis must trace to a parser input, the cross-report data, or a classification rule from the WHO Instructions block.</li>
+      <li><strong>Resolve discordances out loud.</strong> Each discordance is named, with both numbers + the resolution + why it holds.</li>
+      <li><strong>Name single-source findings.</strong> Findings the cross-report marks as single-source are flagged plainly in the interpretation.</li>
+      <li><strong>Lane discipline.</strong> A variant in <code>prognostic_variants</code> belongs in molecular summary + prognostic notes, NEVER in the final diagnosis line.</li>
+      <li><strong>Diagnosis in classification terms.</strong> Apply the WHO Instructions block to translate combined findings into formal WHO/ICC language.</li>
+      <li><strong>Carry limitations forward.</strong> Stated limitations from any modality go in <code>limitations_pending</code>.</li>
+      <li><strong>Evidence trace integrity.</strong> Every sentence in interpretation + diagnosis has a trace row; any <code>UNSUPPORTED</code> row is a pipeline failure caught by the QA Reviewer.</li>
+    </ol>
+    <p>Note that the WHO 5e classification rules themselves are NOT in this prompt — they're in the separate WHO Instructions Text Input node. Edit those rules directly in that node without touching this prompt.</p>
+  </div>
+</details>
 
 <h3 id="d-troubleshoot">When the output looks wrong</h3>
 
@@ -706,7 +826,7 @@ Every node's intermediate output is browsable from the right-side panel. This is
   </div>
 </div>
 
-<p>You've just run <code>pathology_report_integration</code> end-to-end in Part 2. Now build the same flow from a blank canvas. The nine custom components are already in your sidebar; the WHO Instructions text is a stock Text Input. About ten minutes of drag-and-wire — no code.</p>
+<p>You've just run <code>pathology_report_integration</code> end-to-end in Part 2. Now build the same flow from a blank canvas, six steps. The nine custom components are already in your sidebar; the WHO Instructions text is a stock Text Input. About ten minutes of drag-and-wire — no Python required.</p>
 
 <p>Stuck? Open the completed <code>pathology_report_integration</code> from "My Projects" side-by-side and compare your wiring.</p>
 
@@ -719,24 +839,207 @@ Every node's intermediate output is browsable from the right-side panel. This is
                                                    [WHO Instructions] ────────┘
                                                    (Text Input)</pre>
 
-<h3 id="rb-build">Build it from scratch</h3>
+<h3 id="rb-build">Build it from scratch — six steps</h3>
 
-<ol class="steps">
-  <li>Create a new blank flow in your account ("My Projects" → "+ New flow").</li>
-  <li>From the left-sidebar components panel, find <strong>api_scenario_d</strong>. Drag all nine custom components onto the canvas: <strong>Pipeline Config</strong>, <strong>PDF Intake</strong>, <strong>Morphology Parser</strong>, <strong>Flow Parser</strong>, <strong>Cytogenetics Parser</strong>, <strong>Molecular Parser</strong>, <strong>WHO Classifier</strong>, <strong>QA Reviewer</strong>, <strong>Report Formatter</strong>.</li>
-  <li>From <strong>Input/Output</strong>, drag in <strong>Chat Input</strong>, <strong>Chat Output</strong>, and a <strong>Text Input</strong> (the Text Input becomes the WHO Instructions node).</li>
-  <li>Wire the spine (6 edges): Chat Input → Pipeline Config → PDF Intake → WHO Classifier → QA Reviewer → Report Formatter → Chat Output.</li>
-  <li>Wire the fan-out from PDF Intake (5 edges): <code>morphology_data</code> → Morphology Parser, <code>flow_data</code> → Flow Parser, <code>cytogenetics_data</code> → Cytogenetics Parser, <code>molecular_data</code> → Molecular Parser, <code>cross_report_data</code> → WHO Classifier's <code>cross_report</code> input.</li>
-  <li>Wire the fan-in to WHO Classifier (4 edges): each parser's output → its matching input on the integrator (<code>morphology_synthesis</code>, <code>flow_synthesis</code>, <code>cytogenetics_synthesis</code>, <code>molecular</code>).</li>
-  <li>Open the Text Input node. Paste the WHO Instructions content (the next section). Wire its <code>text</code> output → WHO Classifier's <code>who_instructions</code> input.</li>
-  <li>Click <strong>Playground</strong>. Type <code>run the aml case</code>. Press send.</li>
-</ol>
+<p>Each step adds one or two components, wires them, and ends with a small diagram showing what your canvas looks like so far. Drag-then-wire-then-drag, not all-drag-then-all-wire.</p>
 
-<h3 id="rb-instructions">WHO Instructions text (paste into the Text Input node)</h3>
+<!-- ============ STEP 1 ============ -->
+<div class="build-step">
+  <h4>Step 1 — Start a blank flow and add the inputs</h4>
+  <p>From the dashboard ("My Projects"), click <strong>+ New flow</strong> and pick the blank template.</p>
+  <p class="step-action"><strong>Drag:</strong> from <strong>Input / Output</strong>, drag in <strong>Chat Input</strong>. From <strong>api_scenario_d</strong> on the left sidebar, drag in <strong>Pipeline Config</strong>.</p>
+  <p class="step-action"><strong>Wire:</strong> Chat Input's <code>message</code> output → Pipeline Config's <code>user_message</code> input.</p>
+  <div class="build-step-diagram">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 90" width="360" height="90">
+      <defs>
+        <marker id="arr1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#3b6bb8"/></marker>
+      </defs>
+      <rect x="10" y="25" width="120" height="40" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="70" y="50" font-family="Inter,sans-serif" font-size="13" fill="#1f3864" text-anchor="middle">Chat Input</text>
+      <line x1="135" y1="45" x2="220" y2="45" stroke="#3b6bb8" stroke-width="2" marker-end="url(#arr1)"/>
+      <rect x="225" y="25" width="120" height="40" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="285" y="50" font-family="Inter,sans-serif" font-size="13" fill="#1f3864" text-anchor="middle">Pipeline Config</text>
+    </svg>
+  </div>
+</div>
 
-<p>This is the official WHO 5e classification rules. The full version is at <code>docs/who5e_instructions.md</code> in the workshop repo; a short workshop-friendly excerpt below covers the AML case:</p>
+<!-- ============ STEP 2 ============ -->
+<div class="build-step">
+  <h4>Step 2 — Add PDF Intake (Stage 1)</h4>
+  <p class="step-action"><strong>Drag:</strong> from <strong>api_scenario_d</strong>, drag in <strong>PDF Intake</strong> to the right of Pipeline Config.</p>
+  <p class="step-action"><strong>Wire:</strong> Pipeline Config's <code>run_config</code> output → PDF Intake's <code>run_config</code> input.</p>
+  <p>Click the PDF Intake node — you'll see <strong>five output handles</strong> on its right edge: <code>morphology_data</code>, <code>flow_data</code>, <code>cytogenetics_data</code>, <code>molecular_data</code>, and <code>cross_report_data</code>. We wire them in the next step.</p>
+  <div class="build-step-diagram">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 90" width="540" height="90">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#3b6bb8"/></marker>
+      </defs>
+      <rect x="10" y="25" width="120" height="40" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="70" y="50" font-family="Inter,sans-serif" font-size="13" fill="#1f3864" text-anchor="middle">Chat Input</text>
+      <line x1="135" y1="45" x2="190" y2="45" stroke="#3b6bb8" stroke-width="2" marker-end="url(#arr2)"/>
+      <rect x="195" y="25" width="120" height="40" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="255" y="50" font-family="Inter,sans-serif" font-size="13" fill="#1f3864" text-anchor="middle">Pipeline Config</text>
+      <line x1="320" y1="45" x2="375" y2="45" stroke="#3b6bb8" stroke-width="2" marker-end="url(#arr2)"/>
+      <rect x="380" y="25" width="150" height="40" rx="8" fill="#fff4e0" stroke="#b06f00"/>
+      <text x="455" y="50" font-family="Inter,sans-serif" font-size="13" fill="#8a5600" text-anchor="middle" font-weight="600">PDF Intake</text>
+    </svg>
+  </div>
+</div>
 
-<div class="prompt system">
+<!-- ============ STEP 3 ============ -->
+<div class="build-step">
+  <h4>Step 3 — Add the four parallel parsers (the fan-out)</h4>
+  <p class="step-action"><strong>Drag:</strong> from <strong>api_scenario_d</strong>, drag in four parsers — <strong>Morphology Parser</strong>, <strong>Flow Parser</strong>, <strong>Cytogenetics Parser</strong>, and <strong>Molecular Parser</strong>. Stack them vertically to the right of PDF Intake.</p>
+  <p class="step-action"><strong>Wire four edges:</strong> PDF Intake's <code>morphology_data</code> → Morphology Parser's <code>morphology_data</code> input. Then <code>flow_data</code> → Flow Parser, <code>cytogenetics_data</code> → Cytogenetics Parser, <code>molecular_data</code> → Molecular Parser.</p>
+  <p>This is the most visually striking part of the canvas: four wires emerging from a single PDF Intake node, each going to a dedicated parser. LangFlow only allows compatible types to connect, so any wrong wiring is visually rejected.</p>
+  <div class="build-step-diagram">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 240" width="520" height="240">
+      <defs>
+        <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#3b6bb8"/></marker>
+      </defs>
+      <rect x="20" y="100" width="150" height="40" rx="8" fill="#fff4e0" stroke="#b06f00"/>
+      <text x="95" y="125" font-family="Inter,sans-serif" font-size="13" fill="#8a5600" text-anchor="middle" font-weight="600">PDF Intake</text>
+      <!-- 4 wires fan-out -->
+      <path d="M170 115 C 240 115, 240 25, 320 25" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr3)"/>
+      <path d="M170 120 C 240 120, 240 90, 320 90" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr3)"/>
+      <path d="M170 125 C 240 125, 240 155, 320 155" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr3)"/>
+      <path d="M170 130 C 240 130, 240 220, 320 220" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr3)"/>
+      <!-- 4 parsers -->
+      <rect x="325" y="5"   width="170" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="410" y="28" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Morphology Parser</text>
+      <rect x="325" y="70"  width="170" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="410" y="93" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Flow Parser</text>
+      <rect x="325" y="135" width="170" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="410" y="158" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Cytogenetics Parser</text>
+      <rect x="325" y="200" width="170" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="410" y="223" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Molecular Parser</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ============ STEP 4 ============ -->
+<div class="build-step">
+  <h4>Step 4 — Add WHO Classifier (the fan-in)</h4>
+  <p class="step-action"><strong>Drag:</strong> from <strong>api_scenario_d</strong>, drag in <strong>WHO Classifier (Integrator)</strong> to the right of the four parsers.</p>
+  <p class="step-action"><strong>Wire five edges:</strong> each of the four parsers' outputs into its matching input on WHO Classifier (<code>morphology_synthesis</code>, <code>flow_synthesis</code>, <code>cytogenetics_synthesis</code>, <code>molecular</code>), plus PDF Intake's <code>cross_report_data</code> output → WHO Classifier's <code>cross_report</code> input.</p>
+  <div class="build-step-diagram">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" width="700" height="260">
+      <defs>
+        <marker id="arr4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#3b6bb8"/></marker>
+      </defs>
+      <rect x="20" y="110" width="150" height="40" rx="8" fill="#fff4e0" stroke="#b06f00"/>
+      <text x="95" y="135" font-family="Inter,sans-serif" font-size="13" fill="#8a5600" text-anchor="middle" font-weight="600">PDF Intake</text>
+      <!-- 4 fan-out wires -->
+      <path d="M170 125 C 230 125, 230 35, 280 35" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr4)"/>
+      <path d="M170 130 C 230 130, 230 100, 280 100" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr4)"/>
+      <path d="M170 135 C 230 135, 230 165, 280 165" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr4)"/>
+      <path d="M170 140 C 230 140, 230 230, 280 230" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr4)"/>
+      <!-- cross-report wire (skips parsers, goes directly to WHO Classifier) -->
+      <path d="M170 145 Q 350 270, 540 175" stroke="#3b6bb8" stroke-width="2" stroke-dasharray="4 3" fill="none" marker-end="url(#arr4)"/>
+      <text x="350" y="252" font-family="Inter,sans-serif" font-size="10.5" fill="#3b6bb8" font-style="italic">cross-report direct to WHO Classifier</text>
+      <!-- 4 parsers -->
+      <rect x="285" y="15"  width="160" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="365" y="38" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Morphology Parser</text>
+      <rect x="285" y="80"  width="160" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="365" y="103" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Flow Parser</text>
+      <rect x="285" y="145" width="160" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="365" y="168" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Cytogenetics Parser</text>
+      <rect x="285" y="210" width="160" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="365" y="233" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Molecular Parser</text>
+      <!-- 4 fan-in wires -->
+      <path d="M445 33  C 500 33,  500 130, 540 130" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr4)"/>
+      <path d="M445 98  C 500 98,  500 130, 540 130" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr4)"/>
+      <path d="M445 163 C 500 163, 500 130, 540 130" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr4)"/>
+      <path d="M445 228 C 500 228, 500 130, 540 130" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr4)"/>
+      <!-- WHO Classifier -->
+      <rect x="545" y="110" width="140" height="40" rx="8" fill="#fff4e0" stroke="#b06f00"/>
+      <text x="615" y="135" font-family="Inter,sans-serif" font-size="13" fill="#8a5600" text-anchor="middle" font-weight="600">WHO Classifier</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ============ STEP 5 ============ -->
+<div class="build-step">
+  <h4>Step 5 — Add the WHO Instructions Text Input</h4>
+  <p class="step-action"><strong>Drag:</strong> from <strong>Input / Output</strong>, drag in a <strong>Text Input</strong>. Place it below the parsers.</p>
+  <p class="step-action"><strong>Paste:</strong> open the Text Input node's right-side panel, find its <strong>Text</strong> field, and paste the WHO Instructions content from the collapsible block in the next subsection.</p>
+  <p class="step-action"><strong>Wire:</strong> Text Input's <code>text</code> output → WHO Classifier's <code>who_instructions</code> input.</p>
+  <p>The Text Input is a separate node — not a system-prompt field on another node. Its content is the third editable knob in the pipeline (alongside PDF Intake's two prompts and WHO Classifier's system prompt).</p>
+  <div class="build-step-diagram">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 290" width="700" height="290">
+      <defs>
+        <marker id="arr5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#3b6bb8"/></marker>
+        <marker id="arr5v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#6f42c1"/></marker>
+      </defs>
+      <rect x="20" y="110" width="150" height="40" rx="8" fill="#fff4e0" stroke="#b06f00"/>
+      <text x="95" y="135" font-family="Inter,sans-serif" font-size="13" fill="#8a5600" text-anchor="middle" font-weight="600">PDF Intake</text>
+      <path d="M170 125 C 230 125, 230 35, 280 35" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr5)"/>
+      <path d="M170 130 C 230 130, 230 100, 280 100" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr5)"/>
+      <path d="M170 135 C 230 135, 230 165, 280 165" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr5)"/>
+      <path d="M170 140 C 230 140, 230 230, 280 230" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr5)"/>
+      <path d="M170 145 Q 350 250, 540 175" stroke="#3b6bb8" stroke-width="2" stroke-dasharray="4 3" fill="none" marker-end="url(#arr5)"/>
+      <rect x="285" y="15"  width="160" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="365" y="38" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Morphology Parser</text>
+      <rect x="285" y="80"  width="160" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="365" y="103" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Flow Parser</text>
+      <rect x="285" y="145" width="160" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="365" y="168" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Cytogenetics Parser</text>
+      <rect x="285" y="210" width="160" height="36" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="365" y="233" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Molecular Parser</text>
+      <path d="M445 33  C 500 33,  500 130, 540 130" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr5)"/>
+      <path d="M445 98  C 500 98,  500 130, 540 130" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr5)"/>
+      <path d="M445 163 C 500 163, 500 130, 540 130" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr5)"/>
+      <path d="M445 228 C 500 228, 500 130, 540 130" stroke="#3b6bb8" stroke-width="2" fill="none" marker-end="url(#arr5)"/>
+      <rect x="545" y="110" width="140" height="40" rx="8" fill="#fff4e0" stroke="#b06f00"/>
+      <text x="615" y="135" font-family="Inter,sans-serif" font-size="13" fill="#8a5600" text-anchor="middle" font-weight="600">WHO Classifier</text>
+      <!-- Text Input (WHO Instructions) — NEW in this step -->
+      <rect x="475" y="240" width="180" height="40" rx="8" fill="#f8f5ff" stroke="#6f42c1"/>
+      <text x="565" y="258" font-family="Inter,sans-serif" font-size="11.5" fill="#6f42c1" text-anchor="middle" font-weight="600">Text Input</text>
+      <text x="565" y="272" font-family="Inter,sans-serif" font-size="10.5" fill="#6f42c1" text-anchor="middle">(WHO Instructions)</text>
+      <path d="M615 240 L 615 150" stroke="#6f42c1" stroke-width="2" fill="none" marker-end="url(#arr5v)"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ============ STEP 6 ============ -->
+<div class="build-step">
+  <h4>Step 6 — Add the tail and run</h4>
+  <p class="step-action"><strong>Drag:</strong> from <strong>api_scenario_d</strong>, drag in <strong>QA Reviewer</strong> and <strong>Report Formatter</strong>. From <strong>Input / Output</strong>, drag in <strong>Chat Output</strong>.</p>
+  <p class="step-action"><strong>Wire three edges:</strong> WHO Classifier's <code>integrated</code> output → QA Reviewer's <code>integrated</code> input. QA Reviewer's <code>reviewed</code> output → Report Formatter's <code>reviewed</code> input. Report Formatter's <code>report</code> output → Chat Output's <code>input_value</code> input.</p>
+  <p class="step-action"><strong>Run:</strong> click <strong>Playground</strong>. Type <code>run the aml case</code>. Press send. Wait 60–90 seconds.</p>
+  <p>Stage 1 (PDF Intake) runs 5 LLM calls. The three LLM-backed parsers run a fourth, fifth, and sixth. The WHO Classifier runs a seventh. The QA Reviewer's deterministic checks run last. The full integrated report + Part B evidence trace + QA flags arrives in the chat panel.</p>
+  <div class="build-step-diagram">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" width="720" height="160">
+      <defs>
+        <marker id="arr6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#3b6bb8"/></marker>
+      </defs>
+      <rect x="10" y="60" width="130" height="40" rx="8" fill="#fff4e0" stroke="#b06f00"/>
+      <text x="75" y="85" font-family="Inter,sans-serif" font-size="12" fill="#8a5600" text-anchor="middle" font-weight="600">WHO Classifier</text>
+      <line x1="143" y1="80" x2="195" y2="80" stroke="#3b6bb8" stroke-width="2" marker-end="url(#arr6)"/>
+      <rect x="200" y="60" width="130" height="40" rx="8" fill="#f4f6fa" stroke="#666"/>
+      <text x="265" y="85" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">QA Reviewer</text>
+      <line x1="333" y1="80" x2="385" y2="80" stroke="#3b6bb8" stroke-width="2" marker-end="url(#arr6)"/>
+      <rect x="390" y="60" width="140" height="40" rx="8" fill="#f4f6fa" stroke="#666"/>
+      <text x="460" y="85" font-family="Inter,sans-serif" font-size="12" fill="#1f3864" text-anchor="middle">Report Formatter</text>
+      <line x1="533" y1="80" x2="585" y2="80" stroke="#3b6bb8" stroke-width="2" marker-end="url(#arr6)"/>
+      <rect x="590" y="60" width="120" height="40" rx="8" fill="#eaf0fa" stroke="#3b6bb8"/>
+      <text x="650" y="85" font-family="Inter,sans-serif" font-size="13" fill="#1f3864" text-anchor="middle">Chat Output</text>
+      <text x="360" y="135" font-family="Inter,sans-serif" font-size="10.5" fill="#808080" text-anchor="middle" font-style="italic">After Step 6 your canvas has 12 nodes total: 9 custom + Chat Input + Chat Output + Text Input.</text>
+    </svg>
+  </div>
+</div>
+
+<h3 id="rb-instructions">WHO Instructions — the text to paste in Step 5</h3>
+
+<p>This is the AML excerpt of WHO 5e classification rules. Copy-paste into the Text Input node's <strong>Text</strong> field. The full version with glioma / medulloblastoma / breast covered too is at <code>docs/who5e_instructions.md</code> in the workshop repo.</p>
+
+<details class="prompt-collapsible system">
+  <summary>
+    <span class="badge">Paste content</span>
+    <span class="summary-title">WHO Instructions — AML excerpt (~35 lines)</span>
+    <span class="summary-hint">(click to expand and copy)</span>
+  </summary>
+  <div class="prompt system" style="margin: 0; border: none; box-shadow: none; padding: 0 8px 8px;">
 <span class="prompt-label">WHO Instructions — AML excerpt (workshop-friendly)</span>WHO 5e Myeloid neoplasms (2022) — AML classification rules:
 
 Two parallel paths to a defined entity. A case is classified by EITHER a defining genetic abnormality OR — if no defining abnormality is present — by differentiation per the AML-NOS scheme.
@@ -771,43 +1074,146 @@ Final diagnosis format (when a defining genetic abnormality is present):
 "Acute myeloid leukemia with [genetic abnormality] [optional differentiation phrase]."
 Place prognostic variants in the prognostic notes section, NEVER in the diagnosis line.
 </div>
-
-<p>You can paste this directly into the Text Input. For the other tumor families (glioma, medulloblastoma, breast), see the full content at [<code>docs/who5e_instructions.md</code>](https://github.com/hesamhakim/agentic-pathology-workshop/blob/main/docs/who5e_instructions.md).</p>
+</details>
 
 <h3 id="rb-test">Test it</h3>
 
 <div class="prompt user">
 <span class="prompt-label">Directive — start here</span>run the aml case</div>
 
-<p>Wait ~60–90 seconds. ~9 LLM calls run inside: 5 in PDF Intake, 3 in the parsers (Morphology + Flow + Cytogenetics; Molecular Parser is pure Python), 1 in the WHO Classifier, plus the QA reviewer's deterministic checks. Output: the full integrated report + Part B trace + QA flags.</p>
-
-<h3 id="rb-gotchas">Three things that catch people out</h3>
-
-<div class="callout warn">
-<strong>The PDF Intake fan-out is the hardest step</strong>
-Five edges from one node, each going to a different destination. The output handles on PDF Intake are labelled (morphology_data, flow_data, etc.); LangFlow only allows connecting to compatible input types, so wrong connections will be visually rejected.
-</div>
-
-<div class="callout warn">
-<strong>The Molecular Parser is pure Python, not an LLM</strong>
-It doesn't have a "Model" dropdown. It deterministically splits the molecular extraction's variants into classifying vs prognostic buckets. You can verify this by clicking the node — its detail panel shows no model field.
-</div>
-
-<div class="callout warn">
-<strong>The WHO Instructions Text Input is a node, not a prompt field</strong>
-It's a separate node on the canvas, with its own <code>text</code> output that you wire into WHO Classifier's <code>who_instructions</code> input. Don't paste the WHO content into one of the system prompt textareas — those are for system prompts.
-</div>
+<p>Wait ~60–90 seconds. The full integrated report + Part B trace + QA flags arrive in the chat panel.</p>
 
 <h3 id="rb-edits">Edits worth trying once it runs</h3>
 
+<p>Each edit changes one editable text block, then you re-run <code>run the aml case</code> and watch what shifts in the output. Edits don't modify Python — they live in the System Prompt or Text Input fields you can see in each node's right-side panel.</p>
+
 <h4>Add a new tumor family to WHO Instructions</h4>
-<p>The WHO Instructions text is read-only data for the integrator. Add a section for a tumor family not currently covered (e.g., lymphoma, sarcoma) and ask the integrator to apply it. You'll need to add a matching case to the case manifest in <code>tools/scenario_d/pdf_io.py</code> for the integrator to actually load PDFs, but the classifier will use whatever rules are in the Text Input.</p>
+<p>Open the Text Input node. Add a new section for a tumor family not currently covered (e.g., lymphoma or sarcoma). The integrator will use whatever rules are in the Text Input. (Loading PDFs from a new family also needs an entry in <code>tools/scenario_d/pdf_io.py</code>'s case manifest, but the classifier prompt change itself is just editing the Text Input.)</p>
 
 <h4>Tighten lane discipline</h4>
-<p>Edit the WHO Classifier system prompt's Rule 4. Add: <em>"Place EVERY non-classifying variant in prognostic notes. Do not include them in any morphology, flow, or cytogenetics summary."</em> Re-run and see if DNMT3A also disappears from your morphology/cytogenetics paragraph if it was sneaking in.</p>
+<p>In the WHO Classifier's system prompt, find Rule 4 (lane discipline). Add the sentence below. Re-run and see if non-classifying variants now stay out of the per-modality summaries too, not just the diagnosis line.</p>
+
+<div class="prompt system">
+<span class="prompt-label">Suggested edit — tighten lane discipline</span>Place EVERY non-classifying variant in prognostic notes. Do not include them in any morphology, flow, or cytogenetics summary.</div>
 
 <h4>Change a per-source extraction prompt</h4>
-<p>Click PDF Intake → Per-Source Extraction Prompt. Add: <em>"For molecular sources, always include variant allele frequency (VAF) when reported."</em> Re-run and watch the molecular_data output carry VAF numbers consistently across all variants.</p>
+<p>Click PDF Intake → Per-Source Extraction Prompt. Add the sentence below. Re-run and watch the Molecular Parser's downstream output carry VAF numbers consistently across all variants.</p>
+
+<div class="prompt system">
+<span class="prompt-label">Suggested edit — surface VAF</span>For molecular sources, always include variant allele frequency (VAF) when reported, as a numeric field named "vaf" alongside each variant.</div>
+
+<h3 id="rb-alternatives">Alternative code to try</h3>
+
+<p>Each block below is a paste-able alternative that replaces a specific prompt or Python file. Try one at a time, re-run, and see what changes. None of these are required — they're invitations to experiment.</p>
+
+<details class="prompt-collapsible system">
+  <summary>
+    <span class="badge">Alt A · System prompt</span>
+    <span class="summary-title">Cytogenetics Parser — refuse to interpret, ISCN only</span>
+    <span class="summary-hint">(click to expand)</span>
+  </summary>
+  <div class="collapsible-body prose">
+    <p>Replace the default Cytogenetics Parser system prompt with the block below. The parser will quote karyotypes verbatim and stop hedging or summarizing in clinical language.</p>
+    <p><strong>Paste into:</strong> Cytogenetics Parser → System Prompt textarea.</p>
+    <p><strong>What changes:</strong> when you re-run the AML case, the cytogenetics_summary in section 6 of the integrated report becomes terser and more nomenclature-faithful (e.g., it'll say "46,XY[20]" verbatim instead of "normal male karyotype with 20 metaphases analyzed").</p>
+  </div>
+  <div class="prompt code" style="margin: 0; border: none; box-shadow: none; padding: 0 8px 8px;">
+<span class="prompt-label">Alt A — paste into Cytogenetics Parser System Prompt</span>You are a cytogenetics quoter, not a synthesizer. You receive a structured extraction of one cytogenetics / FISH / methylation report. Emit ONE short paragraph (2-3 sentences) that:
+
+  1. Quotes the karyotype VERBATIM in ISCN nomenclature.
+  2. Lists each FISH probe tested + its result, as written.
+  3. States plainly if no classifying chromosomal abnormality is present.
+
+Do NOT translate ISCN into prose. Do NOT add clinical interpretation. If the source text uses a particular nomenclature, preserve it.</div>
+</details>
+
+<details class="prompt-collapsible system">
+  <summary>
+    <span class="badge">Alt B · System prompt</span>
+    <span class="summary-title">Morphology Parser — 2-sentence summary instead of 4–7</span>
+    <span class="summary-hint">(click to expand)</span>
+  </summary>
+  <div class="collapsible-body prose">
+    <p>The default Morphology Parser writes a 4–7 sentence paragraph. This variant collapses it to two sentences.</p>
+    <p><strong>Paste into:</strong> Morphology Parser → System Prompt textarea.</p>
+    <p><strong>What changes:</strong> section 4 (Morphology summary) of the integrated report becomes a tight two-sentence summary. The lane-discipline and Part B evidence trace are unaffected — they live in the WHO Classifier, not here.</p>
+  </div>
+  <div class="prompt code" style="margin: 0; border: none; box-shadow: none; padding: 0 8px 8px;">
+<span class="prompt-label">Alt B — paste into Morphology Parser System Prompt</span>You are a morphology summarizer. You receive ONE morphology / surgical-pathology component. Emit EXACTLY two sentences:
+
+  Sentence 1 — the specimen + headline morphologic finding (one number if cited).
+  Sentence 2 — the most diagnosis-relevant IHC or immunophenotype observation.
+
+No hedging, no enumerations, no preamble. If the report itself hedges on lineage, end with "(lineage hedge per source)".</div>
+</details>
+
+<details class="prompt-collapsible code">
+  <summary>
+    <span class="badge">Alt C · System prompt</span>
+    <span class="summary-title">PDF Intake — add a third "VUS" bucket to molecular classification</span>
+    <span class="summary-hint">(click to expand)</span>
+  </summary>
+  <div class="collapsible-body prose">
+    <p>The default per-source extraction marks each molecular variant as <code>classifying=true|false</code> — binary. This alternative adds a third state: <code>classifying="vus"</code> for variants of uncertain significance the WHO doesn't yet classify either way.</p>
+    <p><strong>Paste into:</strong> PDF Intake → Per-Source Extraction Prompt textarea (this is the variant of Rule 4 only; the rest of the default prompt stays).</p>
+    <p><strong>What changes:</strong> the Molecular Parser will now create a third array <code>vus_variants</code> alongside <code>classifying_variants</code> and <code>prognostic_variants</code>. The WHO Classifier ignores VUS by default — but you can tell it to add a "VUS observed" sentence to the prognostic notes by editing Rule 4 of the WHO Classifier prompt accordingly.</p>
+    <p><em>Caveat:</em> the Molecular Parser's Python (which does the split) only knows about <code>true|false</code> today. To actually surface the VUS bucket downstream, you'd also need to edit <code>d2_molecular_parser.py</code> — see Alt D below.</p>
+  </div>
+  <div class="prompt code" style="margin: 0; border: none; box-shadow: none; padding: 0 8px 8px;">
+<span class="prompt-label">Alt C — replace Rule 4 in the Per-Source Extraction Prompt</span>4. THE classifying FIELD ON VARIANTS (molecular sources). Set classifying to one of three string values:
+   - "true"  — disease-defining for the WHO/ICC entity (e.g. NPM1 in AML, IDH1/2 in glioma)
+   - "false" — prognostic / risk-stratifying but NOT entity-defining (DNMT3A, FLT3-ITD, TET2)
+   - "vus"   — variant of uncertain significance: reported, real, but the literature does not yet
+              support classifying-vs-prognostic placement
+Always set prognostic_note when classifying is "false" or "vus".</div>
+</details>
+
+<details class="prompt-collapsible code">
+  <summary>
+    <span class="badge">Alt D · Python code</span>
+    <span class="summary-title">Molecular Parser — handle the new "vus" bucket from Alt C</span>
+    <span class="summary-hint">(click to expand)</span>
+  </summary>
+  <div class="collapsible-body prose">
+    <p>If you applied Alt C above, the Molecular Parser's existing Python only recognizes <code>true|false</code> and lumps any "vus" variant into the prognostic bucket. This alternative changes the parser to surface a third <code>vus_variants</code> array.</p>
+    <p><strong>Paste into:</strong> Molecular Parser → <strong>Code</strong> tab (advanced). The Code tab shows the underlying Python; replace the body of <code>run_split</code> with the snippet below.</p>
+    <p><strong>What changes:</strong> the Molecular Parser's output Data now carries a <code>vus_variants</code> field. The WHO Classifier doesn't read it yet — you'd need to extend the Classifier prompt and inputs to do something with it.</p>
+  </div>
+  <div class="prompt code" style="margin: 0; border: none; box-shadow: none; padding: 0 8px 8px;">
+<span class="prompt-label">Alt D — replace the body of Molecular Parser's run_split()</span>def run_split(self) -> Data:
+    d = self.molecular_data.data if self.molecular_data else {}
+    extracted = d.get("extracted", {}) or {}
+    variants = extracted.get("molecular_variants", []) or []
+
+    classifying: list[dict] = []
+    prognostic:  list[dict] = []
+    vus:         list[dict] = []
+    for v in variants:
+        if not isinstance(v, dict):
+            continue
+        flag = str(v.get("classifying", "")).lower()
+        if flag in ("true", "1", "yes"):
+            classifying.append(v)
+        elif flag == "vus":
+            vus.append(v)
+        else:
+            prognostic.append(v)
+
+    return Data(data={
+        "case_id":              d.get("case_id", ""),
+        "tumor_family":         d.get("tumor_family", ""),
+        "extracted":            extracted,
+        "source_id":            extracted.get("source_id", ""),
+        "display_name":         extracted.get("display_name", ""),
+        "summary":              extracted.get("summary", ""),
+        "key_findings":         extracted.get("key_findings", []),
+        "classifying_variants": classifying,
+        "prognostic_variants":  prognostic,
+        "vus_variants":         vus,
+        "n_variants_total":     len(variants),
+        "run_config":           d.get("run_config", {}),
+    })</div>
+</details>
 
 <!-- ============================================================
      BONUS REFERENCE
