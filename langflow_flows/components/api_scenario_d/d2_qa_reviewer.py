@@ -74,7 +74,15 @@ def _programmatic_checks(d: dict) -> list[dict]:
     flags: list[dict] = []
     integrated = d.get("integrated_report", {}) or {}
     trace = d.get("evidence_trace", []) or []
-    extracted = d.get("extracted", {}) or {}
+    # Post-refactor (2026-05-16): cross_report lives at the top level of
+    # the Data object instead of being nested in `extracted`. The pre-
+    # refactor key `extracted.cross_report_observations` is kept as a
+    # backwards-compatible read for any older flow JSONs still floating.
+    cross_report = (
+        d.get("cross_report")
+        or (d.get("extracted", {}) or {}).get("cross_report_observations", {})
+        or {}
+    )
     tumor_family = d.get("tumor_family", "")
     prognostic = d.get("prognostic_variants", []) or []
 
@@ -155,8 +163,7 @@ def _programmatic_checks(d: dict) -> list[dict]:
                 })
 
     # 4. Discordance handling
-    discordances = ((extracted.get("cross_report_observations") or {})
-                    .get("discordances") or [])
+    discordances = cross_report.get("discordances") or []
     interp_blob = " ".join(integrated.get("integrated_interpretation", []) or []).lower()
     for disc in discordances:
         topic = (disc.get("topic") or "").lower()
@@ -230,13 +237,21 @@ class ScenarioD_v2_QAReviewer(Component):
         if self.use_llm_critique:
             integrated = d.get("integrated_report", {}) or {}
             trace = d.get("evidence_trace", []) or []
-            extracted = d.get("extracted", {}) or {}
+            cr = (
+                d.get("cross_report")
+                or (d.get("extracted", {}) or {}).get("cross_report_observations", {})
+                or {}
+            )
+            variants_count = (
+                len(d.get("classifying_variants", []) or [])
+                + len(d.get("prognostic_variants", []) or [])
+            )
             payload = {
                 "integrated_report": integrated,
                 "evidence_trace": trace,
                 "extracted_summary": {
-                    "cross_report_observations": extracted.get("cross_report_observations", {}),
-                    "molecular_variants_count": len(extracted.get("molecular_variants", []) or []),
+                    "cross_report_observations": cr,
+                    "molecular_variants_count": variants_count,
                 },
                 "deterministic_flags_already_raised": flags,
             }
