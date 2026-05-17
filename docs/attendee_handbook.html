@@ -505,6 +505,7 @@
 <nav class="toc">
   <div class="toc-title">Contents</div>
   <ol>
+    <li><a href="#legend">How to read this</a></li>
     <li><a href="#quickstart">Quick start</a>
       <ol>
         <li><a href="#login">Log in</a></li>
@@ -561,6 +562,32 @@
     <span><strong>Flows:</strong> Chatbot → Agentic → Build-your-own</span>
   </div>
 </header>
+
+<!-- ============================================================
+     HOW TO READ THIS HANDBOOK (legend)
+     ============================================================ -->
+<h2 id="legend">How to read this handbook</h2>
+
+<p>Three types of paste-able blocks appear throughout the handbook, each with a distinct color so you can scan and know what kind of thing you're looking at without reading every line. Most long blocks are <strong>collapsed by default</strong> — click the row to expand. Each block also has a <strong>Copy</strong> button (top right) that puts its contents on your clipboard.</p>
+
+<div class="cards">
+  <div class="card" style="border-left: 4px solid var(--amber); background: #fffaf2;">
+    <h4 style="color: var(--amber-dark);">Amber — system prompt</h4>
+    <p>Instructions to the LLM that already live inside a node's <em>System Prompt</em> field. You'd open the textarea in the node's right-side panel and replace it (or edit it) to change the model's behaviour.</p>
+  </div>
+  <div class="card" style="border-left: 4px solid var(--blue-light);">
+    <h4 style="color: var(--blue);">Blue — user prompt</h4>
+    <p>What <em>you</em> type into Playground. The chat directive that runs the flow. Just copy-paste the contents into the chat input and press send.</p>
+  </div>
+  <div class="card" style="border-left: 4px solid #6f42c1; background: #f8f5ff;">
+    <h4 style="color: #6f42c1;">Violet — code / alternative</h4>
+    <p>Python or alternative prompt content you'd paste into a node's <em>Code</em> tab or <em>System Prompt</em> field to <em>replace</em> the default. Useful for experiments — paste, re-run, see what changes.</p>
+  </div>
+  <div class="card" style="border-left: 4px solid var(--gray-2);">
+    <h4 style="color: var(--gray);">▸ Collapsible row</h4>
+    <p>Anything longer than ten lines is closed by default to keep the handbook scannable. Click the row to expand, read or copy the content, click again to collapse.</p>
+  </div>
+</div>
 
 <!-- ============================================================
      QUICK START
