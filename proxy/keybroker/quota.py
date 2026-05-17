@@ -8,12 +8,30 @@ from pathlib import Path
 
 from fastapi import HTTPException
 
-# Hardcoded GPT-4o pricing as of 2026-01. Update when OpenAI changes the price sheet.
+# OpenAI / OpenRouter pricing. Update when the upstream price sheet changes.
 # Values are USD per token (not per 1k).
+# Both the bare model name (e.g. "gpt-4.1") and the OpenRouter-prefixed name
+# ("openai/gpt-4.1") are accepted because some upstreams strip the prefix in
+# their response and some don't.
 MODEL_PRICES = {
-    "gpt-4o":          {"input": 2.50e-6,  "output": 10.00e-6},
-    "gpt-4o-mini":     {"input": 0.15e-6,  "output": 0.60e-6},
-    "gpt-4o-2024-08-06": {"input": 2.50e-6, "output": 10.00e-6},
+    # GPT-5 family (flagship reasoning)
+    "gpt-5":                {"input": 5.00e-6,  "output": 20.00e-6},
+    "openai/gpt-5":         {"input": 5.00e-6,  "output": 20.00e-6},
+    # GPT-4.1 family — newer than 4o, generally faster + cheaper
+    "gpt-4.1":              {"input": 2.00e-6,  "output": 8.00e-6},
+    "openai/gpt-4.1":       {"input": 2.00e-6,  "output": 8.00e-6},
+    "gpt-4.1-mini":         {"input": 0.40e-6,  "output": 1.60e-6},
+    "openai/gpt-4.1-mini":  {"input": 0.40e-6,  "output": 1.60e-6},
+    "gpt-4.1-nano":         {"input": 0.10e-6,  "output": 0.40e-6},
+    "openai/gpt-4.1-nano":  {"input": 0.10e-6,  "output": 0.40e-6},
+    # GPT-4o family — kept for back-compat with older flow JSONs
+    "gpt-4o":               {"input": 2.50e-6,  "output": 10.00e-6},
+    "openai/gpt-4o":        {"input": 2.50e-6,  "output": 10.00e-6},
+    "gpt-4o-mini":          {"input": 0.15e-6,  "output": 0.60e-6},
+    "openai/gpt-4o-mini":   {"input": 0.15e-6,  "output": 0.60e-6},
+    "gpt-4o-2024-08-06":    {"input": 2.50e-6,  "output": 10.00e-6},
+    "gpt-4o-2024-11-20":    {"input": 2.50e-6,  "output": 10.00e-6},
+    # Embeddings
     "text-embedding-3-small": {"input": 0.02e-6, "output": 0.0},
     "text-embedding-3-large": {"input": 0.13e-6, "output": 0.0},
 }

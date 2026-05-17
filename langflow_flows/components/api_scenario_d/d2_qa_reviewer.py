@@ -211,9 +211,9 @@ class ScenarioD_v2_QAReviewer(Component):
                  "smoothed-over discordances). Off by default to keep runs "
                  "fast and free.",
         ),
-        StrInput(name="model", display_name="Model", value="openai/gpt-4o-mini"),
+        StrInput(name="model", display_name="Model", value="openai/gpt-4.1-mini"),
         FloatInput(name="temperature", display_name="Temperature", value=0.0),
-        IntInput(name="max_tokens", display_name="Max Tokens", value=600, advanced=True),
+        IntInput(name="max_tokens", display_name="Max Tokens", value=1200, advanced=True),
         StrInput(
             name="severity_threshold",
             display_name="Min Severity To Surface",

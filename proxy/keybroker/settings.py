@@ -20,16 +20,22 @@ class Settings(BaseSettings):
 
     tokens_file: Path = Path("/etc/keybroker/tokens.json")
 
-    # Per-attendee caps (defense against runaway loops on a single user)
-    daily_usd_limit: float = 5.00
-    tpm_limit: int = 30_000
+    # Per-attendee caps (defense against runaway loops on a single user).
+    # Generous as of 2026-05-17 — all dev testing combined burned ~$0.80,
+    # so workshop usage is well under historical limits. Raised to remove
+    # friction; LangFlow rate-limit errors mid-workshop are the worse failure.
+    daily_usd_limit: float = 20.00
+    tpm_limit: int = 60_000
 
     # Global pool cap (defense for the workshop's whole budget). Sum of ALL
     # attendees' spend can never exceed this on a single UTC day. 0 = disabled.
     global_daily_usd_limit: float = 0.0
 
     # Hard ceiling on max_tokens per request — clamps over-aggressive prompts.
-    max_output_tokens_ceiling: int = 3000
+    # Bumped 2026-05-17 from 3000 to give the WHO Classifier (now 6000 default)
+    # room to emit the full 11-section integrated report + evidence trace
+    # without being silently clamped, plus headroom for attendee prompt edits.
+    max_output_tokens_ceiling: int = 8000
 
     state_db: Path = Path("/var/lib/keybroker/state.db")
 

@@ -180,14 +180,14 @@ class ScenarioD_v2_WHOClassifier(Component):
         StrInput(
             name="model",
             display_name="Model",
-            value="openai/gpt-4o",
+            value="openai/gpt-4.1",
             info=(
                 "Use a strong reasoning model here — the integration step "
                 "must respect all rules simultaneously across six inputs."
             ),
         ),
         FloatInput(name="temperature", display_name="Temperature", value=0.0),
-        IntInput(name="max_tokens", display_name="Max Tokens", value=3500, advanced=True),
+        IntInput(name="max_tokens", display_name="Max Tokens", value=6000, advanced=True),
         MultilineInput(
             name="system_prompt",
             display_name="System Prompt",

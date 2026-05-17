@@ -232,7 +232,7 @@ class ScenarioD_v2_PDFIntake(Component):
         StrInput(
             name="model",
             display_name="Extraction Model",
-            value="openai/gpt-4o-mini",
+            value="openai/gpt-4.1-mini",
             info=(
                 "LLM used for the FOUR per-source extraction calls and the "
                 "ONE cross-report analysis call. gpt-4o-mini is a good "
@@ -240,7 +240,7 @@ class ScenarioD_v2_PDFIntake(Component):
             ),
         ),
         FloatInput(name="temperature", display_name="Temperature", value=0.0),
-        IntInput(name="max_tokens", display_name="Max Tokens", value=2000, advanced=True),
+        IntInput(name="max_tokens", display_name="Max Tokens", value=4000, advanced=True),
         MultilineInput(
             name="per_source_prompt",
             display_name="Per-Source Extraction Prompt",

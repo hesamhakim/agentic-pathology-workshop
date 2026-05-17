@@ -58,9 +58,9 @@ class ScenarioD_v2_CytogeneticsParser(Component):
             input_types=["Data"],
             info="Connect PDF Intake's `cytogenetics_data` output.",
         ),
-        StrInput(name="model", display_name="Model", value="openai/gpt-4o-mini"),
+        StrInput(name="model", display_name="Model", value="openai/gpt-4.1-mini"),
         FloatInput(name="temperature", display_name="Temperature", value=0.2),
-        IntInput(name="max_tokens", display_name="Max Tokens", value=400, advanced=True),
+        IntInput(name="max_tokens", display_name="Max Tokens", value=800, advanced=True),
         MultilineInput(
             name="system_prompt",
             display_name="System Prompt",

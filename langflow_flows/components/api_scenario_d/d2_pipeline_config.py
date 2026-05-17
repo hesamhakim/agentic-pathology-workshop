@@ -110,7 +110,7 @@ class ScenarioD_v2_PipelineConfig(Component):
             input_types=["Message"],
             info="Connect a Chat Input here.",
         ),
-        StrInput(name="model", display_name="Model", value="openai/gpt-4o-mini", advanced=True),
+        StrInput(name="model", display_name="Model", value="openai/gpt-4.1-mini", advanced=True),
         FloatInput(name="temperature", display_name="Temperature", value=0.0, advanced=True),
         IntInput(name="max_tokens", display_name="Max Tokens", value=200, advanced=True),
         MultilineInput(
