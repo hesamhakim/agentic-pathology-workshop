@@ -84,12 +84,12 @@ services:
       # use a compatible provider, e.g. https://openrouter.ai/api for OpenRouter.
       KEYBROKER_OPENAI_BASE_URL: "${OPENAI_BASE_URL_REAL:-https://api.openai.com}"
       KEYBROKER_TOKENS_FILE: "/etc/keybroker/tokens.json"
-      KEYBROKER_DAILY_USD_LIMIT: "${KEYBROKER_DAILY_USD_LIMIT:-5.00}"
-      KEYBROKER_TPM_LIMIT: "${KEYBROKER_TPM_LIMIT:-30000}"
+      KEYBROKER_DAILY_USD_LIMIT: "${KEYBROKER_DAILY_USD_LIMIT:-20.00}"
+      KEYBROKER_TPM_LIMIT: "${KEYBROKER_TPM_LIMIT:-60000}"
       # Global pool cap (workshop budget hard cap). 0 = disabled. Default $100.
       KEYBROKER_GLOBAL_DAILY_USD_LIMIT: "${KEYBROKER_GLOBAL_DAILY_USD_LIMIT:-100.00}"
       # Per-request output cap. Clamps any max_tokens > this before forwarding.
-      KEYBROKER_MAX_OUTPUT_TOKENS_CEILING: "${KEYBROKER_MAX_OUTPUT_TOKENS_CEILING:-3000}"
+      KEYBROKER_MAX_OUTPUT_TOKENS_CEILING: "${KEYBROKER_MAX_OUTPUT_TOKENS_CEILING:-8000}"
     volumes:
       - ../proxy/tokens.json:/etc/keybroker/tokens.json:ro
     networks: [summit]
