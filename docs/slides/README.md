@@ -127,7 +127,7 @@ docs/slides/
 
 ## Authors
 
-- **[Hesam Hakim Javadi, Ph.D.](https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092)** — Medical College of Wisconsin · Children's Wisconsin. Slides, deck spec, build chain.
+- **[Hesam H. Javadi, Ph.D.](https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092)** — Medical College of Wisconsin · Children's Wisconsin. Slides, deck spec, build chain.
 - **[Srikar Chamala, Ph.D.](https://www.chla.org/profile/srikar-chamala-phd)** — Children's Hospital of Los Angeles · USC Keck School of Medicine.
 - **Omar Baba, MD** — Henry Ford Health System. AML case design + planted pedagogical features (see [`docs/Integrated_report_demo_Omar/`](../Integrated_report_demo_Omar/)).
 

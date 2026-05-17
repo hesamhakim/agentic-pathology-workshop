@@ -86,7 +86,7 @@ The proxy is what makes the build-your-own exercise frictionless — attendees n
   &nbsp;&nbsp;
   <img src="docs/assets/logos/childrens-wisconsing-logo.jpg" alt="Children's Wisconsin" height="70"/>
   <br/><br/>
-  <strong><a href="https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092">Hesam Hakim Javadi, Ph.D.</a></strong><br/>
+  <strong><a href="https://fcd.mcw.edu/?faculty/view/name/Hesam_Hakim_Javadi/id/11092">Hesam H. Javadi, Ph.D.</a></strong><br/>
   <sub>Medical College of Wisconsin · Children's Wisconsin</sub>
   <br/><br/>
   <sub>Workshop infrastructure, LangFlow components, slides, handbook.</sub>
