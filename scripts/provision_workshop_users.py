@@ -32,12 +32,12 @@ import httpx
 
 REPO = Path(__file__).resolve().parents[1]
 BUILD_SCRIPTS = [
-    REPO / "scripts" / "build_scenario_zero_flow.py",
-    REPO / "scripts" / "build_scenario_a_v2_flow.py",
-    REPO / "scripts" / "build_scenario_b_v2_flow.py",
-    REPO / "scripts" / "build_scenario_c_v2_flow.py",
-    REPO / "scripts" / "build_scenario_d_v2_flow.py",
-    REPO / "scripts" / "build_research_buddy_flow.py",
+    REPO / "scripts" / "build_chatbot_flow.py",
+    REPO / "scripts" / "build_pathology_report_integration_flow.py",
+    REPO / "scripts" / "build_extras_wikipedia_agent_flow.py",
+    REPO / "scripts" / "build_extras_variant_tournament_flow.py",
+    REPO / "scripts" / "build_extras_longitudinal_notes_flow.py",
+    REPO / "scripts" / "build_extras_case_routing_flow.py",
 ]
 
 
@@ -138,10 +138,16 @@ def main() -> int:
                          "username starts with this prefix (e.g. 'attendee').")
     ap.add_argument("--skip-flow-import", action="store_true",
                     help="Just create the user accounts; don't pre-load the workshop flows.")
+    ap.add_argument("--skip-create", action="store_true",
+                    help="Skip user creation entirely. Read existing users from "
+                         "--out (default users.csv) and just (re)import flows for "
+                         "each. Use to refresh flows in already-provisioned accounts "
+                         "without disturbing user records.")
     ap.add_argument("--only", default=None,
                     help="Comma-separated build-script basenames to run (e.g. "
-                         "'build_scenario_d_v2_flow.py'). Use to add a new "
-                         "scenario to existing users without rebuilding the others.")
+                         "'build_pathology_report_integration_flow.py'). Use to "
+                         "add a new scenario to existing users without rebuilding "
+                         "the others.")
     args = ap.parse_args()
 
     superuser = os.environ.get("LANGFLOW_SUPERUSER", "facilitator")
@@ -150,40 +156,55 @@ def main() -> int:
         raise SystemExit("LANGFLOW_SUPERUSER_PASSWORD must be set in env.")
 
     out_path = Path(args.out)
+    rows: list[dict] = []
 
-    with httpx.Client(base_url=args.host, timeout=20.0) as client:
-        print(f"=> login as superuser '{superuser}'")
-        admin_token = login(client, superuser, superuser_pw)
-        client.headers["Authorization"] = f"Bearer {admin_token}"
+    if args.skip_create:
+        if not out_path.exists():
+            raise SystemExit(
+                f"--skip-create requires {out_path} (the existing credentials CSV)."
+            )
+        # CSV may have CRLF endings — strip trailing whitespace defensively
+        # (same fix as scripts/reset_attendee.py).
+        with out_path.open(newline="") as f:
+            reader = csv.DictReader(f)
+            rows = [
+                {k: (v.strip() if isinstance(v, str) else v) for k, v in row.items()}
+                for row in reader
+            ]
+        print(f"=> --skip-create: read {len(rows)} existing users from {out_path}")
+    else:
+        with httpx.Client(base_url=args.host, timeout=20.0) as client:
+            print(f"=> login as superuser '{superuser}'")
+            admin_token = login(client, superuser, superuser_pw)
+            client.headers["Authorization"] = f"Bearer {admin_token}"
 
-        if args.delete_prefix:
-            print(f"=> deleting existing users with prefix '{args.delete_prefix}'")
-            users = list_users(client)
-            stale = [u for u in users if str(u.get("username", "")).startswith(args.delete_prefix)]
-            print(f"   found {len(stale)} stale account(s)")
-            for u in stale:
-                uid = u.get("id") or u.get("user_id")
-                if not uid:
-                    print(f"   skip {u.get('username')!r}: no id field", file=sys.stderr)
-                    continue
-                if delete_user(client, uid):
-                    print(f"   deleted {u.get('username')}")
+            if args.delete_prefix:
+                print(f"=> deleting existing users with prefix '{args.delete_prefix}'")
+                users = list_users(client)
+                stale = [u for u in users if str(u.get("username", "")).startswith(args.delete_prefix)]
+                print(f"   found {len(stale)} stale account(s)")
+                for u in stale:
+                    uid = u.get("id") or u.get("user_id")
+                    if not uid:
+                        print(f"   skip {u.get('username')!r}: no id field", file=sys.stderr)
+                        continue
+                    if delete_user(client, uid):
+                        print(f"   deleted {u.get('username')}")
 
-        rows = []
-        for i in range(args.start_index, args.start_index + args.num_users):
-            username = f"{args.prefix}-{i:03d}"
-            password = args.password or random_password()
-            print(f"=> create user {username}")
-            create_user(client, username, password)
-            rows.append({"username": username, "password": password})
+            for i in range(args.start_index, args.start_index + args.num_users):
+                username = f"{args.prefix}-{i:03d}"
+                password = args.password or random_password()
+                print(f"=> create user {username}")
+                create_user(client, username, password)
+                rows.append({"username": username, "password": password})
 
-        out_path.write_text("")  # truncate before write
-        with out_path.open("w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=["username", "password"])
-            w.writeheader()
-            for r in rows:
-                w.writerow(r)
-        print(f"=> wrote {out_path} with {len(rows)} credentials")
+            out_path.write_text("")  # truncate before write
+            with out_path.open("w", newline="") as f:
+                w = csv.DictWriter(f, fieldnames=["username", "password"])
+                w.writeheader()
+                for r in rows:
+                    w.writerow(r)
+            print(f"=> wrote {out_path} with {len(rows)} credentials")
 
     if args.skip_flow_import:
         print("=> --skip-flow-import set; not pre-loading workshop flows.")

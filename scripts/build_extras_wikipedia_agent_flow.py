@@ -245,14 +245,14 @@ DEFAULT_AGENT_MODEL = [
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="http://localhost:7860")
-    parser.add_argument("--name", default="Research_Buddy")
+    parser.add_argument("--name", default="extras_wikipedia_agent")
     parser.add_argument("--no-upload", action="store_true")
     args = parser.parse_args()
 
     out_path = (
         Path(__file__).resolve().parents[1]
         / "langflow_flows"
-        / "Research_Buddy.json"
+        / "extras_wikipedia_agent.json"
     )
 
     with httpx.Client(base_url=args.host, timeout=60.0) as client:

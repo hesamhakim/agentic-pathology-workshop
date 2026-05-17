@@ -13,7 +13,7 @@ types so LangFlow's graph builder is happy:
 CapacityAdvisor is independent — it loads instruments.csv directly and feeds
 its narrative into RoutingAgent only.
 
-Saves the flow JSON to langflow_flows/C_digital_thread_v2.json AND
+Saves the flow JSON to langflow_flows/extras_case_routing.json AND
 imports it into the running LangFlow instance via API.
 
 Usage:
@@ -44,8 +44,8 @@ def encode_handle(d: dict) -> str:
 
 def login(client: httpx.Client) -> str:
     import os
-    user = os.environ.get("WORKSHOP_LF_USER", "langflow")
-    pw = os.environ.get("WORKSHOP_LF_PASSWORD", "langflow")
+    user = os.environ.get("WORKSHOP_LF_USER", "facilitator")
+    pw = os.environ.get("WORKSHOP_LF_PASSWORD", "workshop-admin-2026")
     resp = client.post(
         "/api/v1/login",
         data={"username": user, "password": pw},
@@ -130,11 +130,11 @@ def make_edge(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="http://localhost:7860")
-    parser.add_argument("--name", default="C_digital_thread_v2")
+    parser.add_argument("--name", default="extras_case_routing")
     parser.add_argument("--no-upload", action="store_true", help="Save JSON to disk only, don't POST to LangFlow.")
     args = parser.parse_args()
 
-    out_path = Path(__file__).resolve().parents[1] / "langflow_flows" / "C_digital_thread_v2.json"
+    out_path = Path(__file__).resolve().parents[1] / "langflow_flows" / "extras_case_routing.json"
 
     with httpx.Client(base_url=args.host, timeout=60.0) as client:
         print("=> login")

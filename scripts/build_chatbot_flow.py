@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
-"""Build the D_integrated_report_to_who flow programmatically.
+"""Build the 0_general_chatbot flow programmatically.
 
-Mirrors scripts/build_scenario_a_v2_flow.py — same edge-encoding
-helpers, same upload-and-save pattern.
+A deliberately generic chatbot — the warm-up baseline for the workshop's
+pedagogical contrast. Simplest possible flow shape:
 
-Wiring:
-  ChatInput -> PipelineConfig -> PDFIntake -> MolecularParser ---> WHOClassifier -> QAReviewer -> ReportFormatter -> ChatOutput
-                                            HistologySynthesizer (parallel) ____^
+  ChatInput ──→ GeneralChatbot ──→ ChatOutput
+
+Attendees attach zero, one, or many files in Playground via the
+paperclip button, type any question, and get one LLM-generated reply
+back. The GeneralChatbot custom component reads any attachments off
+the incoming Message.files and parses them in-process using LangFlow's
+own pdf / docx / text utilities. No File nodes on the canvas.
+
+Mirrors scripts/build_scenario_d_v2_flow.py — same edge encoding,
+upload-and-save pattern.
 """
 
 from __future__ import annotations
@@ -29,8 +36,8 @@ def encode_handle(d: dict) -> str:
 
 def login(client: httpx.Client) -> str:
     import os
-    user = os.environ.get("WORKSHOP_LF_USER", "langflow")
-    pw = os.environ.get("WORKSHOP_LF_PASSWORD", "langflow")
+    user = os.environ.get("WORKSHOP_LF_USER", "facilitator")
+    pw = os.environ.get("WORKSHOP_LF_PASSWORD", "workshop-admin-2026")
     resp = client.post(
         "/api/v1/login",
         data={"username": user, "password": pw},
@@ -54,7 +61,17 @@ def get_component(all_components: dict, category: str, name: str) -> dict:
     return all_components[category][name]
 
 
-def make_node(template: dict, component_name: str, position: tuple[float, float]) -> dict:
+def make_node(template: dict, component_name: str, position: tuple[float, float],
+              field_overrides: dict | None = None) -> dict:
+    """Create a node, optionally overriding fields on the template's
+    fields dict (useful for e.g. silent_errors on a File node)."""
+    import copy
+    tpl = copy.deepcopy(template)
+    if field_overrides:
+        fields = tpl.setdefault("template", {})
+        for k, v in field_overrides.items():
+            if k in fields and isinstance(fields[k], dict):
+                fields[k]["value"] = v
     node_id = f"{component_name.replace(' ', '_')}-{secrets.token_hex(3)}"
     return {
         "id": node_id,
@@ -63,7 +80,7 @@ def make_node(template: dict, component_name: str, position: tuple[float, float]
         "data": {
             "id": node_id,
             "type": component_name,
-            "node": template,
+            "node": tpl,
             "showNode": True,
         },
     }
@@ -114,11 +131,11 @@ def make_edge(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="http://localhost:7860")
-    parser.add_argument("--name", default="D_integrated_report_to_who")
+    parser.add_argument("--name", default="chatbot")
     parser.add_argument("--no-upload", action="store_true")
     args = parser.parse_args()
 
-    out_path = Path(__file__).resolve().parents[1] / "langflow_flows" / "D_integrated_report_to_who.json"
+    out_path = Path(__file__).resolve().parents[1] / "langflow_flows" / "chatbot.json"
 
     with httpx.Client(base_url=args.host, timeout=60.0) as client:
         print("=> login")
@@ -128,59 +145,46 @@ def main() -> int:
         print("=> fetch component registry")
         all_components = fetch_all_components(client)
 
-        cat_d = "api_scenario_d"
+        cat_zero = "api_scenario_zero"
         cat_io = "input_output"
 
         chat_in = get_component(all_components, cat_io, "ChatInput")
-        cfg = get_component(all_components, cat_d, "PipelineConfig S-D.V2")
-        intake = get_component(all_components, cat_d, "PDFIntake S-D.V2")
-        molecular = get_component(all_components, cat_d, "MolecularParser S-D.V2")
-        histology = get_component(all_components, cat_d, "HistologySynthesizer S-D.V2")
-        classifier = get_component(all_components, cat_d, "WHOClassifier S-D.V2")
-        qa = get_component(all_components, cat_d, "QAReviewer S-D.V2")
-        report = get_component(all_components, cat_d, "ReportFormatter S-D.V2")
+        chatbot = get_component(all_components, cat_zero, "GeneralChatbot")
         chat_out = get_component(all_components, cat_io, "ChatOutput")
 
-        n_chatin = make_node(chat_in,    "ChatInput",                  (50,   400))
-        n_cfg = make_node(cfg,           "PipelineConfig S-D.V2",      (450,  400))
-        n_intake = make_node(intake,     "PDFIntake S-D.V2",           (900,  400))
-        n_molecular = make_node(molecular,"MolecularParser S-D.V2",    (1350, 200))
-        n_histology = make_node(histology,"HistologySynthesizer S-D.V2",(1350, 700))
-        n_classifier = make_node(classifier,"WHOClassifier S-D.V2",    (1900, 400))
-        n_qa = make_node(qa,             "QAReviewer S-D.V2",          (2400, 400))
-        n_report = make_node(report,     "ReportFormatter S-D.V2",     (2900, 400))
-        n_chatout = make_node(chat_out,  "ChatOutput",                 (3400, 400))
+        # ChatInput on the left, chatbot in the middle, chat output on
+        # the right. Attendees use Playground's paperclip button to
+        # attach zero, one, or many files inline with their chat
+        # message — same UX as ChatGPT or Gemini.
+        n_chatin  = make_node(chat_in,   "ChatInput",       (50,  300))
+        n_chatbot = make_node(chatbot,   "GeneralChatbot",  (550, 300))
+        n_chatout = make_node(chat_out,  "ChatOutput",      (1100, 300))
 
-        nodes = [n_chatin, n_cfg, n_intake, n_molecular, n_histology, n_classifier, n_qa, n_report, n_chatout]
+        nodes = [n_chatin, n_chatbot, n_chatout]
 
         edges = [
-            # ChatInput -> PipelineConfig
-            make_edge(n_chatin, "message", ["Message"], n_cfg, "user_message", ["Message"]),
-            # PipelineConfig -> PDFIntake
-            make_edge(n_cfg, "run_config", ["Data"], n_intake, "run_config", ["Data"]),
-            # PDFIntake -> MolecularParser (Stage-1 extraction Data)
-            make_edge(n_intake, "extraction", ["Data"], n_molecular, "extraction", ["Data"]),
-            # PDFIntake -> HistologySynthesizer (parallel branch, same Data)
-            make_edge(n_intake, "extraction", ["Data"], n_histology, "extraction", ["Data"]),
-            # MolecularParser -> WHOClassifier (Data; carries classifying/prognostic split)
-            make_edge(n_molecular, "molecular", ["Data"], n_classifier, "molecular", ["Data"]),
-            # HistologySynthesizer -> WHOClassifier (Message)
-            make_edge(n_histology, "synthesis", ["Message"], n_classifier, "histology_synthesis", ["Message"]),
-            # WHOClassifier (Stage-2 integrator) -> QAReviewer
-            make_edge(n_classifier, "integrated", ["Data"], n_qa, "integrated", ["Data"]),
-            # QAReviewer -> ReportFormatter
-            make_edge(n_qa, "reviewed", ["Data"], n_report, "reviewed", ["Data"]),
-            # ReportFormatter -> ChatOutput
-            make_edge(n_report, "report", ["Message"], n_chatout, "input_value", ["Message"]),
+            # ChatInput -> GeneralChatbot.user_message (Message)
+            make_edge(n_chatin, "message", ["Message"], n_chatbot, "user_message", ["Message"]),
+            # GeneralChatbot -> ChatOutput (Message)
+            make_edge(n_chatbot, "reply", ["Message"], n_chatout, "input_value", ["Message"]),
         ]
 
         flow_payload = {
             "name": args.name,
-            "description": "Scenario D v2: integrated PDF report -> WHO-standardized layered diagnosis.",
+            "description": (
+                "General chatbot — a generic single-LLM-call assistant that "
+                "accepts up to four file attachments and a chat message. The "
+                "workshop's warm-up exercise: upload the four Omar AML PDFs, "
+                "ask in Playground for an integrated diagnostic report, then "
+                "compare what this chatbot produces against the seven-"
+                "component agentic workflow in Scenario D running on the "
+                "same input. The chatbot itself has no specialization — "
+                "everything happens in one prompt."
+            ),
             "data": {
                 "nodes": nodes,
                 "edges": edges,
-                "viewport": {"x": 0, "y": 0, "zoom": 0.45},
+                "viewport": {"x": 0, "y": 0, "zoom": 0.5},
             },
         }
 

@@ -41,13 +41,15 @@ DEFAULT_USERS_CSV = "users.workshop-vm.csv"
 
 # All six flows currently provisioned to each attendee account. Adding a new
 # workshop flow? Add its build script here so reset picks it up automatically.
+# Keys are short aliases used by --scenario; values are the corresponding
+# build-script paths.
 BUILD_SCRIPTS: dict[str, Path] = {
-    "chatbot":        REPO / "scripts" / "build_scenario_zero_flow.py",
-    "scenario_d":     REPO / "scripts" / "build_scenario_d_v2_flow.py",
-    "research_buddy": REPO / "scripts" / "build_research_buddy_flow.py",
-    "a":              REPO / "scripts" / "build_scenario_a_v2_flow.py",
-    "b":              REPO / "scripts" / "build_scenario_b_v2_flow.py",
-    "c":              REPO / "scripts" / "build_scenario_c_v2_flow.py",
+    "chatbot":              REPO / "scripts" / "build_chatbot_flow.py",
+    "integration":          REPO / "scripts" / "build_pathology_report_integration_flow.py",
+    "wikipedia_agent":      REPO / "scripts" / "build_extras_wikipedia_agent_flow.py",
+    "variant_tournament":   REPO / "scripts" / "build_extras_variant_tournament_flow.py",
+    "longitudinal_notes":   REPO / "scripts" / "build_extras_longitudinal_notes_flow.py",
+    "case_routing":         REPO / "scripts" / "build_extras_case_routing_flow.py",
 }
 
 

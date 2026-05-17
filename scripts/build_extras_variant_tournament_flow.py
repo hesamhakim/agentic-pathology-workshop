@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-"""Build the B_longitudinal_ghost flow programmatically.
+"""Build the A_variant_tournament flow programmatically.
 
-Mirrors scripts/build_scenario_{a,c}_v2_flow.py.
+Mirrors scripts/build_scenario_c_v2_flow.py — same edge-encoding helpers,
+same upload-and-save pattern.
 
 Wiring:
-  ChatInput -> PipelineConfig --(run_config)--> TemporalSynthesizer
-                              \\--(run_config)--> SDoHExtractor (parallel)
-  TemporalSynthesizer -> Detective --(timeline)
-  RequestParser ------> Detective --(claims, parallel branch)
-  Detective -> QAReviewer -> ReportFormatter
-  SDoHExtractor ------> ReportFormatter (parallel, joins late)
-  ReportFormatter -> ChatOutput
+  ChatInput -> PipelineConfig -> VariantTriage \
+                                                  EvidenceAggregator -> TournamentJudge -> QAReviewer -> ReportFormatter -> ChatOutput
+                              EvidenceAdvisor (parallel branch) ___________^
 """
 
 from __future__ import annotations
@@ -18,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import secrets
+import sys
 from pathlib import Path
 
 import httpx
@@ -32,8 +30,8 @@ def encode_handle(d: dict) -> str:
 
 def login(client: httpx.Client) -> str:
     import os
-    user = os.environ.get("WORKSHOP_LF_USER", "langflow")
-    pw = os.environ.get("WORKSHOP_LF_PASSWORD", "langflow")
+    user = os.environ.get("WORKSHOP_LF_USER", "facilitator")
+    pw = os.environ.get("WORKSHOP_LF_PASSWORD", "workshop-admin-2026")
     resp = client.post(
         "/api/v1/login",
         data={"username": user, "password": pw},
@@ -51,7 +49,7 @@ def fetch_all_components(client: httpx.Client) -> dict:
 
 def get_component(all_components: dict, category: str, name: str) -> dict:
     if category not in all_components:
-        raise SystemExit(f"category {category!r} not in registry.")
+        raise SystemExit(f"category {category!r} not in registry. Sample: {sorted(all_components)[:10]}")
     if name not in all_components[category]:
         raise SystemExit(f"component {name!r} not in {category!r}. Available: {sorted(all_components[category])}")
     return all_components[category][name]
@@ -83,6 +81,7 @@ def make_edge(
     src_id = source_node["id"]
     tgt_id = target_node["id"]
     src_data_type = source_node["data"]["type"]
+
     source_handle_dict = {
         "dataType": src_data_type,
         "id": src_id,
@@ -93,7 +92,7 @@ def make_edge(
         "fieldName": target_field,
         "id": tgt_id,
         "inputTypes": target_input_types,
-        "type": "other",
+        "type": "other",  # always 'other' for HandleInput-style targets
     }
     src_handle = encode_handle(source_handle_dict)
     tgt_handle = encode_handle(target_handle_dict)
@@ -102,7 +101,10 @@ def make_edge(
         "sourceHandle": src_handle,
         "target": tgt_id,
         "targetHandle": tgt_handle,
-        "data": {"sourceHandle": source_handle_dict, "targetHandle": target_handle_dict},
+        "data": {
+            "sourceHandle": source_handle_dict,
+            "targetHandle": target_handle_dict,
+        },
         "id": f"xy-edge__{src_id}{src_handle}-{tgt_id}{tgt_handle}",
         "animated": False,
         "className": "",
@@ -113,11 +115,11 @@ def make_edge(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="http://localhost:7860")
-    parser.add_argument("--name", default="B_longitudinal_ghost")
+    parser.add_argument("--name", default="extras_variant_tournament")
     parser.add_argument("--no-upload", action="store_true")
     args = parser.parse_args()
 
-    out_path = Path(__file__).resolve().parents[1] / "langflow_flows" / "B_longitudinal_ghost.json"
+    out_path = Path(__file__).resolve().parents[1] / "langflow_flows" / "extras_variant_tournament.json"
 
     with httpx.Client(base_url=args.host, timeout=60.0) as client:
         print("=> login")
@@ -127,59 +129,57 @@ def main() -> int:
         print("=> fetch component registry")
         all_components = fetch_all_components(client)
 
-        cat_b = "api_scenario_b"
+        cat_a = "api_scenario_a"
         cat_io = "input_output"
 
         chat_in = get_component(all_components, cat_io, "ChatInput")
-        cfg = get_component(all_components, cat_b, "PipelineConfig S-B.V2")
-        synth = get_component(all_components, cat_b, "TemporalSynthesizer S-B.V2")
-        req_parser = get_component(all_components, cat_b, "RequestParser S-B.V2")
-        detective = get_component(all_components, cat_b, "Detective S-B.V2")
-        sdoh = get_component(all_components, cat_b, "SDoHExtractor S-B.V2")
-        qa = get_component(all_components, cat_b, "QAReviewer S-B.V2")
-        report = get_component(all_components, cat_b, "ReportFormatter S-B.V2")
+        cfg = get_component(all_components, cat_a, "PipelineConfig S-A.V2")
+        triage = get_component(all_components, cat_a, "VariantTriage S-A.V2")
+        advisor = get_component(all_components, cat_a, "EvidenceAdvisor S-A.V2")
+        aggregator = get_component(all_components, cat_a, "EvidenceAggregator S-A.V2")
+        judge = get_component(all_components, cat_a, "TournamentJudge S-A.V2")
+        qa = get_component(all_components, cat_a, "QAReviewer S-A.V2")
+        report = get_component(all_components, cat_a, "ReportFormatter S-A.V2")
         chat_out = get_component(all_components, cat_io, "ChatOutput")
 
         n_chatin = make_node(chat_in, "ChatInput", (50, 250))
-        n_cfg = make_node(cfg, "PipelineConfig S-B.V2", (450, 250))
-        n_synth = make_node(synth, "TemporalSynthesizer S-B.V2", (900, 50))
-        n_req = make_node(req_parser, "RequestParser S-B.V2", (900, 600))
-        n_sdoh = make_node(sdoh, "SDoHExtractor S-B.V2", (900, 1100))
-        n_detective = make_node(detective, "Detective S-B.V2", (1350, 300))
-        n_qa = make_node(qa, "QAReviewer S-B.V2", (1800, 300))
-        n_report = make_node(report, "ReportFormatter S-B.V2", (2250, 700))
-        n_chatout = make_node(chat_out, "ChatOutput", (2700, 700))
+        n_cfg = make_node(cfg, "PipelineConfig S-A.V2", (450, 250))
+        n_triage = make_node(triage, "VariantTriage S-A.V2", (900, 100))
+        n_advisor = make_node(advisor, "EvidenceAdvisor S-A.V2", (900, 600))
+        n_aggregator = make_node(aggregator, "EvidenceAggregator S-A.V2", (1350, 100))
+        n_judge = make_node(judge, "TournamentJudge S-A.V2", (1800, 350))
+        n_qa = make_node(qa, "QAReviewer S-A.V2", (2250, 350))
+        n_report = make_node(report, "ReportFormatter S-A.V2", (2700, 350))
+        n_chatout = make_node(chat_out, "ChatOutput", (3150, 350))
 
-        nodes = [n_chatin, n_cfg, n_synth, n_req, n_sdoh, n_detective, n_qa, n_report, n_chatout]
+        nodes = [n_chatin, n_cfg, n_triage, n_advisor, n_aggregator, n_judge, n_qa, n_report, n_chatout]
 
         edges = [
             # ChatInput -> PipelineConfig (Message)
             make_edge(n_chatin, "message", ["Message"], n_cfg, "user_message", ["Message"]),
-            # PipelineConfig -> TemporalSynthesizer (Data, run_config)
-            make_edge(n_cfg, "run_config", ["Data"], n_synth, "run_config", ["Data"]),
-            # PipelineConfig -> SDoHExtractor (Data, run_config) — same source, second target
-            make_edge(n_cfg, "run_config", ["Data"], n_sdoh, "run_config", ["Data"]),
-            # TemporalSynthesizer -> Detective.timeline (Data)
-            make_edge(n_synth, "timeline", ["Data"], n_detective, "timeline", ["Data"]),
-            # RequestParser -> Detective.claims (Message, parallel branch)
-            make_edge(n_req, "claims", ["Message"], n_detective, "claims", ["Message"]),
-            # Detective -> QAReviewer (Data)
-            make_edge(n_detective, "findings", ["Data"], n_qa, "findings_input", ["Data"]),
-            # QAReviewer -> ReportFormatter.reviewed (Data)
+            # PipelineConfig -> VariantTriage (Data, run_config)
+            make_edge(n_cfg, "run_config", ["Data"], n_triage, "run_config", ["Data"]),
+            # VariantTriage -> EvidenceAggregator (Data)
+            make_edge(n_triage, "scored_variants", ["Data"], n_aggregator, "scored_variants", ["Data"]),
+            # EvidenceAggregator -> TournamentJudge (Data)
+            make_edge(n_aggregator, "aggregated", ["Data"], n_judge, "aggregated", ["Data"]),
+            # EvidenceAdvisor -> TournamentJudge (Message)
+            make_edge(n_advisor, "advisory", ["Message"], n_judge, "clinical_context", ["Message"]),
+            # TournamentJudge -> QAReviewer (Data)
+            make_edge(n_judge, "ranked", ["Data"], n_qa, "judge_output", ["Data"]),
+            # QAReviewer -> ReportFormatter (Data)
             make_edge(n_qa, "reviewed", ["Data"], n_report, "reviewed", ["Data"]),
-            # SDoHExtractor -> ReportFormatter.sdoh (Data, parallel branch joins at the end)
-            make_edge(n_sdoh, "sdoh", ["Data"], n_report, "sdoh", ["Data"]),
             # ReportFormatter -> ChatOutput (Message)
             make_edge(n_report, "report", ["Message"], n_chatout, "input_value", ["Message"]),
         ]
 
         flow_payload = {
             "name": args.name,
-            "description": "Scenario B v2: longitudinal-record reconciliation. Detective compares chart timeline vs current request claims; SDoH agent runs in parallel.",
+            "description": "Scenario A v2: 6-agent variant tournament with phenopacket export.",
             "data": {
                 "nodes": nodes,
                 "edges": edges,
-                "viewport": {"x": 0, "y": 0, "zoom": 0.45},
+                "viewport": {"x": 0, "y": 0, "zoom": 0.5},
             },
         }
 
@@ -212,4 +212,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())
