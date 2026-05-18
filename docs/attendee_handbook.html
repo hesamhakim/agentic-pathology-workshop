@@ -779,7 +779,10 @@ The chatbot's own system prompt is intentionally generic — six sentences telli
 <ol class="steps">
   <li>Run the baseline once with <code>run the aml case</code>. Note which sentence in section 8 talks about the blast count.</li>
   <li>Click the <strong>WHO Classifier (Integrator)</strong> node on the canvas. Open the <strong>System Prompt</strong> field on the right.</li>
-  <li>Add this sentence somewhere in the rules section: <em>Always begin section 8 with a one-sentence reconciliation of the morphologic blast count vs the flow blast count, naming both numbers explicitly.</em></li>
+  <li>Add this sentence somewhere in the rules section:
+    <div class="prompt system">
+<span class="prompt-label">Suggested edit — reconcile blast counts in section 8</span>Always begin section 8 with a one-sentence reconciliation of the morphologic blast count vs the flow blast count, naming both numbers explicitly.</div>
+  </li>
   <li>Re-run with <code>run the aml case</code>. Section 8 should now lead with the numeric comparison; the Part B trace updates to match.</li>
 </ol>
 
