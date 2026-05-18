@@ -24,7 +24,7 @@ PDFs, prompts, copy buttons
 </td>
 <td align="center" width="33%">
 
-**📊 [Open the slide deck](https://hesamhakim.github.io/agentic-pathology-workshop/docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html)**
+**📊 [Open the slide deck](https://hesamhakim.github.io/agentic-pathology-workshop/docs/slides/AI%20Agentic%20workflow%20case%20study%20-%20API%20summit%202026/Beyond%20the%20Chatbot%20-%20API%20Summit%202026.html)**
 
 25 slides, standalone HTML
 
@@ -56,7 +56,7 @@ All attendees, each with their own LangFlow account on a shared workshop VM, wor
 | What | Where |
 |---|---|
 | **Attendee handbook** (everything in one HTML page — PDF links, user prompts, system prompts, copy buttons) | [Open in browser](https://hesamhakim.github.io/agentic-pathology-workshop/docs/attendee_handbook.html) · [source](docs/attendee_handbook.html) |
-| **Slide deck** (25 slides, standalone HTML) | [Open in browser](https://hesamhakim.github.io/agentic-pathology-workshop/docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html) · [source](docs/slides/html-presentation/AI-Agentic-workflow-case-studydeck-standalone.html) |
+| **Slide deck** (25 slides, standalone HTML) | [Open in browser](https://hesamhakim.github.io/agentic-pathology-workshop/docs/slides/AI%20Agentic%20workflow%20case%20study%20-%20API%20summit%202026/Beyond%20the%20Chatbot%20-%20API%20Summit%202026.html) · [source](docs/slides/AI%20Agentic%20workflow%20case%20study%20-%20API%20summit%202026/Beyond%20the%20Chatbot%20-%20API%20Summit%202026.html) |
 | **Per-flow READMEs** (same content, split by flow) | [`docs/workshop_materials/`](docs/workshop_materials/) |
 | **The four AML PDFs** | [`data/scenario_d/case_aml/`](data/scenario_d/case_aml/) |
 | **LangFlow flow JSONs** | [`langflow_flows/`](langflow_flows/) |
